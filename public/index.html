@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA | Luxury Interior Design</title>
+    
+    <!-- Google Fonts: Playfair Display (Serif) & Plus Jakarta Sans (Sans-Serif) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (via CDN for static implementation) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: '#FBFBFA',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+    </style>
+</head>
+<body class="font-sans text-stone-900 bg-cream antialiased selection:bg-stone-200 selection:text-stone-900">
+
+    <!-- Sticky Navbar -->
+    <nav class="sticky top-0 z-50 bg-cream/90 backdrop-blur-md border-b border-stone-200/50 transition-all">
+        <div class="max-w-[1400px] mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="#" class="font-serif text-2xl tracking-wide text-stone-900">AURA.</a>
+            
+            <!-- Center Navigation Links -->
+            <div class="hidden md:flex items-center gap-10">
+                <a href="#" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Living</a>
+                <a href="#" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Dining</a>
+                <a href="#" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Bedroom</a>
+                <a href="#" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Lighting</a>
+            </div>
+            
+            <!-- Right Icons -->
+            <div class="flex items-center gap-6 text-stone-900">
+                <!-- Search Icon -->
+                <button class="hover:opacity-70 transition-opacity" aria-label="Search">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </button>
+                <!-- User Profile Icon -->
+                <button class="hover:opacity-70 transition-opacity hidden sm:block" aria-label="User Profile">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                </button>
+                <!-- Shopping Cart Icon with Dynamic Badge -->
+                <button class="relative hover:opacity-70 transition-opacity" aria-label="Shopping Cart">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    <span id="cart-badge" class="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-stone-900 text-[9px] font-medium text-white opacity-0 transition-opacity duration-300">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Editorial Hero Section -->
+    <section class="flex flex-col md:flex-row min-h-[85vh]">
+        <!-- Text Content -->
+        <div class="w-full md:w-1/2 flex flex-col justify-center items-start px-8 md:px-16 lg:px-24 py-16 md:py-0 bg-cream">
+            <span class="font-sans text-xs tracking-[0.2em] uppercase text-stone-500 mb-6">New Collection</span>
+            <h1 class="font-serif text-5xl md:text-6xl lg:text-7xl leading-[1.1] text-stone-900 mb-8">
+                Elevate Your <br/><span class="italic text-stone-600">Space.</span>
+            </h1>
+            <p class="font-sans text-stone-500 max-w-md mb-10 leading-relaxed">
+                Discover our curated collection of minimalist furniture. Crafted with sustainable materials and designed for the modern sanctuary.
+            </p>
+            <a href="#shop" class="group flex items-center gap-4 border-b border-stone-900 pb-2 text-stone-900 hover:text-stone-600 hover:border-stone-600 transition-colors">
+                <span class="font-sans text-sm tracking-widest uppercase">Explore Collection</span>
+                <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+            </a>
+        </div>
+        <!-- Immersive Image -->
+        <div class="w-full md:w-1/2 relative min-h-[50vh] md:min-h-full bg-stone-100">
+            <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80" alt="Minimalist Japandi Interior" class="absolute inset-0 w-full h-full object-cover">
+        </div>
+    </section>
+
+    <!-- The Shop (Product Grid) -->
+    <section id="shop" class="max-w-[1400px] mx-auto px-6 md:px-12 py-24">
+        
+        <!-- Category Filter Bar -->
+        <div class="flex flex-col items-center mb-16">
+            <h2 class="font-serif text-3xl md:text-4xl text-stone-900 mb-10">Curated Pieces</h2>
+            <div class="flex flex-wrap justify-center gap-6 md:gap-12">
+                <button class="filter-btn font-sans text-xs md:text-sm tracking-widest uppercase border-b border-stone-900 text-stone-900 pb-1 transition-all" data-filter="all">All</button>
+                <button class="filter-btn font-sans text-xs md:text-sm tracking-widest uppercase border-b border-transparent text-stone-500 hover:text-stone-900 transition-all" data-filter="seating">Seating</button>
+                <button class="filter-btn font-sans text-xs md:text-sm tracking-widest uppercase border-b border-transparent text-stone-500 hover:text-stone-900 transition-all" data-filter="tables">Tables</button>
+                <button class="filter-btn font-sans text-xs md:text-sm tracking-widest uppercase border-b border-transparent text-stone-500 hover:text-stone-900 transition-all" data-filter="decor">Decor</button>
+            </div>
+        </div>
+
+        <!-- Responsive Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+            
+            <!-- Product 1 -->
+            <div class="product-card group flex flex-col gap-4 cursor-pointer" data-category="seating">
+                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
+                    <img src="https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&w=800&q=80" alt="Minimalist Lounge Chair" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <button class="add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm">
+                        Add to Cart
+                    </button>
+                </div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-serif text-lg text-stone-900">Minimalist Lounge Chair</h3>
+                        <p class="font-sans text-sm text-stone-500 mt-1">Solid Oak & Linen</p>
+                    </div>
+                    <span class="font-sans text-stone-900 font-medium">€850</span>
+                </div>
+            </div>
+
+            <!-- Product 2 -->
+            <div class="product-card group flex flex-col gap-4 cursor-pointer" data-category="tables">
+                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
+                    <img src="https://images.unsplash.com/photo-1604074131665-7a4b13870ab4?auto=format&fit=crop&w=800&q=80" alt="Marble Coffee Table" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <button class="add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm">
+                        Add to Cart
+                    </button>
+                </div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-serif text-lg text-stone-900">Marble Coffee Table</h3>
+                        <p class="font-sans text-sm text-stone-500 mt-1">Carrara Marble</p>
+                    </div>
+                    <span class="font-sans text-stone-900 font-medium">€1,200</span>
+                </div>
+            </div>
+
+            <!-- Product 3 -->
+            <div class="product-card group flex flex-col gap-4 cursor-pointer" data-category="decor">
+                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
+                    <img src="https://images.unsplash.com/photo-1612152505975-641c25013ca0?auto=format&fit=crop&w=800&q=80" alt="Ceramic Vase" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <button class="add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm">
+                        Add to Cart
+                    </button>
+                </div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-serif text-lg text-stone-900">Ceramic Vase</h3>
+                        <p class="font-sans text-sm text-stone-500 mt-1">Handcrafted Clay</p>
+                    </div>
+                    <span class="font-sans text-stone-900 font-medium">€120</span>
+                </div>
+            </div>
+
+            <!-- Product 4 -->
+            <div class="product-card group flex flex-col gap-4 cursor-pointer" data-category="seating">
+                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
+                    <img src="https://images.unsplash.com/photo-1506439012052-a5f1571d054a?auto=format&fit=crop&w=800&q=80" alt="Dining Chair" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <button class="add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm">
+                        Add to Cart
+                    </button>
+                </div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-serif text-lg text-stone-900">Dining Chair</h3>
+                        <p class="font-sans text-sm text-stone-500 mt-1">Walnut & Leather</p>
+                    </div>
+                    <span class="font-sans text-stone-900 font-medium">€450</span>
+                </div>
+            </div>
+
+            <!-- Product 5 -->
+            <div class="product-card group flex flex-col gap-4 cursor-pointer" data-category="tables">
+                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
+                    <img src="https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?auto=format&fit=crop&w=800&q=80" alt="Oak Dining Table" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <button class="add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm">
+                        Add to Cart
+                    </button>
+                </div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-serif text-lg text-stone-900">Oak Dining Table</h3>
+                        <p class="font-sans text-sm text-stone-500 mt-1">Solid Oak</p>
+                    </div>
+                    <span class="font-sans text-stone-900 font-medium">€2,100</span>
+                </div>
+            </div>
+
+            <!-- Product 6 -->
+            <div class="product-card group flex flex-col gap-4 cursor-pointer" data-category="decor">
+                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
+                    <img src="https://images.unsplash.com/photo-1507149833265-60c372daea22?auto=format&fit=crop&w=800&q=80" alt="Table Lamp" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    <div class="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <button class="add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm">
+                        Add to Cart
+                    </button>
+                </div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-serif text-lg text-stone-900">Table Lamp</h3>
+                        <p class="font-sans text-sm text-stone-500 mt-1">Brass & Glass</p>
+                    </div>
+                    <span class="font-sans text-stone-900 font-medium">€280</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Minimal Footer -->
+    <footer class="bg-stone-100 pt-20 pb-10 border-t border-stone-200">
+        <div class="max-w-[1400px] mx-auto px-6 md:px-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <!-- Brand Info -->
+                <div class="md:col-span-1">
+                    <a href="#" class="font-serif text-2xl tracking-wide text-stone-900 block mb-6">AURA.</a>
+                    <p class="font-sans text-sm text-stone-500 leading-relaxed">Defining the modern sanctuary through minimalist, sustainable, and timeless interior design.</p>
+                </div>
+                
+                <!-- Customer Care Column -->
+                <div>
+                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6">Customer Care</h4>
+                    <ul class="space-y-4 font-sans text-sm text-stone-500">
+                        <li><a href="#" class="hover:text-stone-900 transition-colors">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-stone-900 transition-colors">FAQs</a></li>
+                        <li><a href="#" class="hover:text-stone-900 transition-colors">Returns & Exchanges</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Shipping Details Column -->
+                <div>
+                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6">Details</h4>
+                    <ul class="space-y-4 font-sans text-sm text-stone-500">
+                        <li><a href="#" class="hover:text-stone-900 transition-colors">Shipping Information</a></li>
+                        <li><a href="#" class="hover:text-stone-900 transition-colors">Sustainability</a></li>
+                        <li><a href="#" class="hover:text-stone-900 transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Newsletter Signup -->
+                <div>
+                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6">Newsletter</h4>
+                    <p class="font-sans text-sm text-stone-500 mb-4">Subscribe to receive updates, access to exclusive deals, and more.</p>
+                    <form class="flex items-end group" onsubmit="event.preventDefault();">
+                        <input type="email" placeholder="Enter your email address" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        <button type="submit" class="pb-2 pl-2 text-stone-400 group-hover:text-stone-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Footer Bottom -->
+            <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-stone-200">
+                <p class="font-sans text-xs text-stone-400">&copy; 2024 AURA Interior Design. All rights reserved.</p>
+                <div class="flex gap-6 mt-4 md:mt-0">
+                    <a href="#" class="text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium">IG</a>
+                    <a href="#" class="text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium">PT</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Main JavaScript File -->
+    <script src="./js/shop.js"></script>
+</body>
+</html>
