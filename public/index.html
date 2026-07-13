@@ -42,12 +42,12 @@
             <!-- Brand Logo -->
             <a href="index.html" class="font-serif text-2xl tracking-wide text-stone-900">AURA.</a>
             
-            <!-- Center Navigation Links (Act as Filters for Homepage Grid) -->
+            <!-- Center Navigation Links -->
             <div class="hidden md:flex items-center gap-10">
-                <button class="nav-filter font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors" data-category="living">Living</button>
-                <button class="nav-filter font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors" data-category="dining">Dining</button>
-                <button class="nav-filter font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors" data-category="bedroom">Bedroom</button>
-                <button class="nav-filter font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors" data-category="lighting">Lighting</button>
+                <a href="collection.html" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Collection</a>
+                <a href="collection.html?category=seating" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Seating</a>
+                <a href="collection.html?category=tables" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Tables</a>
+                <a href="collection.html?category=decor" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Decor</a>
             </div>
             
             <!-- Right Icons -->
@@ -124,11 +124,18 @@
                     <p class="font-sans text-sm text-stone-500 leading-relaxed">Defining the modern sanctuary through minimalist, sustainable, and timeless interior design.</p>
                 </div>
                 <div>
-                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6">Customer Care</h4>
+                    <!-- Updated Customer Care Header Link -->
+                    <a href="customer-care.html" class="block group mb-6">
+                        <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 group-hover:text-stone-500 transition-colors">Customer Care</h4>
+                    </a>
                     <ul class="space-y-4 font-sans text-sm text-stone-500">
-                        <li><a href="#" class="hover:text-stone-900 transition-colors">Contact Us</a></li>
-                        <li><a href="#" class="hover:text-stone-900 transition-colors">FAQs</a></li>
-                        <li><a href="#" class="hover:text-stone-900 transition-colors">Returns & Exchanges</a></li>
+                        <li class="leading-relaxed">
+                            123 Aura Boulevard, Suite 400<br>
+                            New York, NY 10012
+                        </li>
+                        <li>+1 800 555 0199</li>
+                        <li><a href="mailto:hello@aurafurniture.com" class="hover:text-stone-900 transition-colors">hello@aurafurniture.com</a></li>
+                        <li class="pt-2"><a href="customer-care.html" class="hover:text-stone-900 transition-colors underline underline-offset-4 decoration-stone-300">FAQs & Returns</a></li>
                     </ul>
                 </div>
                 <div>
@@ -161,31 +168,21 @@
     </footer>
 
     <!-- ==================== UI OVERLAYS ==================== -->
-
     <!-- Quick View Modal -->
     <div id="quick-view-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center">
-        <!-- Backdrop -->
         <div id="modal-backdrop" class="absolute inset-0 bg-stone-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
-        
-        <!-- Modal Content Box -->
         <div id="modal-content" class="relative bg-cream w-[90%] max-w-4xl max-h-[90vh] overflow-y-auto no-scrollbar rounded-md shadow-2xl flex flex-col md:flex-row transform scale-95 opacity-0 transition-all duration-300 z-10">
-            <!-- Close Button -->
             <button id="close-modal-btn" class="absolute top-4 right-4 z-20 p-2 text-stone-500 hover:text-stone-900 transition-colors bg-cream/50 rounded-full backdrop-blur-sm md:bg-transparent">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
-            
-            <!-- Left: Image -->
             <div class="w-full md:w-1/2 h-72 md:h-auto bg-stone-100">
                 <img id="modal-image" src="" alt="Product" class="w-full h-full object-cover">
             </div>
-            
-            <!-- Right: Details -->
             <div class="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
                 <h2 id="modal-title" class="font-serif text-3xl md:text-4xl text-stone-900 mb-2"></h2>
                 <p id="modal-price" class="font-sans text-xl text-stone-600 mb-6 font-medium"></p>
                 <div class="w-12 h-px bg-stone-300 mb-6"></div>
                 <p id="modal-desc" class="font-sans text-stone-500 leading-relaxed mb-10 text-sm md:text-base"></p>
-                
                 <button id="modal-add-to-cart-btn" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-4 rounded-md hover:bg-stone-800 transition-colors shadow-sm">
                     Add to Cart
                 </button>
@@ -195,38 +192,26 @@
 
     <!-- Cart Slide-out Drawer -->
     <div id="cart-drawer-container" class="fixed inset-0 z-[100] hidden pointer-events-none">
-        <!-- Cart Backdrop -->
         <div id="cart-backdrop" class="absolute inset-0 bg-stone-900/20 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-auto"></div>
-        
-        <!-- Drawer Panel -->
         <div id="cart-drawer" class="absolute top-0 right-0 h-full w-full max-w-md bg-cream shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col pointer-events-auto">
-            
-            <!-- Header -->
             <div class="flex items-center justify-between px-8 py-6 border-b border-stone-200">
                 <h2 class="font-serif text-2xl text-stone-900">Your Cart</h2>
                 <button id="close-cart-btn" class="p-2 -mr-2 text-stone-500 hover:text-stone-900 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            
-            <!-- Items Area -->
             <div id="cart-items-container" class="flex-1 overflow-y-auto px-8 py-6 space-y-6 no-scrollbar">
-                <!-- Empty state shown by default -->
                 <div id="empty-cart-msg" class="h-full flex flex-col items-center justify-center text-center text-stone-400 space-y-4">
                     <svg class="w-12 h-12 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                     <p class="font-sans text-sm">Your cart is currently empty.</p>
                 </div>
-                <!-- Dynamic items will be injected here -->
             </div>
-            
-            <!-- Footer (Total & Checkout) -->
             <div class="px-8 py-6 border-t border-stone-200 bg-stone-50/50">
                 <div class="flex justify-between items-center mb-6">
                     <span class="font-sans text-stone-500 uppercase tracking-widest text-xs font-semibold">Subtotal</span>
                     <span id="cart-total" class="font-serif text-2xl text-stone-900">€0</span>
                 </div>
                 <p class="font-sans text-xs text-stone-400 mb-6">Shipping and taxes calculated at checkout.</p>
-                <!-- Notice onclick="window.checkout()" because this is now a JS module -->
                 <button onclick="window.checkout()" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-4 rounded-md hover:bg-stone-800 transition-colors shadow-sm">
                     Secure Checkout
                 </button>
