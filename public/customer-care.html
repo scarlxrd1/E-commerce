@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA | Customer Care</title>
+    
+    <!-- Google Fonts: Playfair Display (Serif) & Inter (Sans-Serif) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Inter"', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: '#FAFAFA',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background-color: #FAFAFA; 
+            overflow-x: hidden;
+        }
+        /* Details/Summary Accordion Styling */
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+    </style>
+</head>
+<body class="font-sans text-stone-900 antialiased selection:bg-stone-200 selection:text-stone-900">
+
+    <!-- Sticky Navbar -->
+    <nav class="sticky top-0 z-50 bg-cream/90 backdrop-blur-md border-b border-stone-200/50">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-12 h-24 flex items-center justify-between">
+            <a href="index.html" class="font-serif text-2xl tracking-widest text-stone-900">AURA.</a>
+            
+            <!-- Center Navigation Links -->
+            <div class="hidden md:flex items-center gap-10">
+                <a href="collection.html" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Collection</a>
+                <a href="collection.html?category=seating" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Seating</a>
+                <a href="collection.html?category=tables" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Tables</a>
+                <a href="collection.html?category=decor" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Decor</a>
+            </div>
+
+            <!-- Right Icons -->
+            <div class="flex items-center gap-8 text-stone-900">
+                <button aria-label="Search" class="hover:opacity-60 transition-opacity">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </button>
+                <button aria-label="Cart" class="relative hover:opacity-60 transition-opacity">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-[1200px] mx-auto px-6 md:px-12 pt-24 pb-32">
+        
+        <!-- Page Header -->
+        <header class="text-center mb-24">
+            <h1 class="font-serif text-5xl md:text-6xl text-stone-900 mb-6">Customer Care</h1>
+            <p class="font-sans text-stone-500 max-w-lg mx-auto leading-relaxed">
+                We are dedicated to providing a seamless experience. Whether you have a question about a piece, shipping, or need assistance with an existing order, we are here to help.
+            </p>
+        </header>
+
+        <!-- Two Column Layout: Contact Form & FAQs -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 mb-24">
+            
+            <!-- Left Column: Contact Form -->
+            <section>
+                <h2 class="font-serif text-3xl text-stone-900 mb-10">Get in Touch</h2>
+                <form id="contact-form" class="flex flex-col gap-8">
+                    <div>
+                        <label for="name" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Full Name</label>
+                        <input type="text" id="name" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                    </div>
+                    <div>
+                        <label for="phone" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Telephone Number</label>
+                        <input type="tel" id="phone" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                    </div>
+                    <div>
+                        <label for="message" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">How can we help you?</label>
+                        <textarea id="message" rows="4" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors resize-none"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-5 mt-4 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">
+                        Submit Inquiry
+                    </button>
+                </form>
+            </section>
+
+            <!-- Right Column: FAQs -->
+            <section>
+                <h2 class="font-serif text-3xl text-stone-900 mb-10">Frequently Asked Questions</h2>
+                <div class="border-t border-stone-200">
+                    
+                    <!-- FAQ 1 -->
+                    <details class="group border-b border-stone-200 py-6">
+                        <summary class="font-sans text-sm font-medium tracking-wide text-stone-900 cursor-pointer flex justify-between items-center">
+                            What are your standard shipping times?
+                            <span class="text-stone-400 transition-transform duration-300 group-open:rotate-45">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"></path></svg>
+                            </span>
+                        </summary>
+                        <p class="font-sans text-sm text-stone-500 mt-6 leading-relaxed">
+                            Because many of our pieces are crafted to order, standard delivery generally takes between 4 to 6 weeks. In-stock decor items are usually dispatched within 3-5 business days. You will receive a tracking link once your order leaves our facility.
+                        </p>
+                    </details>
+
+                    <!-- FAQ 2 -->
+                    <details class="group border-b border-stone-200 py-6">
+                        <summary class="font-sans text-sm font-medium tracking-wide text-stone-900 cursor-pointer flex justify-between items-center">
+                            Do you offer white-glove delivery and assembly?
+                            <span class="text-stone-400 transition-transform duration-300 group-open:rotate-45">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"></path></svg>
+                            </span>
+                        </summary>
+                        <p class="font-sans text-sm text-stone-500 mt-6 leading-relaxed">
+                            Yes, white-glove delivery is available for all large furniture items (tables, seating) at an additional tier during checkout. Our team will deliver the piece to your room of choice, handle all assembly, and remove the packaging materials.
+                        </p>
+                    </details>
+
+                    <!-- FAQ 3 -->
+                    <details class="group border-b border-stone-200 py-6">
+                        <summary class="font-sans text-sm font-medium tracking-wide text-stone-900 cursor-pointer flex justify-between items-center">
+                            Are your materials sustainably sourced?
+                            <span class="text-stone-400 transition-transform duration-300 group-open:rotate-45">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"></path></svg>
+                            </span>
+                        </summary>
+                        <p class="font-sans text-sm text-stone-500 mt-6 leading-relaxed">
+                            Sustainability is at the core of AURA. We strictly utilize FSC-certified timbers, organic linens, and non-toxic finishes. We partner directly with artisans to ensure a transparent, ethical supply chain.
+                        </p>
+                    </details>
+                    
+                </div>
+            </section>
+        </div>
+
+        <!-- Returns & Exchanges Block -->
+        <section class="bg-stone-100 p-10 md:p-16 rounded-sm text-center">
+            <h2 class="font-serif text-2xl text-stone-900 mb-4">Returns & Exchanges</h2>
+            <div class="w-12 h-px bg-stone-300 mx-auto mb-6"></div>
+            <p class="font-sans text-sm text-stone-500 max-w-2xl mx-auto leading-relaxed">
+                We take immense pride in the craftsmanship of our collection. If you are not entirely satisfied with your purchase, AURA accepts returns of unused, undamaged items within <strong>30 days of delivery</strong>. Custom or made-to-order pieces are final sale. To initiate a return, simply fill out the contact form above with your order number.
+            </p>
+        </section>
+
+    </main>
+
+    <!-- Minimal Footer -->
+    <footer class="bg-stone-100 pt-20 pb-10 border-t border-stone-200">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <div class="md:col-span-1">
+                    <a href="index.html" class="font-serif text-2xl tracking-wide text-stone-900 block mb-6">AURA.</a>
+                    <p class="font-sans text-sm text-stone-500 leading-relaxed">Defining the modern sanctuary through minimalist, sustainable, and timeless interior design.</p>
+                </div>
+                <div>
+                    <!-- Updated Customer Care Header Link -->
+                    <a href="customer-care.html" class="block group mb-6">
+                        <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 group-hover:text-stone-500 transition-colors">Customer Care</h4>
+                    </a>
+                    <ul class="space-y-4 font-sans text-sm text-stone-500">
+                        <li class="leading-relaxed">
+                            123 Aura Boulevard, Suite 400<br>
+                            New York, NY 10012
+                        </li>
+                        <li>+1 800 555 0199</li>
+                        <li><a href="mailto:hello@aurafurniture.com" class="hover:text-stone-900 transition-colors">hello@aurafurniture.com</a></li>
+                        <li class="pt-2"><a href="customer-care.html" class="hover:text-stone-900 transition-colors underline underline-offset-4 decoration-stone-300">FAQs & Returns</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6">Details</h4>
+                    <ul class="space-y-4 font-sans text-sm text-stone-500">
+                        <li><a href="#" class="hover:text-stone-900 transition-colors">Shipping Information</a></li>
+                        <li><a href="#" class="hover:text-stone-900 transition-colors">Sustainability</a></li>
+                        <li><a href="#" class="hover:text-stone-900 transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6">Newsletter</h4>
+                    <p class="font-sans text-sm text-stone-500 mb-4">Subscribe to receive updates, access to exclusive deals, and more.</p>
+                    <form class="flex items-end group" onsubmit="event.preventDefault();">
+                        <input type="email" placeholder="Enter your email address" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        <button type="submit" class="pb-2 pl-2 text-stone-400 group-hover:text-stone-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-stone-200">
+                <p class="font-sans text-xs text-stone-400">&copy; 2024 AURA Interior Design. All rights reserved.</p>
+                <div class="flex gap-6 mt-4 md:mt-0">
+                    <a href="#" class="text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium">IG</a>
+                    <a href="#" class="text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium">PT</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Form Submission Script -->
+    <script>
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Your message has been sent to Administration.');
+            this.reset();
+        });
+    </script>
+</body>
+</html>
