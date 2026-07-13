@@ -51,6 +51,15 @@
     <nav class="sticky top-0 z-50 bg-cream/90 backdrop-blur-md border-b border-stone-200/50">
         <div class="max-w-[1600px] mx-auto px-6 md:px-12 h-24 flex items-center justify-between">
             <a href="index.html" class="font-serif text-2xl tracking-widest text-stone-900">AURA.</a>
+            
+            <!-- Center Navigation Links -->
+            <div class="hidden md:flex items-center gap-10">
+                <a href="collection.html" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Collection</a>
+                <a href="collection.html?category=seating" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Seating</a>
+                <a href="collection.html?category=tables" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Tables</a>
+                <a href="collection.html?category=decor" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Decor</a>
+            </div>
+
             <div class="flex items-center gap-8 text-stone-900">
                 <button aria-label="Search" class="hover:opacity-60 transition-opacity">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -88,6 +97,58 @@
             <!-- Products will be generated here by collection.js -->
         </div>
     </main>
+
+    <!-- Minimal Footer -->
+    <footer class="bg-stone-100 pt-20 pb-10 border-t border-stone-200">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <div class="md:col-span-1">
+                    <a href="index.html" class="font-serif text-2xl tracking-wide text-stone-900 block mb-6">AURA.</a>
+                    <p class="font-sans text-sm text-stone-500 leading-relaxed">Defining the modern sanctuary through minimalist, sustainable, and timeless interior design.</p>
+                </div>
+                <div>
+                    <!-- Updated Customer Care Header Link -->
+                    <a href="customer-care.html" class="block group mb-6">
+                        <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 group-hover:text-stone-500 transition-colors">Customer Care</h4>
+                    </a>
+                    <ul class="space-y-4 font-sans text-sm text-stone-500">
+                        <li class="leading-relaxed">
+                            123 Aura Boulevard, Suite 400<br>
+                            New York, NY 10012
+                        </li>
+                        <li>+1 800 555 0199</li>
+                        <li><a href="mailto:hello@aurafurniture.com" class="hover:text-stone-900 transition-colors">hello@aurafurniture.com</a></li>
+                        <li class="pt-2"><a href="customer-care.html" class="hover:text-stone-900 transition-colors underline underline-offset-4 decoration-stone-300">FAQs & Returns</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6">Details</h4>
+                    <ul class="space-y-4 font-sans text-sm text-stone-500">
+                        <li><a href="#" class="hover:text-stone-900 transition-colors">Shipping Information</a></li>
+                        <li><a href="#" class="hover:text-stone-900 transition-colors">Sustainability</a></li>
+                        <li><a href="#" class="hover:text-stone-900 transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6">Newsletter</h4>
+                    <p class="font-sans text-sm text-stone-500 mb-4">Subscribe to receive updates, access to exclusive deals, and more.</p>
+                    <form class="flex items-end group" onsubmit="event.preventDefault();">
+                        <input type="email" placeholder="Enter your email address" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        <button type="submit" class="pb-2 pl-2 text-stone-400 group-hover:text-stone-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-stone-200">
+                <p class="font-sans text-xs text-stone-400">&copy; 2024 AURA Interior Design. All rights reserved.</p>
+                <div class="flex gap-6 mt-4 md:mt-0">
+                    <a href="#" class="text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium">IG</a>
+                    <a href="#" class="text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium">PT</a>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <!-- Main Script for this specific page (Updated to type="module") -->
     <script type="module" src="./js/collection.js"></script>
