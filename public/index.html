@@ -101,120 +101,12 @@
             </div>
         </div>
 
-        <!-- Responsive Grid -->
+        <!-- Responsive Grid (Empty, will be populated by Firebase) -->
         <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
-            
-            <!-- Product 1 -->
-            <div class="product-card group flex flex-col gap-4 cursor-pointer" data-category="seating living bedroom" data-title="Minimalist Lounge Chair" data-price="850" data-image="https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&w=800&q=80" data-desc="A beautiful minimalist lounge chair crafted from solid oak and upholstered in premium organic linen. Perfect for reading corners or as an accent piece in any modern living space.">
-                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
-                    <img src="https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&w=800&q=80" alt="Minimalist Lounge Chair" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <button class="grid-add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm z-10 hover:bg-stone-800">
-                        Add to Cart
-                    </button>
-                </div>
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="font-serif text-lg text-stone-900">Minimalist Lounge Chair</h3>
-                        <p class="font-sans text-sm text-stone-500 mt-1">Solid Oak & Linen</p>
-                    </div>
-                    <span class="font-sans text-stone-900 font-medium">€850</span>
-                </div>
-            </div>
-
-            <!-- Product 2 -->
-            <div class="product-card group flex flex-col gap-4 cursor-pointer" data-category="tables living" data-title="Marble Coffee Table" data-price="1200" data-image="https://images.unsplash.com/photo-1604074131665-7a4b13870ab4?auto=format&fit=crop&w=800&q=80" data-desc="An elegant centerpiece featuring a solid slab of Italian Carrara marble resting on a sleek, matte-black powder-coated steel frame.">
-                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
-                    <img src="https://images.unsplash.com/photo-1604074131665-7a4b13870ab4?auto=format&fit=crop&w=800&q=80" alt="Marble Coffee Table" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <button class="grid-add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm z-10 hover:bg-stone-800">
-                        Add to Cart
-                    </button>
-                </div>
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="font-serif text-lg text-stone-900">Marble Coffee Table</h3>
-                        <p class="font-sans text-sm text-stone-500 mt-1">Carrara Marble</p>
-                    </div>
-                    <span class="font-sans text-stone-900 font-medium">€1,200</span>
-                </div>
-            </div>
-
-            <!-- Product 3 -->
-            <div class="product-card group flex flex-col gap-4 cursor-pointer" data-category="decor living dining bedroom" data-title="Ceramic Vase" data-price="120" data-image="https://images.unsplash.com/photo-1612152505975-641c25013ca0?auto=format&fit=crop&w=800&q=80" data-desc="Hand-thrown by master ceramists, this textured vase brings an earthy, organic feel to any surface. Perfect for dried botanicals or standing elegantly on its own.">
-                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
-                    <img src="https://images.unsplash.com/photo-1612152505975-641c25013ca0?auto=format&fit=crop&w=800&q=80" alt="Ceramic Vase" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <button class="grid-add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm z-10 hover:bg-stone-800">
-                        Add to Cart
-                    </button>
-                </div>
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="font-serif text-lg text-stone-900">Ceramic Vase</h3>
-                        <p class="font-sans text-sm text-stone-500 mt-1">Handcrafted Clay</p>
-                    </div>
-                    <span class="font-sans text-stone-900 font-medium">€120</span>
-                </div>
-            </div>
-
-            <!-- Product 4 -->
-            <div class="product-card group flex flex-col gap-4 cursor-pointer" data-category="seating dining" data-title="Dining Chair" data-price="450" data-image="https://images.unsplash.com/photo-1506439012052-a5f1571d054a?auto=format&fit=crop&w=800&q=80" data-desc="A masterclass in joinery, this dining chair pairs rich, warm walnut wood with supple top-grain leather for an unparalleled dining experience.">
-                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
-                    <img src="https://images.unsplash.com/photo-1506439012052-a5f1571d054a?auto=format&fit=crop&w=800&q=80" alt="Dining Chair" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <button class="grid-add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm z-10 hover:bg-stone-800">
-                        Add to Cart
-                    </button>
-                </div>
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="font-serif text-lg text-stone-900">Dining Chair</h3>
-                        <p class="font-sans text-sm text-stone-500 mt-1">Walnut & Leather</p>
-                    </div>
-                    <span class="font-sans text-stone-900 font-medium">€450</span>
-                </div>
-            </div>
-
-            <!-- Product 5 -->
-            <div class="product-card group flex flex-col gap-4 cursor-pointer" data-category="tables dining" data-title="Oak Dining Table" data-price="2100" data-image="https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?auto=format&fit=crop&w=800&q=80" data-desc="Gather around this expansive solid oak dining table. Its minimalist silhouette highlights the natural grain and beauty of sustainably sourced timber.">
-                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
-                    <img src="https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?auto=format&fit=crop&w=800&q=80" alt="Oak Dining Table" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <button class="grid-add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm z-10 hover:bg-stone-800">
-                        Add to Cart
-                    </button>
-                </div>
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="font-serif text-lg text-stone-900">Oak Dining Table</h3>
-                        <p class="font-sans text-sm text-stone-500 mt-1">Solid Oak</p>
-                    </div>
-                    <span class="font-sans text-stone-900 font-medium">€2,100</span>
-                </div>
-            </div>
-
-            <!-- Product 6 -->
-            <div class="product-card group flex flex-col gap-4 cursor-pointer" data-category="decor lighting bedroom living" data-title="Table Lamp" data-price="280" data-image="https://images.unsplash.com/photo-1507149833265-60c372daea22?auto=format&fit=crop&w=800&q=80" data-desc="Cast a warm, ambient glow with this sophisticated table lamp. Featuring a brushed brass base and an opaque frosted glass shade.">
-                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
-                    <img src="https://images.unsplash.com/photo-1507149833265-60c372daea22?auto=format&fit=crop&w=800&q=80" alt="Table Lamp" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <button class="grid-add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm z-10 hover:bg-stone-800">
-                        Add to Cart
-                    </button>
-                </div>
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="font-serif text-lg text-stone-900">Table Lamp</h3>
-                        <p class="font-sans text-sm text-stone-500 mt-1">Brass & Glass</p>
-                    </div>
-                    <span class="font-sans text-stone-900 font-medium">€280</span>
-                </div>
-            </div>
-
+            <!-- Products will be dynamically injected here by shop.js -->
         </div>
 
-        <!-- View Full Collection CTA (Added to guide users to the shop page) -->
+        <!-- View Full Collection CTA -->
         <div class="flex justify-center mt-16">
             <a href="collection.html" class="group flex items-center gap-4 border-b border-stone-900 pb-2 text-stone-900 hover:text-stone-600 hover:border-stone-600 transition-colors">
                 <span class="font-sans text-sm tracking-widest uppercase">View Full Collection</span>
@@ -228,7 +120,6 @@
         <div class="max-w-[1400px] mx-auto px-6 md:px-12">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                 <div class="md:col-span-1">
-                    <!-- Updated Footer Logo Link -->
                     <a href="index.html" class="font-serif text-2xl tracking-wide text-stone-900 block mb-6">AURA.</a>
                     <p class="font-sans text-sm text-stone-500 leading-relaxed">Defining the modern sanctuary through minimalist, sustainable, and timeless interior design.</p>
                 </div>
@@ -335,14 +226,15 @@
                     <span id="cart-total" class="font-serif text-2xl text-stone-900">€0</span>
                 </div>
                 <p class="font-sans text-xs text-stone-400 mb-6">Shipping and taxes calculated at checkout.</p>
-                <button onclick="checkout()" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-4 rounded-md hover:bg-stone-800 transition-colors shadow-sm">
+                <!-- Notice onclick="window.checkout()" because this is now a JS module -->
+                <button onclick="window.checkout()" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-4 rounded-md hover:bg-stone-800 transition-colors shadow-sm">
                     Secure Checkout
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Main JavaScript File -->
-    <script src="./js/shop.js"></script>
+    <!-- Main JavaScript File as a Module -->
+    <script type="module" src="./js/shop.js"></script>
 </body>
 </html>
