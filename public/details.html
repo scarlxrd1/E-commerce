@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA | Company Details</title>
+    
+    <!-- Google Fonts: Playfair Display (Serif) & Inter (Sans-Serif) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Inter"', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: '#FAFAFA',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body { 
+            background-color: #FAFAFA; 
+            overflow-x: hidden;
+        }
+    </style>
+</head>
+<body class="font-sans text-stone-900 antialiased selection:bg-stone-200 selection:text-stone-900">
+
+    <!-- Sticky Navbar -->
+    <nav class="sticky top-0 z-50 bg-cream/90 backdrop-blur-md border-b border-stone-200/50">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-12 h-24 flex items-center justify-between">
+            <a href="index.html" class="font-serif text-2xl tracking-widest text-stone-900">AURA.</a>
+            
+            <!-- Center Navigation Links (Minimized) -->
+            <div class="hidden md:flex items-center gap-10">
+                <a href="collection.html" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Collection</a>
+            </div>
+
+            <!-- Right Icons -->
+            <div class="flex items-center gap-8 text-stone-900">
+                <button aria-label="Search" class="hover:opacity-60 transition-opacity">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </button>
+                <button aria-label="Cart" class="relative hover:opacity-60 transition-opacity">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content (Narrower width for optimal reading experience) -->
+    <main class="max-w-[900px] mx-auto px-6 md:px-12 pt-24 pb-32">
+        
+        <!-- Page Header -->
+        <header class="text-center mb-24 border-b border-stone-200 pb-16">
+            <h1 class="font-serif text-5xl md:text-6xl text-stone-900 mb-6">Company Details</h1>
+            <p class="font-sans text-stone-500 max-w-lg mx-auto leading-relaxed">
+                Everything you need to know about our shipping practices, our commitment to the earth, and our terms of service.
+            </p>
+        </header>
+
+        <!-- Section 1: Shipping Information -->
+        <!-- Note: scroll-mt-32 offsets the anchor link so it isn't hidden behind the sticky navbar -->
+        <section id="shipping" class="mb-24 scroll-mt-32">
+            <h2 class="font-serif text-3xl text-stone-900 mb-8">Shipping Information</h2>
+            <div class="space-y-6 font-sans text-stone-500 leading-relaxed">
+                <p>
+                    At AURA, we believe the delivery of your new piece should be as seamless and refined as the design itself. We offer complimentary standard shipping on all decor items within the contiguous United States and Europe. For our larger furniture pieces—including tables, seating, and heavy lighting fixtures—we utilize a specialized freight network.
+                </p>
+                <p>
+                    <strong>Premium White-Glove Delivery:</strong> For an unparalleled experience, select our White-Glove service at checkout. Our dedicated logistics team will deliver the item to your room of choice, professionally assemble it, and carefully remove all packaging materials, leaving your sanctuary pristine.
+                </p>
+                <p>
+                    <strong>International Shipping & Tracking:</strong> We ship globally. International transit times vary between 2 to 4 weeks depending on the destination and customs processing. Once your order has been dispatched from our workshop, you will receive a curated email containing your tracking itinerary.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 2: Sustainability -->
+        <section id="sustainability" class="mb-24 scroll-mt-32">
+            <h2 class="font-serif text-3xl text-stone-900 mb-8">Sustainability</h2>
+            <div class="space-y-6 font-sans text-stone-500 leading-relaxed">
+                <p>
+                    Our commitment to minimalist design extends beyond aesthetics; it is a philosophy of consuming less, but better. We are deeply committed to minimizing our environmental footprint and ensuring that our creations respect the natural world from which their materials are derived.
+                </p>
+                <p>
+                    <strong>Ethically Sourced Materials:</strong> Every piece of timber used in our collection is strictly FSC-certified, ensuring it is harvested from responsibly managed forests. Our textiles are woven from organic, unbleached linens and our finishes are non-toxic, low-VOC oils that protect both your home's air quality and the environment.
+                </p>
+                <p>
+                    <strong>Carbon-Neutral Operations:</strong> We have partnered with global environmental initiatives to offset 100% of the carbon emissions generated by our shipping and logistics network. We design for longevity, creating heirloom-quality pieces intended to be passed down through generations, fundamentally opposing the culture of disposable furniture.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 3: Terms of Service -->
+        <section id="terms" class="mb-12 scroll-mt-32">
+            <h2 class="font-serif text-3xl text-stone-900 mb-8">Terms of Service</h2>
+            <div class="space-y-6 font-sans text-stone-500 leading-relaxed text-sm">
+                <p>
+                    <strong class="text-stone-900 font-medium">1. User Agreement:</strong> By accessing and using the AURA website, you agree to be bound by these Terms of Service. If you do not agree to all the terms and conditions of this agreement, then you may not access the website or use any services. We reserve the right to update, change or replace any part of these Terms by posting updates to our website.
+                </p>
+                <p>
+                    <strong class="text-stone-900 font-medium">2. Intellectual Property:</strong> All content included on this site, such as text, graphics, logos, images, audio clips, digital downloads, and software, is the property of AURA or its content suppliers and protected by international copyright laws. The compilation of all content on this site is the exclusive property of AURA.
+                </p>
+                <p>
+                    <strong class="text-stone-900 font-medium">3. Products and Pricing:</strong> We have made every effort to display as accurately as possible the colors and images of our products that appear at the store. We cannot guarantee that your computer monitor's display of any color will be accurate. Prices for our products are subject to change without notice. We reserve the right at any time to modify or discontinue the Service without notice at any time.
+                </p>
+                <p>
+                    <strong class="text-stone-900 font-medium">4. Limitation of Liability:</strong> In no case shall AURA, our directors, officers, employees, affiliates, agents, contractors, or licensors be liable for any injury, loss, claim, or any direct, indirect, incidental, punitive, special, or consequential damages of any kind, including, without limitation lost profits, lost revenue, lost savings, loss of data, replacement costs, or any similar damages, whether based in contract, tort (including negligence), strict liability or otherwise, arising from your use of any of the service or any products procured using the service.
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Minimal Footer -->
+    <footer class="bg-stone-100 pt-20 pb-10 border-t border-stone-200">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <div class="md:col-span-1">
+                    <a href="index.html" class="font-serif text-2xl tracking-wide text-stone-900 block mb-6">AURA.</a>
+                    <p class="font-sans text-sm text-stone-500 leading-relaxed">Defining the modern sanctuary through minimalist, sustainable, and timeless interior design.</p>
+                </div>
+                <div>
+                    <a href="customer-care.html" class="block group mb-6">
+                        <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 group-hover:text-stone-500 transition-colors">Customer Care</h4>
+                    </a>
+                    <ul class="space-y-4 font-sans text-sm text-stone-500">
+                        <li class="leading-relaxed">
+                            123 Aura Boulevard, Suite 400<br>
+                            New York, NY 10012
+                        </li>
+                        <li>+1 800 555 0199</li>
+                        <li><a href="mailto:hello@aurafurniture.com" class="hover:text-stone-900 transition-colors">hello@aurafurniture.com</a></li>
+                        <li class="pt-2"><a href="customer-care.html" class="hover:text-stone-900 transition-colors underline underline-offset-4 decoration-stone-300">FAQs & Returns</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6">Details</h4>
+                    <!-- Updated Details Links -->
+                    <ul class="space-y-4 font-sans text-sm text-stone-500">
+                        <li><a href="details.html#shipping" class="hover:text-stone-900 transition-colors">Shipping Information</a></li>
+                        <li><a href="details.html#sustainability" class="hover:text-stone-900 transition-colors">Sustainability</a></li>
+                        <li><a href="details.html#terms" class="hover:text-stone-900 transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6">Newsletter</h4>
+                    <p class="font-sans text-sm text-stone-500 mb-4">Subscribe to receive updates, access to exclusive deals, and more.</p>
+                    <form class="flex items-end group" onsubmit="event.preventDefault();">
+                        <input type="email" placeholder="Enter your email address" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        <button type="submit" class="pb-2 pl-2 text-stone-400 group-hover:text-stone-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-stone-200">
+                <p class="font-sans text-xs text-stone-400">&copy; 2024 AURA Interior Design. All rights reserved.</p>
+                <div class="flex gap-6 mt-4 md:mt-0">
+                    <a href="#" class="text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium">IG</a>
+                    <a href="#" class="text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium">PT</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
