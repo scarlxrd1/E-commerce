@@ -67,7 +67,8 @@
     <header class="max-w-[1600px] mx-auto px-6 md:px-12 pt-24 pb-16">
         <div class="flex flex-col items-center text-center">
             <h1 class="font-serif text-5xl md:text-7xl text-stone-900 mb-6">The Collection</h1>
-            <p class="font-sans text-stone-500 text-sm tracking-widest uppercase mb-16" id="item-count">Showing 6 pieces</p>
+            <!-- Counter will be updated dynamically by JS -->
+            <p class="font-sans text-stone-500 text-sm tracking-widest uppercase mb-16" id="item-count">Loading collection...</p>
             
             <!-- Sticky-ish Filter Bar -->
             <div class="flex flex-wrap justify-center gap-8 md:gap-16 border-b border-stone-200 pb-px w-full max-w-2xl">
@@ -75,111 +76,20 @@
                 <button class="filter-btn font-sans text-sm tracking-widest uppercase pb-4 border-b-2 border-transparent text-stone-400 hover:text-stone-900 transition-colors" data-filter="seating">Seating</button>
                 <button class="filter-btn font-sans text-sm tracking-widest uppercase pb-4 border-b-2 border-transparent text-stone-400 hover:text-stone-900 transition-colors" data-filter="tables">Tables</button>
                 <button class="filter-btn font-sans text-sm tracking-widest uppercase pb-4 border-b-2 border-transparent text-stone-400 hover:text-stone-900 transition-colors" data-filter="lighting">Lighting</button>
+                <button class="filter-btn font-sans text-sm tracking-widest uppercase pb-4 border-b-2 border-transparent text-stone-400 hover:text-stone-900 transition-colors" data-filter="decor">Decor</button>
             </div>
         </div>
     </header>
 
     <!-- Product Grid -->
     <main class="max-w-[1600px] mx-auto px-6 md:px-12 pb-32">
+        <!-- Empty container ready for Firebase injection -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 lg:gap-x-16 gap-y-24" id="product-grid">
-            
-            <!-- Item 1 -->
-            <article class="product-card fade-in-up group flex flex-col gap-6" data-category="seating">
-                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
-                    <!-- Plain Image -->
-                    <img src="https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&w=800&q=80" alt="Lounge Chair" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0 z-10">
-                    <!-- Lifestyle Image -->
-                    <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80" alt="Lounge Chair Lifestyle" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100 z-0">
-                    <!-- Quick Add Button -->
-                    <button class="quick-add-btn absolute bottom-0 left-0 w-full bg-stone-900 text-white font-sans text-xs tracking-widest uppercase py-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-20 hover:bg-stone-800">
-                        Quick Add
-                    </button>
-                </div>
-                <div class="flex flex-col items-center text-center">
-                    <h2 class="font-serif text-xl text-stone-900 mb-2">Minimalist Lounge Chair</h2>
-                    <p class="font-sans text-sm text-stone-500">€850</p>
-                </div>
-            </article>
-
-            <!-- Item 2 (Asymmetric layout: pushed down on large screens) -->
-            <article class="product-card fade-in-up group flex flex-col gap-6 lg:mt-24" data-category="tables">
-                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
-                    <img src="https://images.unsplash.com/photo-1604074131665-7a4b13870ab4?auto=format&fit=crop&w=800&q=80" alt="Marble Table" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0 z-10">
-                    <img src="https://images.unsplash.com/photo-1499933374294-4584851497cc?auto=format&fit=crop&w=800&q=80" alt="Marble Table Lifestyle" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100 z-0">
-                    <button class="quick-add-btn absolute bottom-0 left-0 w-full bg-stone-900 text-white font-sans text-xs tracking-widest uppercase py-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-20 hover:bg-stone-800">
-                        Quick Add
-                    </button>
-                </div>
-                <div class="flex flex-col items-center text-center">
-                    <h2 class="font-serif text-xl text-stone-900 mb-2">Carrara Marble Table</h2>
-                    <p class="font-sans text-sm text-stone-500">€1,200</p>
-                </div>
-            </article>
-
-            <!-- Item 3 -->
-            <article class="product-card fade-in-up group flex flex-col gap-6" data-category="lighting">
-                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
-                    <img src="https://images.unsplash.com/photo-1507149833265-60c372daea22?auto=format&fit=crop&w=800&q=80" alt="Brass Lamp" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0 z-10">
-                    <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80" alt="Brass Lamp Lifestyle" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100 z-0">
-                    <button class="quick-add-btn absolute bottom-0 left-0 w-full bg-stone-900 text-white font-sans text-xs tracking-widest uppercase py-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-20 hover:bg-stone-800">
-                        Quick Add
-                    </button>
-                </div>
-                <div class="flex flex-col items-center text-center">
-                    <h2 class="font-serif text-xl text-stone-900 mb-2">Brass Table Lamp</h2>
-                    <p class="font-sans text-sm text-stone-500">€280</p>
-                </div>
-            </article>
-
-            <!-- Item 4 -->
-            <article class="product-card fade-in-up group flex flex-col gap-6" data-category="seating">
-                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
-                    <img src="https://images.unsplash.com/photo-1506439012052-a5f1571d054a?auto=format&fit=crop&w=800&q=80" alt="Dining Chair" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0 z-10">
-                    <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80" alt="Dining Chair Lifestyle" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100 z-0">
-                    <button class="quick-add-btn absolute bottom-0 left-0 w-full bg-stone-900 text-white font-sans text-xs tracking-widest uppercase py-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-20 hover:bg-stone-800">
-                        Quick Add
-                    </button>
-                </div>
-                <div class="flex flex-col items-center text-center">
-                    <h2 class="font-serif text-xl text-stone-900 mb-2">Walnut Dining Chair</h2>
-                    <p class="font-sans text-sm text-stone-500">€450</p>
-                </div>
-            </article>
-
-            <!-- Item 5 (Asymmetric layout) -->
-            <article class="product-card fade-in-up group flex flex-col gap-6 lg:mt-24" data-category="tables">
-                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
-                    <img src="https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?auto=format&fit=crop&w=800&q=80" alt="Oak Table" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0 z-10">
-                    <img src="https://images.unsplash.com/photo-1615873968403-89e068629265?auto=format&fit=crop&w=800&q=80" alt="Oak Table Lifestyle" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100 z-0">
-                    <button class="quick-add-btn absolute bottom-0 left-0 w-full bg-stone-900 text-white font-sans text-xs tracking-widest uppercase py-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-20 hover:bg-stone-800">
-                        Quick Add
-                    </button>
-                </div>
-                <div class="flex flex-col items-center text-center">
-                    <h2 class="font-serif text-xl text-stone-900 mb-2">Solid Oak Dining Table</h2>
-                    <p class="font-sans text-sm text-stone-500">€2,100</p>
-                </div>
-            </article>
-
-            <!-- Item 6 -->
-            <article class="product-card fade-in-up group flex flex-col gap-6" data-category="lighting">
-                <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
-                    <img src="https://images.unsplash.com/photo-1612152505975-641c25013ca0?auto=format&fit=crop&w=800&q=80" alt="Ceramic Vase" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0 z-10">
-                    <img src="https://images.unsplash.com/photo-1600607686527-6fb886090705?auto=format&fit=crop&w=800&q=80" alt="Ceramic Vase Lifestyle" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100 z-0">
-                    <button class="quick-add-btn absolute bottom-0 left-0 w-full bg-stone-900 text-white font-sans text-xs tracking-widest uppercase py-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-20 hover:bg-stone-800">
-                        Quick Add
-                    </button>
-                </div>
-                <div class="flex flex-col items-center text-center">
-                    <h2 class="font-serif text-xl text-stone-900 mb-2">Textured Ceramic Vase</h2>
-                    <p class="font-sans text-sm text-stone-500">€120</p>
-                </div>
-            </article>
-
+            <!-- Products will be generated here by collection.js -->
         </div>
     </main>
 
-    <!-- Main Script for this specific page -->
-    <script src="./js/collection.js"></script>
+    <!-- Main Script for this specific page (Updated to type="module") -->
+    <script type="module" src="./js/collection.js"></script>
 </body>
 </html>
