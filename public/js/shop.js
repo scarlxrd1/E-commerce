@@ -1,7 +1,8 @@
-/**
- * AURA E-Commerce Frontend Logic
- * Handles interactive cart states, dynamic modal injection, and category filtering.
- */
+// public/js/shop.js
+
+// Import Firebase dependencies
+import { db } from './firebase-config.js';
+import { collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // --- Global State ---
 let cartCount = 0;
@@ -12,17 +13,75 @@ const cartBadge = document.getElementById('cart-badge');
 const cartTotalEl = document.getElementById('cart-total');
 const cartItemsContainer = document.getElementById('cart-items-container');
 const emptyCartMsg = document.getElementById('empty-cart-msg');
+const productGrid = document.getElementById('product-grid');
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Fetch and render products from Firebase
+    await fetchAndRenderProducts();
+
+    // 2. Initialize UI scripts AFTER products are loaded into the DOM
     initCategoryFilters();
     initQuickViewModal();
     initCartDrawer();
     initGridAddToCart();
+    
+    // UNCOMMENT THE LINE BELOW TO SEED YOUR DATABASE ONCE, THEN RE-COMMENT IT.
+    // await seedDatabase(); 
 });
 
 /**
+ * Fetch products from Firestore and inject them into the HTML grid
+ */
+async function fetchAndRenderProducts() {
+    try {
+        const querySnapshot = await getDocs(collection(db, "products"));
+        
+        let htmlString = "";
+        
+        querySnapshot.forEach((doc) => {
+            const product = doc.data();
+            
+            // Build the HTML for each product using your premium Tailwind styling
+            htmlString += `
+                <div class="product-card group flex flex-col gap-4 cursor-pointer" 
+                     data-category="${product.categories}" 
+                     data-title="${product.title}" 
+                     data-price="${product.price}" 
+                     data-image="${product.image}" 
+                     data-desc="${product.desc}">
+                    <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
+                        <img src="${product.image}" alt="${product.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <button class="grid-add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm z-10 hover:bg-stone-800">
+                            Add to Cart
+                        </button>
+                    </div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-serif text-lg text-stone-900">${product.title}</h3>
+                            <p class="font-sans text-sm text-stone-500 mt-1">${product.subtitle}</p>
+                        </div>
+                        <span class="font-sans text-stone-900 font-medium">€${product.price.toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        // Inject into the DOM
+        if (productGrid) {
+            productGrid.innerHTML = htmlString;
+        }
+
+    } catch (error) {
+        console.error("Error fetching products from Firebase:", error);
+        if (productGrid) {
+            productGrid.innerHTML = `<p class="col-span-full text-center text-stone-500">Failed to load collection. Please try again later.</p>`;
+        }
+    }
+}
+
+/**
  * 1. Category Filtering Logic
- * Handles clicks on both top nav links and the main filter bar.
  */
 function initCategoryFilters() {
     const filterButtons = document.querySelectorAll('.filter-btn, .nav-filter');
@@ -34,7 +93,6 @@ function initCategoryFilters() {
             e.preventDefault();
             const selectedCategory = btn.getAttribute('data-category');
 
-            // Update styling only for the main filter bar buttons
             if (btn.classList.contains('filter-btn')) {
                 mainFilterBtns.forEach(b => {
                     b.classList.remove('border-stone-900', 'text-stone-900');
@@ -44,25 +102,20 @@ function initCategoryFilters() {
                 btn.classList.add('border-stone-900', 'text-stone-900');
             }
 
-            // Filter the product grid
             products.forEach(product => {
                 const productCategories = product.getAttribute('data-category').split(' ');
                 
                 if (selectedCategory === 'all' || productCategories.includes(selectedCategory)) {
-                    // Show product
                     product.classList.remove('hidden');
                     product.classList.add('flex');
-                    // Small animation trigger
                     product.style.opacity = '0';
                     setTimeout(() => product.style.opacity = '1', 50);
                 } else {
-                    // Hide product
                     product.classList.add('hidden');
                     product.classList.remove('flex');
                 }
             });
 
-            // If a nav link was clicked, scroll smoothly to the shop section
             if (btn.classList.contains('nav-filter')) {
                 document.getElementById('shop').scrollIntoView({ behavior: 'smooth' });
             }
@@ -72,7 +125,6 @@ function initCategoryFilters() {
 
 /**
  * 2. Quick View Modal Logic
- * Intercepts product card clicks, injects data, and manages modal state.
  */
 function initQuickViewModal() {
     const products = document.querySelectorAll('.product-card');
@@ -81,40 +133,32 @@ function initQuickViewModal() {
     const content = document.getElementById('modal-content');
     const closeBtn = document.getElementById('close-modal-btn');
     
-    // Modal internal elements
     const mImage = document.getElementById('modal-image');
     const mTitle = document.getElementById('modal-title');
     const mPrice = document.getElementById('modal-price');
     const mDesc = document.getElementById('modal-desc');
     const mAddBtn = document.getElementById('modal-add-to-cart-btn');
 
-    // Open Modal
     products.forEach(product => {
         product.addEventListener('click', (e) => {
-            // Prevent opening modal if the "Add to Cart" grid button was clicked
             if (e.target.closest('.grid-add-to-cart-btn')) return;
 
-            // Extract Data
             const title = product.getAttribute('data-title');
             const price = product.getAttribute('data-price');
             const image = product.getAttribute('data-image');
             const desc = product.getAttribute('data-desc');
 
-            // Inject Data into Modal
             mTitle.textContent = title;
             mPrice.textContent = `€${parseInt(price).toLocaleString()}`;
             mImage.src = image;
             mImage.alt = title;
             mDesc.textContent = desc;
 
-            // Attach current product data to the modal's Add to Cart button
             mAddBtn.dataset.title = title;
             mAddBtn.dataset.price = price;
             mAddBtn.dataset.image = image;
 
-            // Show Modal (with transitions)
             modal.classList.remove('hidden');
-            // Small delay to allow display:block to apply before animating opacity/transform
             setTimeout(() => {
                 backdrop.classList.remove('opacity-0');
                 backdrop.classList.add('opacity-100');
@@ -122,42 +166,37 @@ function initQuickViewModal() {
                 content.classList.add('opacity-100', 'scale-100');
             }, 10);
             
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            document.body.style.overflow = 'hidden';
         });
     });
 
-    // Close Modal Function
     const closeModal = () => {
         backdrop.classList.remove('opacity-100');
         backdrop.classList.add('opacity-0');
         content.classList.remove('opacity-100', 'scale-100');
         content.classList.add('opacity-0', 'scale-95');
         
-        // Wait for transition to finish before hiding completely
         setTimeout(() => {
             modal.classList.add('hidden');
-            document.body.style.overflow = ''; // Restore scrolling
+            document.body.style.overflow = ''; 
         }, 300);
     };
 
     closeBtn.addEventListener('click', closeModal);
     backdrop.addEventListener('click', closeModal);
 
-    // Modal Add to Cart Button Logic
     mAddBtn.addEventListener('click', (e) => {
         const productData = {
             title: mAddBtn.dataset.title,
             price: parseInt(mAddBtn.dataset.price),
             image: mAddBtn.dataset.image
         };
-        
         processAddToCart(productData, mAddBtn);
     });
 }
 
 /**
  * 3. Cart Drawer Logic
- * Toggles the slide-out cart drawer.
  */
 function initCartDrawer() {
     const cartIconBtn = document.getElementById('cart-icon-btn');
@@ -185,7 +224,6 @@ function initCartDrawer() {
         
         setTimeout(() => {
             drawerContainer.classList.add('hidden');
-            // Only restore body overflow if the Quick View modal isn't also open
             if(document.getElementById('quick-view-modal').classList.contains('hidden')){
                 document.body.style.overflow = '';
             }
@@ -209,7 +247,7 @@ function initGridAddToCart() {
     
     gridBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent opening the modal
+            e.stopPropagation(); 
             
             const productCard = btn.closest('.product-card');
             const productData = {
@@ -224,26 +262,21 @@ function initGridAddToCart() {
 }
 
 /**
- * Core function to process adding an item to the cart.
- * Updates state, UI badge, drawer list, totals, and button visual feedback.
+ * Process Adding to Cart
  */
 function processAddToCart(product, buttonElement) {
-    // 1. Update State
     cartCount++;
     cartTotal += product.price;
 
-    // 2. Update Navbar Badge
     cartBadge.textContent = cartCount;
     if (cartCount === 1) {
         cartBadge.classList.remove('opacity-0');
         cartBadge.classList.add('opacity-100');
-        emptyCartMsg.style.display = 'none'; // Hide empty message
+        emptyCartMsg.style.display = 'none'; 
     }
 
-    // 3. Update Cart Total UI
     cartTotalEl.textContent = `€${cartTotal.toLocaleString()}`;
 
-    // 4. Inject Item into Cart Drawer
     const itemHTML = `
         <div class="flex items-center gap-4 group">
             <div class="w-20 h-20 bg-stone-100 rounded-md overflow-hidden flex-shrink-0">
@@ -257,9 +290,7 @@ function processAddToCart(product, buttonElement) {
     `;
     cartItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
 
-    // 5. Button Visual Feedback
     const originalText = buttonElement.textContent;
-    
     buttonElement.textContent = 'Added';
     buttonElement.classList.remove('bg-stone-900', 'hover:bg-stone-800');
     buttonElement.classList.add('bg-stone-500'); 
@@ -272,19 +303,14 @@ function processAddToCart(product, buttonElement) {
 }
 
 /**
- * Stub function ready for Backend integration.
+ * Checkout function exposed to the global window object
+ * so it can be called from the HTML inline onclick handler.
  */
-async function checkout() {
+window.checkout = async function() {
     if (cartCount === 0) return alert("Your cart is empty.");
     
     try {
-        console.log(`Initiating secure checkout for ${cartCount} items totaling €${cartTotal}...`);
-        
-        // TODO: Inject your backend logic here (Stripe, Firebase, etc.)
-        // Example: const session = await stripe.redirectToCheckout({ sessionId: 'YOUR_SESSION_ID' });
-        
-        // Simulate a redirect/processing state
-        const checkoutBtn = document.querySelector('#cart-drawer button[onclick="checkout()"]');
+        const checkoutBtn = document.querySelector('#cart-drawer button[onclick="window.checkout()"]');
         const originalText = checkoutBtn.textContent;
         checkoutBtn.textContent = "Processing...";
         checkoutBtn.classList.add('opacity-70', 'cursor-not-allowed');
@@ -297,5 +323,57 @@ async function checkout() {
 
     } catch (error) {
         console.error("Checkout process encountered an error:", error);
+    }
+}
+
+/**
+ * TEMPORARY SEED FUNCTION
+ * Uncomment the call to this function at the top of the file to populate your Firestore database.
+ */
+async function seedDatabase() {
+    console.log("Seeding database...");
+    const dummyProducts = [
+        {
+            title: "Minimalist Lounge Chair",
+            subtitle: "Solid Oak & Linen",
+            price: 850,
+            categories: "seating living bedroom",
+            image: "https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&w=800&q=80",
+            desc: "A beautiful minimalist lounge chair crafted from solid oak and upholstered in premium organic linen. Perfect for reading corners or as an accent piece in any modern living space."
+        },
+        {
+            title: "Marble Coffee Table",
+            subtitle: "Carrara Marble",
+            price: 1200,
+            categories: "tables living",
+            image: "https://images.unsplash.com/photo-1604074131665-7a4b13870ab4?auto=format&fit=crop&w=800&q=80",
+            desc: "An elegant centerpiece featuring a solid slab of Italian Carrara marble resting on a sleek, matte-black powder-coated steel frame."
+        },
+        {
+            title: "Ceramic Vase",
+            subtitle: "Handcrafted Clay",
+            price: 120,
+            categories: "decor living dining bedroom",
+            image: "https://images.unsplash.com/photo-1612152505975-641c25013ca0?auto=format&fit=crop&w=800&q=80",
+            desc: "Hand-thrown by master ceramists, this textured vase brings an earthy, organic feel to any surface. Perfect for dried botanicals or standing elegantly on its own."
+        },
+        {
+            title: "Oak Dining Table",
+            subtitle: "Solid Oak",
+            price: 2100,
+            categories: "tables dining",
+            image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?auto=format&fit=crop&w=800&q=80",
+            desc: "Gather around this expansive solid oak dining table. Its minimalist silhouette highlights the natural grain and beauty of sustainably sourced timber."
+        }
+    ];
+
+    try {
+        for (const product of dummyProducts) {
+            await addDoc(collection(db, "products"), product);
+            console.log(`Added ${product.title}`);
+        }
+        console.log("Database successfully seeded! Please comment out the seedDatabase() function call.");
+    } catch (e) {
+        console.error("Error adding document: ", e);
     }
 }
