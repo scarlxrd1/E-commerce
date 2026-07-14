@@ -99,9 +99,11 @@ function renderProduct(container, product) {
 
                 <!-- Add to Cart Action -->
                 <button id="add-to-cart-btn" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-5 rounded-sm hover:bg-stone-800 transition-colors shadow-sm mb-8"
+                    data-id="${product.id}"
                     data-title="${product.title}"
                     data-price="${product.price}"
-                    data-image="${product.image}">
+                    data-image="${product.image}"
+                    data-stock="${product.stock || 0}">
                     Add to Cart
                 </button>
 
@@ -129,11 +131,33 @@ function renderProduct(container, product) {
     const addBtn = document.getElementById('add-to-cart-btn');
     addBtn.addEventListener('click', () => {
         const productData = {
+            id: addBtn.getAttribute('data-id'),
             title: addBtn.getAttribute('data-title'),
             price: parseInt(addBtn.getAttribute('data-price')),
-            image: addBtn.getAttribute('data-image')
+            image: addBtn.getAttribute('data-image'),
+            stock: parseInt(addBtn.getAttribute('data-stock'))
         };
-        // Delegate to global.js
-        window.addToCart(productData, addBtn);
+        
+        // Attempt to add to cart
+        const success = window.addToCart(productData);
+        const originalText = "Add to Cart";
+
+        // Handle UI Feedback based on Stock Limit
+        if (success) {
+            addBtn.textContent = 'Added';
+            addBtn.classList.remove('bg-stone-900', 'hover:bg-stone-800');
+            addBtn.classList.add('bg-stone-400', 'text-stone-900');
+        } else {
+            addBtn.textContent = 'Max Limit Reached';
+            addBtn.classList.remove('bg-stone-900', 'hover:bg-stone-800');
+            addBtn.classList.add('bg-stone-300', 'text-stone-600');
+        }
+
+        // Revert back after 2 seconds
+        setTimeout(() => {
+            addBtn.textContent = originalText;
+            addBtn.classList.remove('bg-stone-400', 'bg-stone-300', 'text-stone-900', 'text-stone-600');
+            addBtn.classList.add('bg-stone-900', 'hover:bg-stone-800');
+        }, 2000);
     });
 }
