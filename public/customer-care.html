@@ -48,12 +48,9 @@
         <div class="max-w-[1600px] mx-auto px-6 md:px-12 h-24 flex items-center justify-between">
             <a href="index.html" class="font-serif text-2xl tracking-widest text-stone-900">AURA.</a>
             
-            <!-- Center Navigation Links -->
+            <!-- Center Navigation Links (Minimized) -->
             <div class="hidden md:flex items-center gap-10">
                 <a href="collection.html" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Collection</a>
-                <a href="collection.html?category=seating" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Seating</a>
-                <a href="collection.html?category=tables" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Tables</a>
-                <a href="collection.html?category=decor" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Decor</a>
             </div>
 
             <!-- Right Icons -->
@@ -63,6 +60,8 @@
                 </button>
                 <button aria-label="Cart" class="relative hover:opacity-60 transition-opacity">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    <!-- Unified global cart badge -->
+                    <span id="cart-badge" class="absolute -top-1.5 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-stone-900 text-[9px] font-medium text-white opacity-0 transition-opacity">0</span>
                 </button>
             </div>
         </div>
@@ -172,7 +171,6 @@
                     <p class="font-sans text-sm text-stone-500 leading-relaxed">Defining the modern sanctuary through minimalist, sustainable, and timeless interior design.</p>
                 </div>
                 <div>
-                    <!-- Updated Customer Care Header Link -->
                     <a href="customer-care.html" class="block group mb-6">
                         <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 group-hover:text-stone-500 transition-colors">Customer Care</h4>
                     </a>
@@ -188,10 +186,11 @@
                 </div>
                 <div>
                     <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6">Details</h4>
+                    <!-- Updated Details Links -->
                     <ul class="space-y-4 font-sans text-sm text-stone-500">
-                        <li><a href="#" class="hover:text-stone-900 transition-colors">Shipping Information</a></li>
-                        <li><a href="#" class="hover:text-stone-900 transition-colors">Sustainability</a></li>
-                        <li><a href="#" class="hover:text-stone-900 transition-colors">Terms of Service</a></li>
+                        <li><a href="details.html#shipping" class="hover:text-stone-900 transition-colors">Shipping Information</a></li>
+                        <li><a href="details.html#sustainability" class="hover:text-stone-900 transition-colors">Sustainability</a></li>
+                        <li><a href="details.html#terms" class="hover:text-stone-900 transition-colors">Terms of Service</a></li>
                     </ul>
                 </div>
                 <div>
@@ -214,6 +213,9 @@
             </div>
         </div>
     </footer>
+
+    <!-- Global Scripts (Cart logic) -->
+    <script src="./js/global.js"></script>
 
     <!-- Form Submission Script -->
     <script>
