@@ -1,5 +1,3 @@
-// public/js/collection.js
-
 import { db } from './firebase-config.js';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -19,32 +17,12 @@ async function fetchAndRenderCollection() {
         // 1. Fetch all products once
         const querySnapshot = await getDocs(collection(db, "products"));
         querySnapshot.forEach((doc) => {
-            allProducts.push(doc.data());
+            // Include document ID for linking to single product page
+            allProducts.push({ id: doc.id, ...doc.data() });
         });
 
-        // 2. Check URL for Search Query
-        const urlParams = new URLSearchParams(window.location.search);
-        const searchQuery = urlParams.get('search');
-
-        if (searchQuery) {
-            const lowerQuery = searchQuery.toLowerCase();
-            // Filter array by title or description
-            const filteredProducts = allProducts.filter(p => {
-                const titleMatch = p.title && p.title.toLowerCase().includes(lowerQuery);
-                const descMatch = p.desc && p.desc.toLowerCase().includes(lowerQuery);
-                return titleMatch || descMatch;
-            });
-            
-            renderGrid(filteredProducts);
-            
-            // Update UI to reflect Search State
-            if (countDisplay) {
-                countDisplay.textContent = `Search results for: '${searchQuery}'`;
-            }
-        } else {
-            // No search query, render everything
-            renderGrid(allProducts);
-        }
+        // 2. Apply initial filters (incorporates URL search, category, and price)
+        applyFilters();
 
     } catch (error) {
         console.error("Error fetching collection from Firebase:", error);
@@ -55,6 +33,45 @@ async function fetchAndRenderCollection() {
             countDisplay.textContent = "Error loading pieces";
         }
     }
+}
+
+// Consolidates all filter logic: Search, Category, and Price
+function applyFilters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get('search') ? urlParams.get('search').toLowerCase() : null;
+    
+    const activeCategoryBtn = document.querySelector('.filter-btn.border-stone-900');
+    const selectedCategory = activeCategoryBtn ? activeCategoryBtn.getAttribute('data-filter') : 'all';
+    
+    const minPriceInput = document.getElementById('min-price').value;
+    const maxPriceInput = document.getElementById('max-price').value;
+    const minPrice = minPriceInput ? parseFloat(minPriceInput) : 0;
+    const maxPrice = maxPriceInput ? parseFloat(maxPriceInput) : Infinity;
+
+    const filteredProducts = allProducts.filter(p => {
+        // Evaluate Search Match
+        let matchesSearch = true;
+        if (searchQuery) {
+            const titleMatch = p.title && p.title.toLowerCase().includes(searchQuery);
+            const descMatch = p.desc && p.desc.toLowerCase().includes(searchQuery);
+            matchesSearch = titleMatch || descMatch;
+        }
+
+        // Evaluate Category Match
+        let matchesCategory = true;
+        if (selectedCategory !== 'all') {
+            const categories = p.categories || "";
+            matchesCategory = categories.split(' ').includes(selectedCategory);
+        }
+
+        // Evaluate Price Match
+        const price = p.price || 0;
+        const matchesPrice = price >= minPrice && price <= maxPrice;
+
+        return matchesSearch && matchesCategory && matchesPrice;
+    });
+
+    renderGrid(filteredProducts);
 }
 
 // Helper to generate HTML and inject it based on a provided array
@@ -70,8 +87,9 @@ function renderGrid(productsToRender) {
         const mtClass = (index % 3 === 1) ? "lg:mt-24" : "";
         const hoverImg = product.hoverImage ? product.hoverImage : product.image;
 
+        // Wrap entirely in an anchor tag pointing to the new product page
         htmlString += `
-            <article class="product-card fade-in-up group flex flex-col gap-6 ${mtClass}" data-category="${product.categories}">
+            <a href="product.html?id=${product.id}" target="_blank" class="product-card fade-in-up group flex flex-col gap-6 ${mtClass}" data-category="${product.categories}">
                 <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
                     <img src="${product.image}" alt="${product.title}" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0 z-10">
                     <img src="${hoverImg}" alt="${product.title} Lifestyle" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100 z-0">
@@ -87,7 +105,7 @@ function renderGrid(productsToRender) {
                     <h2 class="font-serif text-xl text-stone-900 mb-2">${product.title}</h2>
                     <p class="font-sans text-sm text-stone-500">€${product.price.toLocaleString()}</p>
                 </div>
-            </article>
+            </a>
         `;
         index++;
     });
@@ -98,10 +116,16 @@ function renderGrid(productsToRender) {
 
     productGrid.innerHTML = htmlString;
 
-    // Only update count here if we aren't displaying a Search query
+    // Update Counter UI dynamically
     const urlParams = new URLSearchParams(window.location.search);
-    if (!urlParams.get('search') && countDisplay) {
-        countDisplay.textContent = `Showing ${productsToRender.length} piece${productsToRender.length !== 1 ? 's' : ''}`;
+    const searchQuery = urlParams.get('search');
+    
+    if (countDisplay) {
+        if (searchQuery) {
+            countDisplay.textContent = `Search results for: '${searchQuery}' (${productsToRender.length})`;
+        } else {
+            countDisplay.textContent = `Showing ${productsToRender.length} piece${productsToRender.length !== 1 ? 's' : ''}`;
+        }
     }
 
     // Re-initialize dynamic interactions for newly created DOM elements
@@ -111,8 +135,9 @@ function renderGrid(productsToRender) {
 
 function initFilters() {
     const filterBtns = document.querySelectorAll('.filter-btn');
-    const countDisplay = document.getElementById('item-count');
+    const applyPriceBtn = document.getElementById('apply-price-filter');
 
+    // Category Buttons
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             // 1. Update UI Styling for the Active Button
@@ -130,28 +155,17 @@ function initFilters() {
                 window.history.pushState({}, '', url);
             }
 
-            // 3. Filter the Master Array by Category
-            const selectedCategory = btn.getAttribute('data-filter');
-            let filteredProducts = [];
-
-            if (selectedCategory === 'all') {
-                filteredProducts = allProducts;
-            } else {
-                filteredProducts = allProducts.filter(p => {
-                    const categories = p.categories || "";
-                    return categories.split(' ').includes(selectedCategory);
-                });
-            }
-
-            // 4. Render the Resulting Array
-            renderGrid(filteredProducts);
-
-            // 5. Update the Count Text
-            if (countDisplay) {
-                countDisplay.textContent = `Showing ${filteredProducts.length} piece${filteredProducts.length !== 1 ? 's' : ''}`;
-            }
+            // 3. Apply all active filters
+            applyFilters();
         });
     });
+
+    // Price Filter Button
+    if (applyPriceBtn) {
+        applyPriceBtn.addEventListener('click', () => {
+            applyFilters();
+        });
+    }
 }
 
 function initScrollAnimations() {
@@ -172,6 +186,7 @@ function initQuickAdd() {
     const addBtns = document.querySelectorAll('.quick-add-btn');
     addBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
+            // Prevent the anchor tag from triggering a new tab
             e.preventDefault();
             e.stopPropagation();
 
