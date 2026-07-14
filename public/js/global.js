@@ -125,6 +125,21 @@ function initGlobalUI() {
     }
     
     renderCart();
+
+    // Attach search listener strictly AFTER injection
+    const searchForm = document.getElementById('global-search-form');
+    if (searchForm) {
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('global-search-input');
+            if (input) {
+                const query = input.value.trim();
+                if (query) {
+                    window.location.href = `collection.html?search=${encodeURIComponent(query)}`;
+                }
+            }
+        });
+    }
 }
 
 // ==========================================
@@ -291,18 +306,6 @@ document.addEventListener('click', (e) => {
     if (cartCloseBtn) {
         e.preventDefault();
         window.closeCart();
-    }
-});
-
-// NEW: Global Search Listener
-document.addEventListener('submit', (e) => {
-    if (e.target.id === 'global-search-form') {
-        e.preventDefault();
-        const input = document.getElementById('global-search-input');
-        const query = input.value.trim();
-        if (query) {
-            window.location.href = `collection.html?search=${encodeURIComponent(query)}`;
-        }
     }
 });
 
