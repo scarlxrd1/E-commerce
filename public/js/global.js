@@ -10,10 +10,16 @@ const navbarHTML = `
             <div class="hidden md:flex items-center gap-10">
                 <a href="collection.html" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Collection</a>
             </div>
-            <div class="flex items-center gap-6 text-stone-900">
-                <button class="hover:opacity-70 transition-opacity" aria-label="Search">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </button>
+            <div class="flex items-center gap-4 sm:gap-6 text-stone-900">
+                
+                <!-- NEW: Global Search Form -->
+                <form id="global-search-form" class="flex items-center">
+                    <input type="text" id="global-search-input" placeholder="Search..." class="w-20 sm:w-28 md:w-40 bg-transparent border-b border-transparent focus:border-stone-300 py-1 px-2 text-sm font-sans text-stone-900 placeholder-stone-400 focus:outline-none transition-all duration-300 mr-1">
+                    <button type="submit" id="global-search-btn" class="hover:opacity-70 transition-opacity p-1" aria-label="Search">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </button>
+                </form>
+
                 <button class="hover:opacity-70 transition-opacity hidden sm:block" aria-label="User Profile">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                 </button>
@@ -274,7 +280,6 @@ window.checkout = async function() {
 // ==========================================
 // 3. EVENT LISTENERS & TAB SYNC
 // ==========================================
-// Using delegation to support both injected and hardcoded navbars
 document.addEventListener('click', (e) => {
     const cartOpenBtn = e.target.closest('[aria-label="Cart"], #cart-icon-btn');
     if (cartOpenBtn) {
@@ -286,6 +291,18 @@ document.addEventListener('click', (e) => {
     if (cartCloseBtn) {
         e.preventDefault();
         window.closeCart();
+    }
+});
+
+// NEW: Global Search Listener
+document.addEventListener('submit', (e) => {
+    if (e.target.id === 'global-search-form') {
+        e.preventDefault();
+        const input = document.getElementById('global-search-input');
+        const query = input.value.trim();
+        if (query) {
+            window.location.href = `collection.html?search=${encodeURIComponent(query)}`;
+        }
     }
 });
 
