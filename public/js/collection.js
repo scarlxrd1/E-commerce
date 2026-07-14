@@ -17,7 +17,7 @@ async function fetchAndRenderCollection() {
         // 1. Fetch all products once
         const querySnapshot = await getDocs(collection(db, "products"));
         querySnapshot.forEach((doc) => {
-            // Include document ID for linking to single product page
+            // Include document ID and stock for cart logic
             allProducts.push({ id: doc.id, ...doc.data() });
         });
 
@@ -95,9 +95,11 @@ function renderGrid(productsToRender) {
                     <img src="${hoverImg}" alt="${product.title} Lifestyle" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100 z-0">
                     
                     <button class="quick-add-btn absolute bottom-0 left-0 w-full bg-stone-900 text-white font-sans text-xs tracking-widest uppercase py-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-20 hover:bg-stone-800"
+                        data-id="${product.id}"
                         data-title="${product.title}"
                         data-price="${product.price}"
-                        data-image="${product.image}">
+                        data-image="${product.image}"
+                        data-stock="${product.stock || 0}">
                         Quick Add
                     </button>
                 </div>
@@ -191,13 +193,34 @@ function initQuickAdd() {
             e.stopPropagation();
 
             const productData = {
+                id: btn.getAttribute('data-id'),
                 title: btn.getAttribute('data-title'),
                 price: parseInt(btn.getAttribute('data-price')),
-                image: btn.getAttribute('data-image')
+                image: btn.getAttribute('data-image'),
+                stock: parseInt(btn.getAttribute('data-stock'))
             };
 
-            // Delegate to Global State (global.js)
-            window.addToCart(productData, btn);
+            // Attempt to add to cart
+            const success = window.addToCart(productData);
+            const originalText = "Quick Add";
+
+            // Handle UI Feedback based on Stock Limit
+            if (success) {
+                btn.textContent = 'Added';
+                btn.classList.remove('bg-stone-900', 'hover:bg-stone-800');
+                btn.classList.add('bg-stone-400', 'text-stone-900');
+            } else {
+                btn.textContent = 'Max Limit Reached';
+                btn.classList.remove('bg-stone-900', 'hover:bg-stone-800');
+                btn.classList.add('bg-stone-300', 'text-stone-600');
+            }
+
+            // Revert back after 2 seconds
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.classList.remove('bg-stone-400', 'bg-stone-300', 'text-stone-900', 'text-stone-600');
+                btn.classList.add('bg-stone-900', 'hover:bg-stone-800');
+            }, 2000);
         });
     });
 }
