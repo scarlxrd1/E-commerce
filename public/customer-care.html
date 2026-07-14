@@ -43,29 +43,10 @@
 </head>
 <body class="font-sans text-stone-900 antialiased selection:bg-stone-200 selection:text-stone-900">
 
-    <!-- Sticky Navbar -->
-    <nav class="sticky top-0 z-50 bg-cream/90 backdrop-blur-md border-b border-stone-200/50">
-        <div class="max-w-[1600px] mx-auto px-6 md:px-12 h-24 flex items-center justify-between">
-            <a href="index.html" class="font-serif text-2xl tracking-widest text-stone-900">AURA.</a>
-            
-            <!-- Center Navigation Links (Minimized) -->
-            <div class="hidden md:flex items-center gap-10">
-                <a href="collection.html" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Collection</a>
-            </div>
-
-            <!-- Right Icons -->
-            <div class="flex items-center gap-8 text-stone-900">
-                <button aria-label="Search" class="hover:opacity-60 transition-opacity">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </button>
-                <button aria-label="Cart" class="relative hover:opacity-60 transition-opacity">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                    <!-- Unified global cart badge -->
-                    <span id="cart-badge" class="absolute -top-1.5 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-stone-900 text-[9px] font-medium text-white opacity-0 transition-opacity">0</span>
-                </button>
-            </div>
-        </div>
-    </nav>
+    <!-- ========================================== -->
+    <!-- DYNAMIC NAVBAR PLACEHOLDER -->
+    <!-- ========================================== -->
+    <div id="navbar-container"></div>
 
     <!-- Main Content -->
     <main class="max-w-[1200px] mx-auto px-6 md:px-12 pt-24 pb-32">
@@ -162,60 +143,13 @@
 
     </main>
 
-    <!-- Minimal Footer -->
-    <footer class="bg-stone-100 pt-20 pb-10 border-t border-stone-200">
-        <div class="max-w-[1600px] mx-auto px-6 md:px-12">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-                <div class="md:col-span-1">
-                    <a href="index.html" class="font-serif text-2xl tracking-wide text-stone-900 block mb-6">AURA.</a>
-                    <p class="font-sans text-sm text-stone-500 leading-relaxed">Defining the modern sanctuary through minimalist, sustainable, and timeless interior design.</p>
-                </div>
-                <div>
-                    <a href="customer-care.html" class="block group mb-6">
-                        <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 group-hover:text-stone-500 transition-colors">Customer Care</h4>
-                    </a>
-                    <ul class="space-y-4 font-sans text-sm text-stone-500">
-                        <li class="leading-relaxed">
-                            123 Aura Boulevard, Suite 400<br>
-                            New York, NY 10012
-                        </li>
-                        <li>+1 800 555 0199</li>
-                        <li><a href="mailto:hello@aurafurniture.com" class="hover:text-stone-900 transition-colors">hello@aurafurniture.com</a></li>
-                        <li class="pt-2"><a href="customer-care.html" class="hover:text-stone-900 transition-colors underline underline-offset-4 decoration-stone-300">FAQs & Returns</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6">Details</h4>
-                    <!-- Updated Details Links -->
-                    <ul class="space-y-4 font-sans text-sm text-stone-500">
-                        <li><a href="details.html#shipping" class="hover:text-stone-900 transition-colors">Shipping Information</a></li>
-                        <li><a href="details.html#sustainability" class="hover:text-stone-900 transition-colors">Sustainability</a></li>
-                        <li><a href="details.html#terms" class="hover:text-stone-900 transition-colors">Terms of Service</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6">Newsletter</h4>
-                    <p class="font-sans text-sm text-stone-500 mb-4">Subscribe to receive updates, access to exclusive deals, and more.</p>
-                    <form class="flex items-end group" onsubmit="event.preventDefault();">
-                        <input type="email" placeholder="Enter your email address" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
-                        <button type="submit" class="pb-2 pl-2 text-stone-400 group-hover:text-stone-900 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-                        </button>
-                    </form>
-                </div>
-            </div>
-            <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-stone-200">
-                <p class="font-sans text-xs text-stone-400">&copy; 2024 AURA Interior Design. All rights reserved.</p>
-                <div class="flex gap-6 mt-4 md:mt-0">
-                    <a href="#" class="text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium">IG</a>
-                    <a href="#" class="text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium">PT</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <!-- ========================================== -->
+    <!-- DYNAMIC FOOTER PLACEHOLDER -->
+    <!-- ========================================== -->
+    <div id="footer-container"></div>
 
-    <!-- Global Scripts (Cart logic) -->
-    <script src="./js/global.js"></script>
+    <!-- Global Scripts (Cart & Nav logic) -->
+    <script type="module" src="./js/global.js"></script>
 
     <!-- Form Submission Script -->
     <script>
