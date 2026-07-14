@@ -12,7 +12,7 @@ const navbarHTML = `
             </div>
             <div class="flex items-center gap-4 sm:gap-6 text-stone-900">
                 
-                <!-- NEW: Global Search Form -->
+                <!-- Global Search Form -->
                 <form id="global-search-form" class="flex items-center">
                     <input type="text" id="global-search-input" placeholder="Search..." class="w-20 sm:w-28 md:w-40 bg-transparent border-b border-transparent focus:border-stone-300 py-1 px-2 text-sm font-sans text-stone-900 placeholder-stone-400 focus:outline-none transition-all duration-300 mr-1">
                     <button type="submit" id="global-search-btn" class="hover:opacity-70 transition-opacity p-1" aria-label="Search">
@@ -126,7 +126,6 @@ function initGlobalUI() {
     
     renderCart();
 
-    // Attach search listener strictly AFTER injection
     const searchForm = document.getElementById('global-search-form');
     if (searchForm) {
         searchForm.addEventListener('submit', (e) => {
@@ -206,31 +205,30 @@ function renderCart() {
     if (totalEl) totalEl.textContent = `€${total.toLocaleString()}`;
 }
 
-window.addToCart = function(product, buttonElement = null) {
-    const existing = cart.find(item => item.title === product.title);
+/**
+ * Adds an item to the cart, respecting the strict backend stock limit.
+ * @param {Object} product - The product data { id, title, price, image, stock }
+ * @returns {boolean} - True if successfully added, False if max stock reached.
+ */
+window.addToCart = function(product) {
+    const existing = cart.find(item => item.id === product.id);
+    const currentQty = existing ? existing.quantity : 0;
+    const maxStock = product.stock || 0;
+
+    // Block addition if we have reached or exceeded the stock limit
+    if (currentQty >= maxStock) {
+        return false; 
+    }
+
     if (existing) {
         existing.quantity += 1;
     } else {
         cart.push({ ...product, quantity: 1 });
     }
+    
     saveCart();
     window.openCart();
-
-    if (buttonElement) {
-        const originalText = buttonElement.textContent;
-        buttonElement.textContent = 'Added';
-        
-        if (buttonElement.classList.contains('bg-stone-900')) {
-            buttonElement.classList.remove('bg-stone-900', 'hover:bg-stone-800');
-            buttonElement.classList.add('bg-stone-400', 'text-stone-900'); 
-            
-            setTimeout(() => {
-                buttonElement.textContent = originalText.trim();
-                buttonElement.classList.remove('bg-stone-400', 'text-stone-900');
-                buttonElement.classList.add('bg-stone-900', 'hover:bg-stone-800');
-            }, 2000);
-        }
-    }
+    return true; 
 };
 
 window.removeFromCart = function(index) {
@@ -267,10 +265,7 @@ window.closeCart = function() {
     
     setTimeout(() => {
         drawerContainer.classList.add('hidden');
-        const modal = document.getElementById('quick-view-modal');
-        if(!modal || modal.classList.contains('hidden')){
-            document.body.style.overflow = '';
-        }
+        document.body.style.overflow = '';
     }, 300);
 };
 
