@@ -1,7 +1,10 @@
 /**
  * AURA Global Engine
- * Handles UI Component Injection (Navbar/Footer/Cart), Global Cart State, and LocalStorage Sync.
+ * Handles UI Component Injection (Navbar/Footer/Cart), Global Cart State, LocalStorage Sync, and Auth State.
  */
+
+import { app } from './firebase-config.js';
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const navbarHTML = `
     <nav class="sticky top-0 z-50 bg-cream/90 backdrop-blur-md border-b border-stone-200/50 transition-all">
@@ -20,9 +23,12 @@ const navbarHTML = `
                     </button>
                 </form>
 
-                <button class="hover:opacity-70 transition-opacity hidden sm:block" aria-label="User Profile">
+                <!-- User Profile Link with Auth Indicator -->
+                <a href="auth.html" id="user-profile-link" class="relative hover:opacity-70 transition-opacity hidden sm:block" aria-label="User Profile">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                </button>
+                    <span id="auth-indicator" class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-stone-900 rounded-full border-2 border-[#FBFBFA] hidden transition-all duration-300"></span>
+                </a>
+
                 <button id="cart-icon-btn" class="relative hover:opacity-70 transition-opacity" aria-label="Cart">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                     <span id="cart-badge" class="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-stone-900 text-[9px] font-medium text-white opacity-0 transition-opacity duration-300">0</span>
@@ -126,6 +132,7 @@ function initGlobalUI() {
     
     renderCart();
 
+    // Global Search Logic
     const searchForm = document.getElementById('global-search-form');
     if (searchForm) {
         searchForm.addEventListener('submit', (e) => {
@@ -139,6 +146,19 @@ function initGlobalUI() {
             }
         });
     }
+
+    // Auth State Listener
+    const auth = getAuth(app);
+    onAuthStateChanged(auth, (user) => {
+        const indicator = document.getElementById('auth-indicator');
+        if (indicator) {
+            if (user) {
+                indicator.classList.remove('hidden');
+            } else {
+                indicator.classList.add('hidden');
+            }
+        }
+    });
 }
 
 // ==========================================
@@ -205,17 +225,11 @@ function renderCart() {
     if (totalEl) totalEl.textContent = `€${total.toLocaleString()}`;
 }
 
-/**
- * Adds an item to the cart, respecting the strict backend stock limit.
- * @param {Object} product - The product data { id, title, price, image, stock }
- * @returns {boolean} - True if successfully added, False if max stock reached.
- */
 window.addToCart = function(product) {
     const existing = cart.find(item => item.id === product.id);
     const currentQty = existing ? existing.quantity : 0;
     const maxStock = product.stock || 0;
 
-    // Block addition if we have reached or exceeded the stock limit
     if (currentQty >= maxStock) {
         return false; 
     }
