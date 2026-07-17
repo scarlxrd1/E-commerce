@@ -72,7 +72,7 @@
             </div>
         </div>
 
-        <!-- Responsive Grid -->
+        <!-- Responsive Grid (Dynamic Injection) -->
         <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
             <!-- Products injected here by shop.js -->
         </div>
@@ -89,29 +89,6 @@
     <!-- DYNAMIC FOOTER PLACEHOLDER -->
     <!-- ========================================== -->
     <div id="footer-container"></div>
-
-    <!-- UI OVERLAYS -->
-    <!-- Quick View Modal -->
-    <div id="quick-view-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center">
-        <div id="modal-backdrop" class="absolute inset-0 bg-stone-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
-        <div id="modal-content" class="relative bg-cream w-[90%] max-w-4xl max-h-[90vh] overflow-y-auto no-scrollbar rounded-md shadow-2xl flex flex-col md:flex-row transform scale-95 opacity-0 transition-all duration-300 z-10">
-            <button id="close-modal-btn" class="absolute top-4 right-4 z-20 p-2 text-stone-500 hover:text-stone-900 transition-colors bg-cream/50 rounded-full backdrop-blur-sm md:bg-transparent">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <div class="w-full md:w-1/2 h-72 md:h-auto bg-stone-100">
-                <img id="modal-image" src="" alt="Product" class="w-full h-full object-cover">
-            </div>
-            <div class="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
-                <h2 id="modal-title" class="font-serif text-3xl md:text-4xl text-stone-900 mb-2"></h2>
-                <p id="modal-price" class="font-sans text-xl text-stone-600 mb-6 font-medium"></p>
-                <div class="w-12 h-px bg-stone-300 mb-6"></div>
-                <p id="modal-desc" class="font-sans text-stone-500 leading-relaxed mb-10 text-sm md:text-base"></p>
-                <button id="modal-add-to-cart-btn" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-4 rounded-md hover:bg-stone-800 transition-colors shadow-sm">
-                    Add to Cart
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- ========================================== -->
     <!-- SCRIPTS -->
