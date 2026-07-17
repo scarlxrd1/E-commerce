@@ -147,16 +147,20 @@ function initGlobalUI() {
         });
     }
 
-    // Auth State Listener
+    // Auth State Listener (Smart Routing)
     const auth = getAuth(app);
     onAuthStateChanged(auth, (user) => {
         const indicator = document.getElementById('auth-indicator');
-        if (indicator) {
-            if (user) {
-                indicator.classList.remove('hidden');
-            } else {
-                indicator.classList.add('hidden');
-            }
+        const profileLink = document.getElementById('user-profile-link');
+        
+        if (user) {
+            // Logged in: Show dot, link to profile
+            if (indicator) indicator.classList.remove('hidden');
+            if (profileLink) profileLink.href = 'profile.html';
+        } else {
+            // Logged out: Hide dot, link to auth
+            if (indicator) indicator.classList.add('hidden');
+            if (profileLink) profileLink.href = 'auth.html';
         }
     });
 }
