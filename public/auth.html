@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA | Authentication</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: '#FBFBFA',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background-color: #FBFBFA; 
+            overflow-x: hidden;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="font-sans text-stone-900 antialiased selection:bg-stone-200 selection:text-stone-900">
+
+    <!-- ========================================== -->
+    <!-- DYNAMIC NAVBAR PLACEHOLDER -->
+    <!-- ========================================== -->
+    <div id="navbar-container"></div>
+
+    <!-- Main Authentication Container -->
+    <main class="min-h-[75vh] flex items-center justify-center px-6 py-24">
+        
+        <div class="w-full max-w-md bg-white p-10 md:p-14 shadow-sm border border-stone-100 rounded-sm">
+            <div class="text-center mb-10">
+                <h1 id="auth-title" class="font-serif text-3xl md:text-4xl text-stone-900 mb-3">Sign In</h1>
+                <p class="font-sans text-sm text-stone-500">Access your AURA account.</p>
+            </div>
+
+            <!-- Error Message Container -->
+            <div id="auth-error" class="hidden mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-sans rounded-sm text-center">
+                <!-- Error text injected here -->
+            </div>
+
+            <form id="auth-form" class="flex flex-col gap-6">
+                <div>
+                    <label for="email" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Email Address</label>
+                    <input type="email" id="email" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                </div>
+                <div>
+                    <label for="password" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Password</label>
+                    <input type="password" id="password" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                </div>
+                
+                <button type="submit" id="auth-submit-btn" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-4 mt-4 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="mt-8 text-center">
+                <p class="font-sans text-sm text-stone-500">
+                    <span id="toggle-text-prefix">Don't have an account?</span> 
+                    <button type="button" id="toggle-mode-btn" class="text-stone-900 hover:text-stone-600 transition-colors underline underline-offset-4 font-medium ml-1">Create one</button>
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- DYNAMIC FOOTER PLACEHOLDER -->
+    <!-- ========================================== -->
+    <div id="footer-container"></div>
+
+    <!-- Global Scripts -->
+    <script type="module" src="./js/global.js"></script>
+    
+    <!-- Auth Logic Script -->
+    <script type="module" src="./js/auth.js"></script>
+</body>
+</html>
