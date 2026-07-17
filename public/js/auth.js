@@ -1,5 +1,6 @@
-import { app } from './firebase-config.js';
+import { app, db } from './firebase-config.js';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
@@ -9,7 +10,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('auth-form');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
+    
+    // New Registration Fields
+    const registerFieldsContainer = document.getElementById('register-fields');
+    const firstNameInput = document.getElementById('firstName');
+    const lastNameInput = document.getElementById('lastName');
+    const phoneInput = document.getElementById('phone');
+    const addressInput = document.getElementById('address');
+    const postalCodeInput = document.getElementById('postalCode');
+    const allRegisterInputs = [firstNameInput, lastNameInput, phoneInput, addressInput, postalCodeInput];
+
+    // UI Elements
     const titleEl = document.getElementById('auth-title');
+    const subtitleEl = document.getElementById('auth-subtitle');
     const submitBtn = document.getElementById('auth-submit-btn');
     const toggleBtn = document.getElementById('toggle-mode-btn');
     const togglePrefix = document.getElementById('toggle-text-prefix');
@@ -25,14 +38,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isLoginMode) {
             titleEl.textContent = 'Sign In';
+            subtitleEl.textContent = 'Access your AURA account.';
             submitBtn.textContent = 'Sign In';
             togglePrefix.textContent = "Don't have an account?";
             toggleBtn.textContent = "Create one";
+            
+            // Hide extra fields and remove 'required' so form can submit
+            registerFieldsContainer.classList.add('hidden');
+            registerFieldsContainer.classList.remove('flex');
+            allRegisterInputs.forEach(input => input.removeAttribute('required'));
+            
         } else {
             titleEl.textContent = 'Create Account';
+            subtitleEl.textContent = 'Join AURA for a seamless experience.';
             submitBtn.textContent = 'Create Account';
             togglePrefix.textContent = "Already have an account?";
             toggleBtn.textContent = "Sign in";
+            
+            // Show extra fields and make them required
+            registerFieldsContainer.classList.remove('hidden');
+            registerFieldsContainer.classList.add('flex');
+            allRegisterInputs.forEach(input => input.setAttribute('required', 'true'));
         }
     });
 
@@ -52,9 +78,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             if (isLoginMode) {
+                // LOGIN LOGIC
                 await signInWithEmailAndPassword(auth, email, password);
             } else {
-                await createUserWithEmailAndPassword(auth, email, password);
+                // REGISTRATION LOGIC
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // Create the user document in Firestore with the additional shipping details
+                await setDoc(doc(db, "users", user.uid), {
+                    firstName: firstNameInput.value.trim(),
+                    lastName: lastNameInput.value.trim(),
+                    phone: phoneInput.value.trim(),
+                    address: addressInput.value.trim(),
+                    postalCode: postalCodeInput.value.trim(),
+                    email: email,
+                    createdAt: new Date().toISOString()
+                });
             }
             
             // On success, redirect to the homepage
