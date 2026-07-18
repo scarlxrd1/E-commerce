@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. CUSTOMERS DIRECTORY
     // ==========================================
     async function fetchCustomers() {
-        customersTableBody.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-stone-400">Loading customers...</td></tr>`;
+        customersTableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-stone-400">Loading customers...</td></tr>`;
         try {
             const querySnapshot = await getDocs(collection(db, "users"));
             const users = [];
@@ -328,24 +328,31 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (users.length === 0) {
-                customersTableBody.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-stone-400">No registered customers found.</td></tr>`;
+                customersTableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-stone-400">No registered customers found.</td></tr>`;
                 return;
             }
 
             customersTableBody.innerHTML = users.map(user => {
                 const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Not provided';
+                
+                // Combine Address and Postal Code/Zip
+                const postalCode = user.postalCode || user.zip || '';
+                const fullAddress = `${user.address || ''}, ${postalCode}`.replace(/^, | , $/g, '').trim();
+                const displayAddress = fullAddress && fullAddress !== ',' ? fullAddress : 'N/A';
+
                 return `
                     <tr class="hover:bg-stone-50 transition-colors">
                         <td class="p-4 font-medium">${fullName}</td>
                         <td class="p-4 text-stone-500">${user.email || 'N/A'}</td>
                         <td class="p-4 text-stone-500">${user.phone || 'N/A'}</td>
+                        <td class="p-4 text-stone-500">${displayAddress}</td>
                     </tr>
                 `;
             }).join('');
             
         } catch (error) {
             console.error("Error fetching customers:", error);
-            customersTableBody.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-red-500">Failed to load customers.</td></tr>`;
+            customersTableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-red-500">Failed to load customers.</td></tr>`;
         }
     }
 });
