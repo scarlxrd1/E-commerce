@@ -1,6 +1,6 @@
 import { app, db } from './firebase-config.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { collection, getDocs, addDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
@@ -43,25 +43,49 @@ document.addEventListener('DOMContentLoaded', () => {
     let productsList = [];
 
     // ==========================================
-    // 1. AUTHENTICATION & ROUTE PROTECTION
+    // 1. AUTHENTICATION & SECURITY LOCK
     // ==========================================
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         if (user) {
-            // Logged in: Show Dashboard
-            loginView.classList.add('hidden');
-            dashboardView.classList.remove('hidden');
-            dashboardView.classList.add('flex'); // Apply flex layout
-            
-            // Load Data
-            fetchProducts();
-            fetchCustomers();
+            try {
+                // Fetch user document to check for 'admin' role
+                const userDocRef = doc(db, "users", user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+
+                if (userDocSnap.exists() && userDocSnap.data().role === 'admin') {
+                    // Authorized Admin
+                    showDashboardView();
+                    fetchProducts();
+                    fetchCustomers();
+                } else {
+                    // Unauthorized User
+                    alert("Access Denied: Unauthorized account. You do not have admin privileges.");
+                    await signOut(auth);
+                    showLoginView();
+                }
+            } catch (error) {
+                console.error("Error verifying admin role:", error);
+                alert("Access Denied: Could not verify authorization.");
+                await signOut(auth);
+                showLoginView();
+            }
         } else {
-            // Logged out: Show Login
-            dashboardView.classList.add('hidden');
-            dashboardView.classList.remove('flex');
-            loginView.classList.remove('hidden');
+            // Logged out
+            showLoginView();
         }
     });
+
+    function showDashboardView() {
+        loginView.classList.add('hidden');
+        dashboardView.classList.remove('hidden');
+        dashboardView.classList.add('flex');
+    }
+
+    function showLoginView() {
+        dashboardView.classList.add('hidden');
+        dashboardView.classList.remove('flex');
+        loginView.classList.remove('hidden');
+    }
 
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -72,13 +96,13 @@ document.addEventListener('DOMContentLoaded', () => {
         loginBtn.disabled = true;
 
         try {
+            // This triggers onAuthStateChanged which handles the role validation
             await signInWithEmailAndPassword(auth, loginEmailInput.value.trim(), loginPasswordInput.value);
             loginForm.reset();
         } catch (error) {
             console.error("Login error:", error);
             loginError.textContent = "Invalid admin credentials. Please try again.";
             loginError.classList.remove('hidden');
-        } finally {
             loginBtn.textContent = originalText;
             loginBtn.disabled = false;
         }
@@ -92,7 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. DASHBOARD NAVIGATION
     // ==========================================
     navProducts.addEventListener('click', () => {
-        // Update Nav Styles
         navProducts.classList.replace('text-stone-400', 'text-stone-900');
         navProducts.classList.replace('border-transparent', 'border-stone-900');
         navProducts.classList.add('font-semibold');
@@ -101,13 +124,11 @@ document.addEventListener('DOMContentLoaded', () => {
         navCustomers.classList.replace('border-stone-900', 'border-transparent');
         navCustomers.classList.remove('font-semibold');
 
-        // Toggle Sections
         productsSection.classList.remove('hidden');
         customersSection.classList.add('hidden');
     });
 
     navCustomers.addEventListener('click', () => {
-        // Update Nav Styles
         navCustomers.classList.replace('text-stone-400', 'text-stone-900');
         navCustomers.classList.replace('border-transparent', 'border-stone-900');
         navCustomers.classList.add('font-semibold');
@@ -116,7 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
         navProducts.classList.replace('border-stone-900', 'border-transparent');
         navProducts.classList.remove('font-semibold');
 
-        // Toggle Sections
         customersSection.classList.remove('hidden');
         productsSection.classList.add('hidden');
     });
@@ -162,9 +182,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="p-4">
                     <span class="px-2 py-1 bg-stone-100 rounded text-xs">${product.stock || 0} in stock</span>
                 </td>
-                <td class="p-4 text-right">
+                <td class="p-4 text-right space-x-3">
                     <button class="edit-product-btn text-stone-400 hover:text-stone-900 transition-colors underline underline-offset-4 text-xs tracking-widest uppercase" data-id="${product.id}">
                         Edit
+                    </button>
+                    <button class="delete-product-btn text-red-400 hover:text-red-700 transition-colors underline underline-offset-4 text-xs tracking-widest uppercase" data-id="${product.id}">
+                        Delete
                     </button>
                 </td>
             </tr>
@@ -192,12 +215,17 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
 
         try {
+            const primaryImage = document.getElementById('add-image').value.trim();
+            const hoverImageInput = document.getElementById('add-hover-image').value.trim();
+            
             const newProduct = {
                 title: document.getElementById('add-title').value.trim(),
                 price: parseFloat(document.getElementById('add-price').value),
                 stock: parseInt(document.getElementById('add-stock').value),
                 categories: document.getElementById('add-category').value.trim().toLowerCase(),
-                image: document.getElementById('add-image').value.trim()
+                image: primaryImage,
+                // Use hoverImage key to match existing collection/shop frontend logic
+                hoverImage: hoverImageInput || primaryImage 
             };
 
             await addDoc(collection(db, "products"), newProduct);
@@ -214,11 +242,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Event Delegation for Edit Buttons
-    productsTableBody.addEventListener('click', (e) => {
+    // Event Delegation for Edit & Delete Buttons
+    productsTableBody.addEventListener('click', async (e) => {
+        const productId = e.target.getAttribute('data-id');
+        
         if (e.target.classList.contains('edit-product-btn')) {
-            const productId = e.target.getAttribute('data-id');
             openEditModal(productId);
+        } else if (e.target.classList.contains('delete-product-btn')) {
+            if (confirm("Are you sure you want to delete this piece? This action cannot be undone.")) {
+                try {
+                    await deleteDoc(doc(db, "products", productId));
+                    await fetchProducts(); // Refresh UI instantly
+                } catch (error) {
+                    console.error("Error deleting product:", error);
+                    alert("Failed to delete the product. Please try again.");
+                }
+            }
         }
     });
 
@@ -232,6 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('edit-price').value = product.price || 0;
         document.getElementById('edit-stock').value = product.stock || 0;
         document.getElementById('edit-image').value = product.image || '';
+        document.getElementById('edit-hover-image').value = product.hoverImage || '';
 
         // Show Modal
         editModal.classList.remove('hidden');
@@ -260,7 +300,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 title: document.getElementById('edit-title').value.trim(),
                 price: parseFloat(document.getElementById('edit-price').value),
                 stock: parseInt(document.getElementById('edit-stock').value),
-                image: document.getElementById('edit-image').value.trim()
+                image: document.getElementById('edit-image').value.trim(),
+                hoverImage: document.getElementById('edit-hover-image').value.trim()
             });
 
             closeEditModal();
@@ -275,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 4. CUSTOMERS DIRECTORY (READ ONLY)
+    // 4. CUSTOMERS DIRECTORY
     // ==========================================
     async function fetchCustomers() {
         customersTableBody.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-stone-400">Loading customers...</td></tr>`;
@@ -296,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `
                     <tr class="hover:bg-stone-50 transition-colors">
                         <td class="p-4 font-medium">${fullName}</td>
-                        <td class="p-4 text-stone-500">${user.email}</td>
+                        <td class="p-4 text-stone-500">${user.email || 'N/A'}</td>
                         <td class="p-4 text-stone-500">${user.phone || 'N/A'}</td>
                     </tr>
                 `;
