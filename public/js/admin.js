@@ -39,6 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Customers Elements
     const customersTableBody = document.getElementById('customers-table-body');
 
+    // Dynamic Images Elements
+    const addImageBtn = document.getElementById('add-image-btn');
+    const addImageInputsContainer = document.getElementById('add-image-inputs');
+    const editAddImageBtn = document.getElementById('edit-add-image-btn');
+    const editImageInputsContainer = document.getElementById('edit-image-inputs');
+
     // State Variables
     let productsList = [];
 
@@ -194,6 +200,49 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
+    // Dynamic Image Inputs Logic
+    addImageBtn.addEventListener('click', () => {
+        const currentInputs = addImageInputsContainer.querySelectorAll('.add-image-input');
+        if (currentInputs.length >= 10) {
+            alert("Maximum of 10 images allowed.");
+            return;
+        }
+        const inputHTML = `
+            <div class="flex gap-2 items-center">
+                <input type="url" required class="add-image-input w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900" placeholder="Additional Image URL">
+                <button type="button" class="text-red-400 hover:text-red-700 font-bold text-xl remove-image-btn">&times;</button>
+            </div>
+        `;
+        addImageInputsContainer.insertAdjacentHTML('beforeend', inputHTML);
+    });
+
+    addImageInputsContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-image-btn')) {
+            e.target.parentElement.remove();
+        }
+    });
+
+    editAddImageBtn.addEventListener('click', () => {
+        const currentInputs = editImageInputsContainer.querySelectorAll('.edit-image-input');
+        if (currentInputs.length >= 10) {
+            alert("Maximum of 10 images allowed.");
+            return;
+        }
+        const inputHTML = `
+            <div class="flex gap-2 items-center">
+                <input type="url" required class="edit-image-input w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900" placeholder="Additional Image URL">
+                <button type="button" class="text-red-400 hover:text-red-700 font-bold text-xl remove-image-btn">&times;</button>
+            </div>
+        `;
+        editImageInputsContainer.insertAdjacentHTML('beforeend', inputHTML);
+    });
+
+    editImageInputsContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-image-btn')) {
+            e.target.parentElement.remove();
+        }
+    });
+
     // Toggle Add Product Form
     toggleAddProductBtn.addEventListener('click', () => {
         addProductContainer.classList.remove('hidden');
@@ -204,6 +253,11 @@ document.addEventListener('DOMContentLoaded', () => {
         addProductContainer.classList.add('hidden');
         toggleAddProductBtn.classList.remove('hidden');
         addProductForm.reset();
+        addImageInputsContainer.innerHTML = `
+            <div class="flex gap-2 items-center">
+                <input type="url" required class="add-image-input w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900" placeholder="Primary Image URL">
+            </div>
+        `;
     });
 
     // Add New Product
@@ -215,8 +269,10 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
 
         try {
-            const primaryImage = document.getElementById('add-image').value.trim();
-            const hoverImageInput = document.getElementById('add-hover-image').value.trim();
+            const inputs = Array.from(document.querySelectorAll('.add-image-input'));
+            const images = inputs.map(input => input.value.trim()).filter(val => val !== '');
+            const primaryImage = images[0] || '';
+            const hoverImage = images[1] || primaryImage;
             
             const newProduct = {
                 title: document.getElementById('add-title').value.trim(),
@@ -224,14 +280,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 stock: parseInt(document.getElementById('add-stock').value),
                 categories: document.getElementById('add-category').value.trim().toLowerCase(),
                 image: primaryImage,
-                // Use hoverImage key to match existing collection/shop frontend logic
-                hoverImage: hoverImageInput || primaryImage 
+                hoverImage: hoverImage,
+                images: images
             };
 
             await addDoc(collection(db, "products"), newProduct);
             
-            addProductForm.reset();
-            cancelAddBtn.click();
+            cancelAddBtn.click(); // resets form and UI
             await fetchProducts(); // Refresh list
         } catch (error) {
             console.error("Error adding product:", error);
@@ -270,8 +325,27 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('edit-title').value = product.title;
         document.getElementById('edit-price').value = product.price || 0;
         document.getElementById('edit-stock').value = product.stock || 0;
-        document.getElementById('edit-image').value = product.image || '';
-        document.getElementById('edit-hover-image').value = product.hoverImage || '';
+        document.getElementById('edit-category').value = product.categories || '';
+
+        // Populate images
+        editImageInputsContainer.innerHTML = '';
+        let images = product.images || [];
+        if (images.length === 0) {
+            if (product.image) images.push(product.image);
+            if (product.hoverImage && product.hoverImage !== product.image) images.push(product.hoverImage);
+        }
+        if (images.length === 0) images.push(''); // at least one empty input
+
+        images.forEach((imgUrl, index) => {
+            let removeBtn = index === 0 ? '' : `<button type="button" class="text-red-400 hover:text-red-700 font-bold text-xl remove-image-btn">&times;</button>`;
+            const inputHTML = `
+                <div class="flex gap-2 items-center">
+                    <input type="url" required class="edit-image-input w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900" placeholder="${index === 0 ? 'Primary Image URL' : 'Additional Image URL'}" value="${imgUrl}">
+                    ${removeBtn}
+                </div>
+            `;
+            editImageInputsContainer.insertAdjacentHTML('beforeend', inputHTML);
+        });
 
         // Show Modal
         editModal.classList.remove('hidden');
@@ -280,6 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeEditModal() {
         editModal.classList.add('hidden');
         editProductForm.reset();
+        editImageInputsContainer.innerHTML = '';
     }
 
     closeModalBtn.addEventListener('click', closeEditModal);
@@ -295,13 +370,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const id = document.getElementById('edit-id').value;
         try {
+            const inputs = Array.from(document.querySelectorAll('.edit-image-input'));
+            const images = inputs.map(input => input.value.trim()).filter(val => val !== '');
+            const primaryImage = images[0] || '';
+            const hoverImage = images[1] || primaryImage;
+
             const productRef = doc(db, "products", id);
             await updateDoc(productRef, {
                 title: document.getElementById('edit-title').value.trim(),
                 price: parseFloat(document.getElementById('edit-price').value),
                 stock: parseInt(document.getElementById('edit-stock').value),
-                image: document.getElementById('edit-image').value.trim(),
-                hoverImage: document.getElementById('edit-hover-image').value.trim()
+                categories: document.getElementById('edit-category').value.trim().toLowerCase(),
+                image: primaryImage,
+                hoverImage: hoverImage,
+                images: images
             });
 
             closeEditModal();
