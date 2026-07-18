@@ -39,9 +39,15 @@ function renderError(container, message) {
 }
 
 function renderProduct(container, product) {
-    // Determine images (fallback to main image if hoverImage is missing)
-    const mainImg = product.image || '';
-    const hoverImg = product.hoverImage || mainImg;
+    // Determine images for gallery
+    let images = product.images || [];
+    if (images.length === 0) {
+        if (product.image) images.push(product.image);
+        if (product.hoverImage && product.hoverImage !== product.image) images.push(product.hoverImage);
+    }
+    // Remove duplicates
+    images = [...new Set(images)];
+    if (images.length === 0) images.push(''); // fallback
 
     // Update document title for SEO/UX
     document.title = `AURA | ${product.title}`;
@@ -49,20 +55,43 @@ function renderProduct(container, product) {
     // Remove the centering classes used for the loading state
     container.classList.remove('flex', 'items-center', 'justify-center');
     
+    // Build Thumbnails HTML
+    let thumbnailsHTML = '';
+    if (images.length > 1) {
+        thumbnailsHTML = `
+            <div class="flex gap-4 overflow-x-auto no-scrollbar py-4">
+                ${images.map((img, index) => `
+                    <button class="gallery-thumbnail flex-shrink-0 w-20 h-24 bg-stone-100 overflow-hidden rounded-sm border-2 ${index === 0 ? 'border-stone-900' : 'border-transparent'} transition-colors" data-index="${index}">
+                        <img src="${img}" alt="Thumbnail ${index + 1}" class="w-full h-full object-cover pointer-events-none">
+                    </button>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    // Build Slider HTML
+    let sliderHTML = `
+        <div class="relative aspect-[4/5] w-full bg-stone-100 overflow-hidden rounded-sm group">
+            <img id="main-gallery-image" src="${images[0]}" alt="${product.title}" class="w-full h-full object-cover transition-opacity duration-300">
+            ${images.length > 1 ? `
+                <button id="prev-image-btn" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur hover:bg-white text-stone-900 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 z-10">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button id="next-image-btn" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur hover:bg-white text-stone-900 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 z-10">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            ` : ''}
+        </div>
+        ${thumbnailsHTML}
+    `;
+
     // Inject stunning editorial layout
     container.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-start">
             
-            <!-- Left Column: Image Gallery -->
-            <div class="flex flex-col gap-6">
-                <div class="aspect-[4/5] w-full bg-stone-100 overflow-hidden rounded-sm">
-                    <img src="${mainImg}" alt="${product.title}" class="w-full h-full object-cover">
-                </div>
-                ${hoverImg !== mainImg ? `
-                <div class="aspect-[4/5] w-full bg-stone-100 overflow-hidden rounded-sm">
-                    <img src="${hoverImg}" alt="${product.title} Detail" class="w-full h-full object-cover">
-                </div>
-                ` : ''}
+            <!-- Left Column: Image Gallery Slider -->
+            <div class="flex flex-col w-full max-w-2xl mx-auto md:max-w-none">
+                ${sliderHTML}
             </div>
 
             <!-- Right Column: Product Info (Sticky) -->
@@ -126,6 +155,52 @@ function renderProduct(container, product) {
             </div>
         </div>
     `;
+
+    // Initialize Gallery Logic
+    if (images.length > 1) {
+        let currentIndex = 0;
+        const mainImageEl = document.getElementById('main-gallery-image');
+        const thumbnails = document.querySelectorAll('.gallery-thumbnail');
+        const prevBtn = document.getElementById('prev-image-btn');
+        const nextBtn = document.getElementById('next-image-btn');
+
+        const updateGallery = (index) => {
+            // Fade out effect
+            mainImageEl.style.opacity = 0;
+            setTimeout(() => {
+                mainImageEl.src = images[index];
+                mainImageEl.style.opacity = 1;
+            }, 150);
+
+            // Update thumbnails active state
+            thumbnails.forEach(t => t.classList.remove('border-stone-900'));
+            thumbnails.forEach(t => t.classList.add('border-transparent'));
+            thumbnails[index].classList.remove('border-transparent');
+            thumbnails[index].classList.add('border-stone-900');
+            currentIndex = index;
+        };
+
+        prevBtn.addEventListener('click', () => {
+            let newIndex = currentIndex - 1;
+            if (newIndex < 0) newIndex = images.length - 1;
+            updateGallery(newIndex);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            let newIndex = currentIndex + 1;
+            if (newIndex >= images.length) newIndex = 0;
+            updateGallery(newIndex);
+        });
+
+        thumbnails.forEach(thumb => {
+            thumb.addEventListener('click', (e) => {
+                const index = parseInt(e.currentTarget.getAttribute('data-index'));
+                if (index !== currentIndex) {
+                    updateGallery(index);
+                }
+            });
+        });
+    }
 
     // Hook up Add to Cart functionality with Global State
     const addBtn = document.getElementById('add-to-cart-btn');
