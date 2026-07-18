@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // Create the user document in Firestore with the additional shipping details
+                // Create the user document in Firestore with shipping details AND initialize the empty cloud cart
                 await setDoc(doc(db, "users", user.uid), {
                     firstName: firstNameInput.value.trim(),
                     lastName: lastNameInput.value.trim(),
@@ -93,11 +93,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     address: addressInput.value.trim(),
                     postalCode: postalCodeInput.value.trim(),
                     email: email,
+                    cart: [], // Initialize empty cloud cart
                     createdAt: new Date().toISOString()
                 });
             }
             
             // On success, redirect to the homepage
+            // (The cart merge logic happens automatically via global.js onAuthStateChanged)
             window.location.href = 'index.html';
 
         } catch (error) {
