@@ -28,6 +28,7 @@
         }
     </script>
     <style>
+        html { scroll-behavior: smooth; }
         body { 
             background-color: #FBFBFA; 
             overflow-x: hidden;
@@ -55,8 +56,9 @@
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-16 items-start">
             
             <!-- Sidebar Navigation -->
-            <aside class="lg:col-span-1 flex flex-col gap-6 font-sans text-sm tracking-widest uppercase">
-                <a href="#orders" class="text-stone-900 font-semibold border-l-2 border-stone-900 pl-4 py-1 transition-colors">Order History</a>
+            <aside class="lg:col-span-1 flex flex-col gap-6 font-sans text-sm tracking-widest uppercase sticky top-32">
+                <a href="#personal-info" class="text-stone-900 font-semibold border-l-2 border-stone-900 pl-4 py-1 transition-colors">Personal Info</a>
+                <a href="#orders" class="text-stone-400 hover:text-stone-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Order History</a>
                 <a href="#addresses" class="text-stone-400 hover:text-stone-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Saved Addresses</a>
                 
                 <div class="w-full h-px bg-stone-200 my-4"></div>
@@ -67,12 +69,58 @@
             </aside>
 
             <!-- Main Content Area -->
-            <div class="lg:col-span-3 space-y-20">
+            <div class="lg:col-span-3 space-y-24">
                 
+                <!-- Personal Information Section -->
+                <section id="personal-info" class="scroll-mt-32">
+                    <div class="flex items-center justify-between mb-8">
+                        <h2 class="font-serif text-2xl text-stone-900">Personal Information</h2>
+                        <button class="font-sans text-xs tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-colors">
+                            Edit Profile
+                        </button>
+                    </div>
+                    
+                    <div class="border border-stone-200 bg-white p-10 md:p-14 rounded-sm grid grid-cols-1 md:grid-cols-2 gap-10 shadow-sm">
+                        
+                        <!-- Full Name -->
+                        <div>
+                            <p class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Full Name</p>
+                            <p id="profile-name" class="font-sans text-stone-900 font-medium text-lg">
+                                <span class="animate-pulse bg-stone-200 text-transparent rounded w-32 inline-block">Loading...</span>
+                            </p>
+                        </div>
+
+                        <!-- Email Address -->
+                        <div>
+                            <p class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Email Address</p>
+                            <p id="profile-email" class="font-sans text-stone-900 font-medium text-lg">
+                                <span class="animate-pulse bg-stone-200 text-transparent rounded w-48 inline-block">Loading...</span>
+                            </p>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div>
+                            <p class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Phone Number</p>
+                            <p id="profile-phone" class="font-sans text-stone-900 font-medium text-lg">
+                                <span class="animate-pulse bg-stone-200 text-transparent rounded w-36 inline-block">Loading...</span>
+                            </p>
+                        </div>
+
+                        <!-- Shipping Address -->
+                        <div>
+                            <p class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Shipping Address</p>
+                            <p id="profile-address" class="font-sans text-stone-900 font-medium text-lg">
+                                <span class="animate-pulse bg-stone-200 text-transparent rounded w-56 inline-block">Loading...</span>
+                            </p>
+                        </div>
+
+                    </div>
+                </section>
+
                 <!-- Order History Section -->
-                <section id="orders">
+                <section id="orders" class="scroll-mt-32">
                     <h2 class="font-serif text-2xl text-stone-900 mb-8">Order History</h2>
-                    <div class="border border-stone-200 bg-white p-16 rounded-sm flex flex-col items-center justify-center text-center">
+                    <div class="border border-stone-200 bg-white p-16 rounded-sm flex flex-col items-center justify-center text-center shadow-sm">
                         <svg class="w-12 h-12 text-stone-300 mb-4 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                         <h3 class="font-sans text-stone-900 font-medium mb-2">No orders yet</h3>
                         <p class="font-sans text-sm text-stone-500 mb-6 max-w-sm">When you place an order, it will appear here. Discover our latest minimalist pieces to elevate your space.</p>
@@ -83,16 +131,16 @@
                 </section>
 
                 <!-- Saved Addresses Section -->
-                <section id="addresses">
+                <section id="addresses" class="scroll-mt-32">
                     <div class="flex items-center justify-between mb-8">
                         <h2 class="font-serif text-2xl text-stone-900">Saved Addresses</h2>
                         <button class="font-sans text-xs tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-colors">
                             + Add New
                         </button>
                     </div>
-                    <div class="border border-stone-200 bg-white p-16 rounded-sm flex flex-col items-center justify-center text-center">
+                    <div class="border border-stone-200 bg-white p-16 rounded-sm flex flex-col items-center justify-center text-center shadow-sm">
                         <svg class="w-12 h-12 text-stone-300 mb-4 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                        <h3 class="font-sans text-stone-900 font-medium mb-2">No addresses saved</h3>
+                        <h3 class="font-sans text-stone-900 font-medium mb-2">No alternate addresses saved</h3>
                         <p class="font-sans text-sm text-stone-500 max-w-sm">Save your shipping and billing addresses for a faster checkout experience.</p>
                     </div>
                 </section>
