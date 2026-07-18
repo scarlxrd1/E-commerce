@@ -121,13 +121,17 @@
                             <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Category (e.g., seating, tables)</label>
                             <input type="text" id="add-category" required class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
                         </div>
-                        <div>
-                            <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Primary Image URL</label>
-                            <input type="url" id="add-image" required class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
-                        </div>
-                        <div>
-                            <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Hover Image URL (Optional)</label>
-                            <input type="url" id="add-hover-image" class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
+                        <div class="md:col-span-2">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block font-sans text-xs tracking-widest uppercase text-stone-500">Product Images</label>
+                                <button type="button" id="add-image-btn" class="text-stone-900 hover:text-stone-600 font-bold text-lg leading-none" title="Add another image">+</button>
+                            </div>
+                            <div id="add-image-inputs" class="space-y-4">
+                                <div class="flex gap-2 items-center">
+                                    <input type="url" required class="add-image-input w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900" placeholder="Primary Image URL">
+                                </div>
+                            </div>
+                            <p class="font-sans text-xs text-stone-400 mt-2">The first image will be the primary image. The second will be the hover image. You can add up to 10 images.</p>
                         </div>
                         <div class="md:col-span-2 flex justify-end gap-4 mt-4">
                             <button type="button" id="cancel-add-btn" class="font-sans text-xs tracking-widest uppercase border border-stone-300 text-stone-600 px-6 py-2 hover:bg-stone-50 transition-colors rounded-sm">Cancel</button>
@@ -208,12 +212,18 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Primary Image URL</label>
-                    <input type="url" id="edit-image" required class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
+                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Category (e.g., seating, tables)</label>
+                    <input type="text" id="edit-category" required class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
                 </div>
                 <div>
-                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Hover Image URL</label>
-                    <input type="url" id="edit-hover-image" class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block font-sans text-xs tracking-widest uppercase text-stone-500">Product Images</label>
+                        <button type="button" id="edit-add-image-btn" class="text-stone-900 hover:text-stone-600 font-bold text-lg leading-none" title="Add another image">+</button>
+                    </div>
+                    <div id="edit-image-inputs" class="space-y-4 max-h-48 overflow-y-auto pr-2 no-scrollbar">
+                        <!-- Injected dynamically -->
+                    </div>
+                    <p class="font-sans text-xs text-stone-400 mt-2">The first image is primary, the second is hover. Up to 10 images.</p>
                 </div>
                 
                 <div class="flex justify-end gap-4 mt-6">
