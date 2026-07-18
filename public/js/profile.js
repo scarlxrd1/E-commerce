@@ -1,83 +1,146 @@
 import { app, db } from './firebase-config.js';
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
+    let currentUser = null;
     
-    // DOM Elements
-    const userEmailEl = document.getElementById('user-email');
+    // View DOM Elements
+    const userNameHeaderEl = document.getElementById('user-name-header');
     const profileNameEl = document.getElementById('profile-name');
     const profileEmailEl = document.getElementById('profile-email');
     const profilePhoneEl = document.getElementById('profile-phone');
     const profileAddressEl = document.getElementById('profile-address');
     const logoutBtn = document.getElementById('logout-btn');
 
+    // Edit DOM Elements
+    const viewModeContainer = document.getElementById('profile-view-mode');
+    const editModeContainer = document.getElementById('profile-edit-mode');
+    const editProfileBtn = document.getElementById('edit-profile-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    const saveEditBtn = document.getElementById('save-edit-btn');
+    
+    const editFirstNameInput = document.getElementById('edit-firstName');
+    const editLastNameInput = document.getElementById('edit-lastName');
+    const editPhoneInput = document.getElementById('edit-phone');
+    const editAddressInput = document.getElementById('edit-address');
+    const editZipInput = document.getElementById('edit-zip');
+
     // 1. Route Protection & Fetching User Data
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            // User is signed in, populate their email in the header
-            if (userEmailEl) {
-                userEmailEl.textContent = user.email;
-            }
-
-            // Fetch extended profile data from the Firestore "users" collection
-            try {
-                const docRef = doc(db, "users", user.uid);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    
-                    // Combine First and Last Name
-                    const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim();
-                    profileNameEl.textContent = fullName || 'Not provided';
-                    
-                    // Email
-                    profileEmailEl.textContent = data.email || user.email;
-                    
-                    // Phone Number
-                    profilePhoneEl.textContent = data.phone || 'Not provided';
-                    
-                    // Combine Address and Postal Code/Zip
-                    const postalCode = data.postalCode || data.zip || '';
-                    const fullAddress = `${data.address || ''}, ${postalCode}`.replace(/^, | , $/g, '').trim();
-                    profileAddressEl.textContent = fullAddress && fullAddress !== ',' ? fullAddress : 'Not provided';
-
-                } else {
-                    // Fallback if the user document is missing in Firestore
-                    profileNameEl.textContent = 'Not provided';
-                    profileEmailEl.textContent = user.email;
-                    profilePhoneEl.textContent = 'Not provided';
-                    profileAddressEl.textContent = 'Not provided';
-                }
-            } catch (error) {
-                console.error("Error fetching user profile data:", error);
-                
-                // Fallback on error
-                profileNameEl.textContent = 'Error loading data';
-                profileEmailEl.textContent = user.email;
-                profilePhoneEl.textContent = 'Error loading data';
-                profileAddressEl.textContent = 'Error loading data';
-            }
-
+            currentUser = user;
+            await loadProfileData();
         } else {
             // No user is signed in, redirect instantly to the login page
             window.location.replace('auth.html');
         }
     });
 
-    // 2. Handle Logout
+    async function loadProfileData() {
+        try {
+            const docRef = doc(db, "users", currentUser.uid);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                
+                // Update View Mode
+                const firstName = data.firstName || '';
+                const lastName = data.lastName || '';
+                const fullName = `${firstName} ${lastName}`.trim();
+                
+                // Header Name (Remove animations)
+                userNameHeaderEl.textContent = fullName || currentUser.email;
+                userNameHeaderEl.classList.remove('animate-pulse', 'bg-stone-200', 'text-transparent', 'rounded');
+                
+                profileNameEl.textContent = fullName || 'Not provided';
+                profileEmailEl.textContent = data.email || currentUser.email;
+                profilePhoneEl.textContent = data.phone || 'Not provided';
+                
+                const postalCode = data.postalCode || data.zip || '';
+                const fullAddress = `${data.address || ''}, ${postalCode}`.replace(/^, | , $/g, '').trim();
+                profileAddressEl.textContent = fullAddress && fullAddress !== ',' ? fullAddress : 'Not provided';
+
+                // Pre-fill Edit Mode Inputs
+                editFirstNameInput.value = firstName;
+                editLastNameInput.value = lastName;
+                editPhoneInput.value = data.phone || '';
+                editAddressInput.value = data.address || '';
+                editZipInput.value = postalCode;
+
+            } else {
+                userNameHeaderEl.textContent = currentUser.email;
+                userNameHeaderEl.classList.remove('animate-pulse', 'bg-stone-200', 'text-transparent', 'rounded');
+                profileNameEl.textContent = 'Not provided';
+                profileEmailEl.textContent = currentUser.email;
+                profilePhoneEl.textContent = 'Not provided';
+                profileAddressEl.textContent = 'Not provided';
+            }
+        } catch (error) {
+            console.error("Error fetching user profile data:", error);
+            userNameHeaderEl.textContent = 'Error loading data';
+            userNameHeaderEl.classList.remove('animate-pulse', 'bg-stone-200', 'text-transparent', 'rounded');
+        }
+    }
+
+    // 2. Toggle Edit/View Modes
+    editProfileBtn.addEventListener('click', () => {
+        viewModeContainer.classList.add('hidden');
+        editModeContainer.classList.remove('hidden');
+        editModeContainer.classList.add('flex');
+        editProfileBtn.classList.add('hidden');
+    });
+
+    cancelEditBtn.addEventListener('click', () => {
+        editModeContainer.classList.add('hidden');
+        editModeContainer.classList.remove('flex');
+        viewModeContainer.classList.remove('hidden');
+        editProfileBtn.classList.remove('hidden');
+        // Reset inputs to original state
+        loadProfileData(); 
+    });
+
+    // 3. Handle Profile Save
+    editModeContainer.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const originalBtnText = saveEditBtn.textContent;
+        saveEditBtn.textContent = 'Saving...';
+        saveEditBtn.disabled = true;
+        saveEditBtn.classList.add('opacity-70', 'cursor-not-allowed');
+
+        try {
+            const userRef = doc(db, "users", currentUser.uid);
+            await updateDoc(userRef, {
+                firstName: editFirstNameInput.value.trim(),
+                lastName: editLastNameInput.value.trim(),
+                phone: editPhoneInput.value.trim(),
+                address: editAddressInput.value.trim(),
+                postalCode: editZipInput.value.trim(),
+            });
+
+            // Reload data and switch back to view mode
+            await loadProfileData();
+            cancelEditBtn.click(); // Triggers the UI toggle back to view mode
+
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            alert("An error occurred while saving your profile. Please try again.");
+        } finally {
+            saveEditBtn.textContent = originalBtnText;
+            saveEditBtn.disabled = false;
+            saveEditBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+        }
+    });
+
+    // 4. Handle Logout
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             try {
-                // Change button text to give UI feedback during network request
                 const originalText = logoutBtn.textContent;
                 logoutBtn.textContent = 'Logging out...';
-                
                 await signOut(auth);
-                
-                // On successful logout, route them to the homepage
                 window.location.href = 'index.html';
             } catch (error) {
                 console.error('Error signing out:', error);
