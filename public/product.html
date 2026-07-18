@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
     
-    <!-- FontAwesome for Gallery Icons -->
+    <!-- FontAwesome for Gallery Icons & Review Stars -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Tailwind CSS -->
@@ -38,6 +38,8 @@
         /* Custom scrollbar hiding for cart drawer compatibility */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Star hover transitions */
+        .star-icon { transition: color 0.2s ease-in-out; }
     </style>
 </head>
 <body class="font-sans text-stone-900 antialiased selection:bg-stone-200 selection:text-stone-900">
@@ -48,9 +50,65 @@
     <div id="navbar-container"></div>
 
     <!-- Main Container where product data is injected -->
-    <main id="single-product-container" class="max-w-[1400px] mx-auto px-6 md:px-12 py-24 min-h-[70vh] flex items-center justify-center">
+    <main id="single-product-container" class="max-w-[1400px] mx-auto px-6 md:px-12 pt-24 pb-12 min-h-[70vh] flex items-center justify-center">
         <div class="text-stone-500 font-sans tracking-widest uppercase text-sm animate-pulse">Loading details...</div>
     </main>
+
+    <!-- ========================================== -->
+    <!-- CUSTOMER REVIEWS SECTION -->
+    <!-- ========================================== -->
+    <section id="reviews-section" class="max-w-[1400px] mx-auto px-6 md:px-12 py-24 border-t border-stone-200 hidden">
+        <h2 class="font-serif text-3xl text-stone-900 mb-12">Customer Reviews</h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-16 items-start">
+            
+            <!-- Left Column: Review Form / Login Prompt -->
+            <div class="lg:col-span-1 sticky top-32">
+                
+                <!-- Logged Out State -->
+                <div id="review-logged-out" class="bg-stone-50 p-8 rounded-sm text-center border border-stone-200 hidden">
+                    <p class="font-sans text-sm text-stone-500 mb-6">Have you purchased this piece?</p>
+                    <a href="auth.html" class="inline-block w-full bg-stone-900 text-white font-sans text-xs tracking-widest uppercase py-4 rounded-sm hover:bg-stone-800 transition-colors shadow-sm">
+                        Log in to review
+                    </a>
+                </div>
+
+                <!-- Logged In State (Form) -->
+                <form id="review-form" class="bg-stone-50 border border-stone-200 p-8 rounded-sm hidden flex-col gap-6 shadow-sm">
+                    <h3 class="font-sans text-sm tracking-widest uppercase text-stone-900 font-semibold mb-2">Review this item</h3>
+                    
+                    <div>
+                        <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-3">Overall Rating</label>
+                        <div id="star-rating-container" class="flex gap-1 text-stone-300 cursor-pointer text-2xl">
+                            <i class="fa-solid fa-star star-icon" data-rating="1"></i>
+                            <i class="fa-solid fa-star star-icon" data-rating="2"></i>
+                            <i class="fa-solid fa-star star-icon" data-rating="3"></i>
+                            <i class="fa-solid fa-star star-icon" data-rating="4"></i>
+                            <i class="fa-solid fa-star star-icon" data-rating="5"></i>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="review-comment" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-3">Post a Comment</label>
+                        <textarea id="review-comment" rows="5" required class="w-full bg-white border border-stone-300 p-4 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors resize-none rounded-sm shadow-inner" placeholder="Share your thoughts on this piece..."></textarea>
+                    </div>
+
+                    <div id="review-success-msg" class="hidden text-green-700 bg-green-50 border border-green-200 p-3 text-center rounded-sm font-sans text-xs tracking-widest uppercase">
+                        Review submitted successfully!
+                    </div>
+
+                    <button type="submit" id="submit-review-btn" class="w-full bg-stone-900 text-white font-sans text-xs tracking-widest uppercase py-4 mt-2 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">
+                        Submit Review
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Column: Reviews List -->
+            <div class="lg:col-span-2 flex flex-col gap-6" id="reviews-list-container">
+                <div class="text-stone-500 font-sans text-sm tracking-widest uppercase animate-pulse">Loading reviews...</div>
+            </div>
+        </div>
+    </section>
 
     <!-- ========================================== -->
     <!-- DYNAMIC FOOTER PLACEHOLDER -->
