@@ -1,5 +1,6 @@
-import { db } from './firebase-config.js';
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { app, db } from './firebase-config.js';
+import { doc, getDoc, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('single-product-container');
@@ -17,6 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (docSnap.exists()) {
             renderProduct(container, { id: docSnap.id, ...docSnap.data() });
+            initReviewsSystem(productId);
         } else {
             renderError(container, "The requested piece could not be found.");
         }
@@ -213,11 +215,9 @@ function renderProduct(container, product) {
             stock: parseInt(addBtn.getAttribute('data-stock'))
         };
         
-        // Attempt to add to cart
         const success = window.addToCart(productData);
         const originalText = "Add to Cart";
 
-        // Handle UI Feedback based on Stock Limit
         if (success) {
             addBtn.textContent = 'Added';
             addBtn.classList.remove('bg-stone-900', 'hover:bg-stone-800');
@@ -228,11 +228,207 @@ function renderProduct(container, product) {
             addBtn.classList.add('bg-stone-300', 'text-stone-600');
         }
 
-        // Revert back after 2 seconds
         setTimeout(() => {
             addBtn.textContent = originalText;
             addBtn.classList.remove('bg-stone-400', 'bg-stone-300', 'text-stone-900', 'text-stone-600');
             addBtn.classList.add('bg-stone-900', 'hover:bg-stone-800');
         }, 2000);
+    });
+}
+
+// ==========================================
+// REVIEWS SYSTEM INITIALIZATION
+// ==========================================
+function initReviewsSystem(productId) {
+    const auth = getAuth(app);
+    let currentUser = null;
+    let currentRating = 0;
+
+    // DOM Elements
+    const reviewsSection = document.getElementById('reviews-section');
+    const loggedOutEl = document.getElementById('review-logged-out');
+    const reviewForm = document.getElementById('review-form');
+    const starContainer = document.getElementById('star-rating-container');
+    const stars = document.querySelectorAll('.star-icon');
+    const submitBtn = document.getElementById('submit-review-btn');
+    const successMsg = document.getElementById('review-success-msg');
+    const reviewsListContainer = document.getElementById('reviews-list-container');
+
+    // Unhide the reviews section wrapper now that product is loaded
+    reviewsSection.classList.remove('hidden');
+
+    // 1. Auth State Listener (Toggle Form)
+    onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        if (user) {
+            loggedOutEl.classList.add('hidden');
+            reviewForm.classList.remove('hidden');
+            reviewForm.classList.add('flex');
+        } else {
+            reviewForm.classList.add('hidden');
+            reviewForm.classList.remove('flex');
+            loggedOutEl.classList.remove('hidden');
+        }
+    });
+
+    // 2. Fetch and Render Reviews
+    async function fetchAndRenderReviews() {
+        try {
+            // Client-side sort prevents requiring a composite index setup in Firebase
+            const q = query(collection(db, "reviews"), where("productId", "==", productId));
+            const snapshot = await getDocs(q);
+            
+            let reviews = [];
+            snapshot.forEach(doc => reviews.push({ id: doc.id, ...doc.data() }));
+
+            // Sort Descending (Newest first)
+            reviews.sort((a, b) => {
+                const timeA = a.timestamp ? a.timestamp.toMillis() : Date.now();
+                const timeB = b.timestamp ? b.timestamp.toMillis() : Date.now();
+                return timeB - timeA;
+            });
+
+            if (reviews.length === 0) {
+                reviewsListContainer.innerHTML = `
+                    <div class="bg-white border border-stone-200 p-12 rounded-sm text-center flex flex-col items-center shadow-sm">
+                        <svg class="w-12 h-12 text-stone-300 mb-4 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                        <h3 class="font-serif text-xl text-stone-900 mb-2">No reviews yet</h3>
+                        <p class="font-sans text-sm text-stone-500">Be the first to review this piece and share your thoughts.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            reviews.forEach(review => {
+                // Generate Star UI
+                let starsHtml = '';
+                for(let i = 1; i <= 5; i++) {
+                    starsHtml += `<i class="fa-solid fa-star ${i <= review.rating ? 'text-stone-900' : 'text-stone-200'}"></i>`;
+                }
+
+                // Format Date
+                const dateObj = review.timestamp ? review.timestamp.toDate() : new Date();
+                const dateStr = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                html += `
+                    <div class="bg-white border border-stone-200 p-8 rounded-sm shadow-sm flex flex-col gap-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-sans font-semibold text-stone-900">${review.userName}</h4>
+                                <span class="font-sans text-xs text-stone-400 tracking-wider uppercase">${dateStr}</span>
+                            </div>
+                            <div class="text-xs flex gap-0.5">
+                                ${starsHtml}
+                            </div>
+                        </div>
+                        <p class="font-sans text-sm text-stone-600 leading-relaxed">${review.comment}</p>
+                    </div>
+                `;
+            });
+            
+            reviewsListContainer.innerHTML = html;
+
+        } catch (error) {
+            console.error("Error fetching reviews:", error);
+            reviewsListContainer.innerHTML = `<div class="text-red-500 font-sans text-sm p-4 bg-red-50 border border-red-100 rounded-sm">Failed to load reviews. Please refresh the page.</div>`;
+        }
+    }
+
+    // Initial Fetch
+    fetchAndRenderReviews();
+
+    // 3. Star Rating Interactive Logic
+    function updateStarsUI(rating) {
+        stars.forEach(star => {
+            const starVal = parseInt(star.getAttribute('data-rating'));
+            if (starVal <= rating) {
+                star.classList.remove('text-stone-300');
+                star.classList.add('text-stone-900');
+            } else {
+                star.classList.remove('text-stone-900');
+                star.classList.add('text-stone-300');
+            }
+        });
+    }
+
+    stars.forEach(star => {
+        star.addEventListener('mouseenter', (e) => {
+            const hoverVal = parseInt(e.target.getAttribute('data-rating'));
+            updateStarsUI(hoverVal);
+        });
+        
+        star.addEventListener('click', (e) => {
+            currentRating = parseInt(e.target.getAttribute('data-rating'));
+            updateStarsUI(currentRating);
+        });
+    });
+
+    starContainer.addEventListener('mouseleave', () => {
+        updateStarsUI(currentRating);
+    });
+
+    // 4. Form Submission Logic
+    reviewForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!currentUser) return;
+        
+        if (currentRating === 0) {
+            alert("Please select a star rating before submitting.");
+            return;
+        }
+
+        const comment = document.getElementById('review-comment').value.trim();
+        if (!comment) return;
+
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Posting...';
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+
+        try {
+            // Fetch User Profile Data for Name
+            let userName = currentUser.email.split('@')[0]; // fallback
+            const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+            
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                if (data.firstName || data.lastName) {
+                    userName = `${data.firstName || ''} ${data.lastName || ''}`.trim();
+                }
+            }
+
+            // Write to Firestore
+            await addDoc(collection(db, "reviews"), {
+                productId: productId,
+                userId: currentUser.uid,
+                userName: userName,
+                rating: currentRating,
+                comment: comment,
+                timestamp: serverTimestamp()
+            });
+
+            // Reset UI State
+            reviewForm.reset();
+            currentRating = 0;
+            updateStarsUI(0);
+            
+            successMsg.classList.remove('hidden');
+            setTimeout(() => {
+                successMsg.classList.add('hidden');
+            }, 4000);
+
+            // Re-render the reviews list seamlessly
+            await fetchAndRenderReviews();
+
+        } catch (error) {
+            console.error("Error posting review:", error);
+            alert("Failed to post your review. Please try again.");
+        } finally {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+        }
     });
 }
