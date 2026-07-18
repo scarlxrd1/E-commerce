@@ -1,10 +1,11 @@
 /**
  * AURA Global Engine
- * Handles UI Component Injection (Navbar/Footer/Cart), Global Cart State, LocalStorage Sync, and Auth State.
+ * Handles UI Component Injection (Navbar/Footer/Cart), Global Cart State, Hybrid Cloud/Local Sync, and Auth State.
  */
 
-import { app } from './firebase-config.js';
+import { app, db } from './firebase-config.js';
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const navbarHTML = `
     <nav class="sticky top-0 z-50 bg-cream/90 backdrop-blur-md border-b border-stone-200/50 transition-all">
@@ -117,7 +118,13 @@ const cartDrawerHTML = `
 `;
 
 // ==========================================
-// 1. INJECT UI & INITIALIZE
+// 1. STATE MANAGEMENT
+// ==========================================
+let cart = [];
+let currentUser = null;
+
+// ==========================================
+// 2. INJECT UI & INITIALIZE
 // ==========================================
 function initGlobalUI() {
     const navContainer = document.getElementById('navbar-container');
@@ -129,8 +136,6 @@ function initGlobalUI() {
     if (!document.getElementById('cart-drawer-container')) {
         document.body.insertAdjacentHTML('beforeend', cartDrawerHTML);
     }
-    
-    renderCart();
 
     // Global Search Logic
     const searchForm = document.getElementById('global-search-form');
@@ -147,31 +152,96 @@ function initGlobalUI() {
         });
     }
 
-    // Auth State Listener (Smart Routing)
+    // Auth State Listener (Smart Routing & Hybrid Cart Sync)
     const auth = getAuth(app);
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         const indicator = document.getElementById('auth-indicator');
         const profileLink = document.getElementById('user-profile-link');
         
         if (user) {
-            // Logged in: Show dot, link to profile
+            // Logged in
+            currentUser = user;
             if (indicator) indicator.classList.remove('hidden');
             if (profileLink) profileLink.href = 'profile.html';
+            
+            // Sync cart from Firestore and merge local storage if needed
+            await syncCartOnLogin(user);
         } else {
-            // Logged out: Hide dot, link to auth
+            // Logged out
+            currentUser = null;
             if (indicator) indicator.classList.add('hidden');
             if (profileLink) profileLink.href = 'auth.html';
+            
+            // Load local cart
+            cart = JSON.parse(localStorage.getItem('aura_cart')) || [];
+            renderCart();
         }
     });
 }
 
 // ==========================================
-// 2. GLOBAL CART STATE MANAGEMENT
+// 3. HYBRID CART LOGIC
 // ==========================================
-let cart = JSON.parse(localStorage.getItem('aura_cart')) || [];
+async function syncCartOnLogin(user) {
+    const userRef = doc(db, "users", user.uid);
+    let firestoreCart = [];
+    
+    try {
+        const docSnap = await getDoc(userRef);
+        if (docSnap.exists()) {
+            firestoreCart = docSnap.data().cart || [];
+        } else {
+            // Create user doc if it doesn't exist (failsafe)
+            await setDoc(userRef, { email: user.email, cart: [] }, { merge: true });
+        }
 
-function saveCart() {
-    localStorage.setItem('aura_cart', JSON.stringify(cart));
+        // Merge logic: Check if guest cart exists in localStorage
+        const localCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
+        
+        if (localCart.length > 0) {
+            localCart.forEach(localItem => {
+                const existing = firestoreCart.find(item => item.id === localItem.id);
+                if (existing) {
+                    existing.quantity += localItem.quantity;
+                    // Cap at stock limit
+                    if (existing.stock && existing.quantity > existing.stock) {
+                        existing.quantity = existing.stock;
+                    }
+                } else {
+                    firestoreCart.push(localItem);
+                }
+            });
+            
+            // Update Firestore with merged cart
+            await updateDoc(userRef, { cart: firestoreCart });
+            
+            // Clear local cache since it's now synced to the cloud
+            localStorage.removeItem('aura_cart');
+        }
+
+        cart = firestoreCart;
+        renderCart();
+
+    } catch (error) {
+        console.error("Error syncing cart on login:", error);
+        cart = [];
+        renderCart();
+    }
+}
+
+async function saveCart() {
+    if (currentUser) {
+        // Save to Firestore
+        try {
+            const userRef = doc(db, "users", currentUser.uid);
+            await updateDoc(userRef, { cart: cart });
+        } catch (error) {
+            console.error("Error saving cart to cloud:", error);
+        }
+    } else {
+        // Save to LocalStorage
+        localStorage.setItem('aura_cart', JSON.stringify(cart));
+    }
     renderCart();
 }
 
@@ -244,6 +314,7 @@ window.addToCart = function(product) {
         cart.push({ ...product, quantity: 1 });
     }
     
+    // Asynchronous save, UI updates immediately inside saveCart
     saveCart();
     window.openCart();
     return true; 
@@ -306,7 +377,7 @@ window.checkout = async function() {
 };
 
 // ==========================================
-// 3. EVENT LISTENERS & TAB SYNC
+// 4. EVENT LISTENERS & TAB SYNC
 // ==========================================
 document.addEventListener('click', (e) => {
     const cartOpenBtn = e.target.closest('[aria-label="Cart"], #cart-icon-btn');
@@ -322,8 +393,9 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// Sync local storage cart updates across tabs (only for guests)
 window.addEventListener('storage', (e) => {
-    if (e.key === 'aura_cart') {
+    if (!currentUser && e.key === 'aura_cart') {
         cart = JSON.parse(e.newValue) || [];
         renderCart();
     }
