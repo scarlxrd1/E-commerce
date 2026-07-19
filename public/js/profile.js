@@ -1,5 +1,5 @@
 import { app, db } from './firebase-config.js';
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -25,7 +25,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const editLastNameInput = document.getElementById('edit-lastName');
     const editPhoneInput = document.getElementById('edit-phone');
     const editAddressInput = document.getElementById('edit-address');
+    const editCityInput = document.getElementById('edit-city');
+    const editCountryInput = document.getElementById('edit-country');
     const editZipInput = document.getElementById('edit-zip');
+    
+    // Auth Edit Fields
+    const editEmailInput = document.getElementById('edit-email');
+    const editPasswordInput = document.getElementById('edit-password');
 
     // 1. Route Protection & Fetching User Data
     onAuthStateChanged(auth, async (user) => {
@@ -51,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const lastName = data.lastName || '';
                 const fullName = `${firstName} ${lastName}`.trim();
                 
-                // Header Name (Remove animations)
+                // Header Name
                 userNameHeaderEl.textContent = fullName || currentUser.email;
                 userNameHeaderEl.classList.remove('animate-pulse', 'bg-stone-200', 'text-transparent', 'rounded');
                 
@@ -59,16 +65,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 profileEmailEl.textContent = data.email || currentUser.email;
                 profilePhoneEl.textContent = data.phone || 'Not provided';
                 
-                const postalCode = data.postalCode || data.zip || '';
-                const fullAddress = `${data.address || ''}, ${postalCode}`.replace(/^, | , $/g, '').trim();
-                profileAddressEl.textContent = fullAddress && fullAddress !== ',' ? fullAddress : 'Not provided';
+                // Format full address
+                const addressStr = data.address || '';
+                const cityStr = data.city || '';
+                const postalCodeStr = data.postalCode || data.zip || '';
+                const countryStr = data.country || '';
+                
+                const fullAddress = [addressStr, cityStr, postalCodeStr, countryStr]
+                                    .filter(Boolean)
+                                    .join(', ');
+                                    
+                profileAddressEl.textContent = fullAddress || 'Not provided';
 
                 // Pre-fill Edit Mode Inputs
                 editFirstNameInput.value = firstName;
                 editLastNameInput.value = lastName;
                 editPhoneInput.value = data.phone || '';
-                editAddressInput.value = data.address || '';
-                editZipInput.value = postalCode;
+                editAddressInput.value = addressStr;
+                editCityInput.value = cityStr;
+                editCountryInput.value = countryStr;
+                editZipInput.value = postalCodeStr;
+                editEmailInput.value = currentUser.email;
 
             } else {
                 userNameHeaderEl.textContent = currentUser.email;
@@ -98,11 +115,12 @@ document.addEventListener('DOMContentLoaded', () => {
         editModeContainer.classList.remove('flex');
         viewModeContainer.classList.remove('hidden');
         editProfileBtn.classList.remove('hidden');
-        // Reset inputs to original state
+        // Reset inputs to original state and clear password
+        editPasswordInput.value = '';
         loadProfileData(); 
     });
 
-    // 3. Handle Profile Save
+    // 3. Handle Profile & Auth Save
     editModeContainer.addEventListener('submit', async (e) => {
         e.preventDefault();
         const originalBtnText = saveEditBtn.textContent;
@@ -111,22 +129,53 @@ document.addEventListener('DOMContentLoaded', () => {
         saveEditBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
         try {
+            // A. Prepare Auth Updates (Email & Password)
+            let authUpdates = [];
+            const newEmail = editEmailInput.value.trim();
+            const newPassword = editPasswordInput.value;
+
+            if (newEmail && newEmail !== currentUser.email) {
+                authUpdates.push(updateEmail(currentUser, newEmail));
+            }
+            if (newPassword && newPassword.length > 6) {
+                authUpdates.push(updatePassword(currentUser, newPassword));
+            } else if (newPassword && newPassword.length <= 6) {
+                alert("Password must be greater than 6 characters.");
+                throw new Error("Validation Failed");
+            }
+
+            // Execute Auth Updates first (as they are more sensitive to recent login requirements)
+            if (authUpdates.length > 0) {
+                await Promise.all(authUpdates);
+            }
+
+            // B. Update Firestore Profile Data
             const userRef = doc(db, "users", currentUser.uid);
             await updateDoc(userRef, {
                 firstName: editFirstNameInput.value.trim(),
                 lastName: editLastNameInput.value.trim(),
                 phone: editPhoneInput.value.trim(),
                 address: editAddressInput.value.trim(),
+                city: editCityInput.value.trim(),
+                country: editCountryInput.value,
                 postalCode: editZipInput.value.trim(),
+                email: newEmail || currentUser.email // keep synced with auth
             });
 
             // Reload data and switch back to view mode
+            editPasswordInput.value = '';
             await loadProfileData();
             cancelEditBtn.click(); // Triggers the UI toggle back to view mode
 
         } catch (error) {
             console.error("Error updating profile:", error);
-            alert("An error occurred while saving your profile. Please try again.");
+            
+            if (error.code === 'auth/requires-recent-login') {
+                alert("For security reasons, please log out and log back in before changing your email or password.");
+            } else if (error.message !== "Validation Failed") {
+                alert("An error occurred while saving your profile: " + error.message);
+            }
+            
         } finally {
             saveEditBtn.textContent = originalBtnText;
             saveEditBtn.disabled = false;
