@@ -5,13 +5,14 @@ import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
     let isLoginMode = true;
+    let currentCaptcha = '';
 
     // DOM Elements
     const form = document.getElementById('auth-form');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     
-    // New Registration Fields
+    // Registration Fields
     const registerFieldsContainer = document.getElementById('register-fields');
     const firstNameInput = document.getElementById('firstName');
     const lastNameInput = document.getElementById('lastName');
@@ -21,8 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const countryInput = document.getElementById('country');
     const postalCodeInput = document.getElementById('postalCode');
     
+    // Captcha Elements
+    const captchaTextEl = document.getElementById('captcha-text');
+    const captchaInput = document.getElementById('captcha-input');
+    const refreshCaptchaBtn = document.getElementById('refresh-captcha-btn');
+
     // Array of fields to toggle 'required' attribute on
-    const allRegisterInputs = [firstNameInput, lastNameInput, phoneInput, addressInput, cityInput, countryInput, postalCodeInput];
+    const allRegisterInputs = [firstNameInput, lastNameInput, phoneInput, addressInput, cityInput, countryInput, postalCodeInput, captchaInput];
 
     // UI Elements
     const titleEl = document.getElementById('auth-title');
@@ -31,6 +37,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleBtn = document.getElementById('toggle-mode-btn');
     const togglePrefix = document.getElementById('toggle-text-prefix');
     const errorContainer = document.getElementById('auth-error');
+
+    // Captcha Generator Function
+    function generateCaptcha() {
+        const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let captcha = '';
+        for (let i = 0; i < 6; i++) {
+            captcha += chars[Math.floor(Math.random() * chars.length)];
+        }
+        captchaTextEl.textContent = captcha;
+        captchaInput.value = '';
+        currentCaptcha = captcha;
+    }
+
+    refreshCaptchaBtn.addEventListener('click', generateCaptcha);
 
     // Toggle between Sign In and Create Account
     toggleBtn.addEventListener('click', () => {
@@ -63,6 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
             registerFieldsContainer.classList.remove('hidden');
             registerFieldsContainer.classList.add('flex');
             allRegisterInputs.forEach(input => input.setAttribute('required', 'true'));
+            
+            // Generate initial captcha
+            generateCaptcha();
         }
     });
 
@@ -93,6 +116,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (password.length <= 6) {
                 showError("Password must be greater than 6 characters.");
+                return;
+            }
+            if (captchaInput.value !== currentCaptcha) {
+                showError("Captcha verification failed. Please try again.");
+                generateCaptcha();
                 return;
             }
         }
@@ -139,6 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.textContent = originalBtnText;
             submitBtn.disabled = false;
             submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            
+            if (!isLoginMode) {
+                generateCaptcha(); // Refresh captcha on failure
+            }
         }
     });
 
