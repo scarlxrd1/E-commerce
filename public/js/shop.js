@@ -1,24 +1,47 @@
 import { db } from './firebase-config.js';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Master array for client-side category filtering
+// Master arrays for client-side category filtering
 let allProducts = [];
+let ratingsMap = {}; // Will hold { productId: { sum: X, count: Y } }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    ensureFontAwesome();
     await fetchAndRenderProducts();
     initCategoryFilters();
 });
 
+// Utility to inject FontAwesome if missing (needed for stars)
+function ensureFontAwesome() {
+    if (!document.querySelector('link[href*="font-awesome"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+        document.head.appendChild(link);
+    }
+}
+
 async function fetchAndRenderProducts() {
     const productGrid = document.getElementById('product-grid');
     try {
+        // 1. Fetch All Reviews to calculate averages
+        const reviewsSnap = await getDocs(collection(db, "reviews"));
+        reviewsSnap.forEach(doc => {
+            const data = doc.data();
+            if (!ratingsMap[data.productId]) {
+                ratingsMap[data.productId] = { sum: 0, count: 0 };
+            }
+            ratingsMap[data.productId].sum += data.rating;
+            ratingsMap[data.productId].count += 1;
+        });
+
+        // 2. Fetch Products
         const querySnapshot = await getDocs(collection(db, "products"));
-        
         querySnapshot.forEach((doc) => {
             allProducts.push({ id: doc.id, ...doc.data() });
         });
 
-        // Initial render: show all products (or limit to a specific number if desired)
+        // Initial render: show all products
         renderGrid(allProducts);
 
     } catch (error) {
@@ -27,6 +50,20 @@ async function fetchAndRenderProducts() {
             productGrid.innerHTML = `<p class="col-span-full text-center text-stone-500">Failed to load collection. Please try again later.</p>`;
         }
     }
+}
+
+// Helper to generate Star Rating HTML
+function generateStarsHTML(ratingObj) {
+    if (!ratingObj || ratingObj.count === 0) {
+        return `<span class="font-sans text-[10px] tracking-widest uppercase text-stone-400">No reviews yet</span>`;
+    }
+    const avg = Math.round(ratingObj.sum / ratingObj.count);
+    let starsHtml = '<div class="flex gap-[2px] text-xs">';
+    for (let i = 1; i <= 5; i++) {
+        starsHtml += `<i class="fa-solid fa-star ${i <= avg ? 'text-stone-900' : 'text-stone-200'}"></i>`;
+    }
+    starsHtml += `</div><span class="font-sans text-xs text-stone-500 ml-2">(${ratingObj.count})</span>`;
+    return `<div class="flex items-center">${starsHtml}</div>`;
 }
 
 function renderGrid(productsToRender) {
@@ -38,9 +75,12 @@ function renderGrid(productsToRender) {
     productsToRender.forEach((product) => {
         const hoverImg = product.hoverImage ? product.hoverImage : product.image;
         
-        // Wrap the entire card in an anchor tag pointing to the dynamic product page
+        // Get rating data
+        const ratingData = ratingsMap[product.id] || { sum: 0, count: 0 };
+        const ratingHTML = generateStarsHTML(ratingData);
+        
         htmlString += `
-            <a href="product.html?id=${product.id}" class="product-card group flex flex-col gap-4 cursor-pointer transition-all" data-category="${product.categories}">
+            <a href="product.html?id=${product.id}" class="product-card group flex flex-col gap-5 cursor-pointer transition-all" data-category="${product.categories}">
                 <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
                     <img src="${product.image}" alt="${product.title}" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0 z-10">
                     <img src="${hoverImg}" alt="${product.title} Lifestyle" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100 z-0">
@@ -57,9 +97,9 @@ function renderGrid(productsToRender) {
                     </button>
                 </div>
                 <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="font-serif text-lg text-stone-900">${product.title}</h3>
-                        <p class="font-sans text-sm text-stone-500 mt-1">${product.subtitle || ''}</p>
+                    <div class="flex flex-col gap-1.5">
+                        <h3 class="font-serif text-lg text-stone-900 leading-none">${product.title}</h3>
+                        ${ratingHTML}
                     </div>
                     <span class="font-sans text-stone-900 font-medium">€${(product.price || 0).toLocaleString()}</span>
                 </div>
@@ -117,7 +157,6 @@ function initGridAddToCart() {
     
     gridBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            // Prevent the anchor tag from triggering a redirect to product.html
             e.preventDefault();
             e.stopPropagation(); 
             
@@ -129,11 +168,9 @@ function initGridAddToCart() {
                 stock: parseInt(btn.getAttribute('data-stock'))
             };
             
-            // Delegate to Global State (global.js)
             const success = window.addToCart(productData);
             const originalText = "Add to Cart";
 
-            // Handle UI Feedback based on Stock Limit
             if (success) {
                 btn.textContent = 'Added';
                 btn.classList.remove('bg-stone-900', 'hover:bg-stone-800');
@@ -144,7 +181,6 @@ function initGridAddToCart() {
                 btn.classList.add('bg-stone-300', 'text-stone-600');
             }
 
-            // Revert button text and styling after 2 seconds
             setTimeout(() => {
                 btn.textContent = originalText;
                 btn.classList.remove('bg-stone-400', 'bg-stone-300', 'text-stone-900', 'text-stone-600');
