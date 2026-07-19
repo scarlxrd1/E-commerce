@@ -1,5 +1,5 @@
 import { app, db } from './firebase-config.js';
-import { doc, getDoc, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { doc, getDoc, collection, query, where, getDocs, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -252,11 +252,11 @@ function initReviewsSystem(productId) {
     // DOM Elements
     const reviewsSection = document.getElementById('reviews-section');
     const loggedOutEl = document.getElementById('review-logged-out');
+    const alreadyReviewedEl = document.getElementById('review-already-submitted');
     const reviewForm = document.getElementById('review-form');
     const starContainer = document.getElementById('star-rating-container');
     const stars = document.querySelectorAll('.star-icon');
     const submitBtn = document.getElementById('submit-review-btn');
-    const successMsg = document.getElementById('review-success-msg');
     const reviewsListContainer = document.getElementById('reviews-list-container');
     const headerRatingContainer = document.getElementById('header-rating-container');
 
@@ -265,21 +265,45 @@ function initReviewsSystem(productId) {
     // Unhide the reviews section wrapper
     reviewsSection.classList.remove('hidden');
 
-    // 1. Auth State Listener
-    onAuthStateChanged(auth, (user) => {
+    // 1. Auth State Listener & One-Review Check
+    onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         if (user) {
             loggedOutEl.classList.add('hidden');
-            reviewForm.classList.remove('hidden');
-            reviewForm.classList.add('flex');
+            
+            // Check if this user has already reviewed this exact product
+            const reviewId = `${productId}_${user.uid}`;
+            const reviewRef = doc(db, "reviews", reviewId);
+            
+            try {
+                const reviewSnap = await getDoc(reviewRef);
+                if (reviewSnap.exists()) {
+                    // User already reviewed it
+                    reviewForm.classList.add('hidden');
+                    reviewForm.classList.remove('flex');
+                    alreadyReviewedEl.classList.remove('hidden');
+                } else {
+                    // User hasn't reviewed it yet
+                    alreadyReviewedEl.classList.add('hidden');
+                    reviewForm.classList.remove('hidden');
+                    reviewForm.classList.add('flex');
+                }
+            } catch (error) {
+                console.error("Error checking existing review:", error);
+                // Fallback: show form if error occurs
+                reviewForm.classList.remove('hidden');
+                reviewForm.classList.add('flex');
+            }
+
         } else {
             reviewForm.classList.add('hidden');
             reviewForm.classList.remove('flex');
+            alreadyReviewedEl.classList.add('hidden');
             loggedOutEl.classList.remove('hidden');
         }
     });
 
-    // 2. Helper to Render Header Stars (FIXED MATH LOGIC)
+    // 2. Helper to Render Header Stars
     function renderHeaderStars(sum, count) {
         if (!headerRatingContainer) return;
         
@@ -288,7 +312,7 @@ function initReviewsSystem(productId) {
             return;
         }
 
-        // Calculate exact decimal average (e.g., 4.2)
+        // Calculate exact decimal average
         const exactAvg = sum / count;
         const displayAvg = (Math.round(exactAvg * 10) / 10).toFixed(1); 
         
@@ -317,7 +341,7 @@ function initReviewsSystem(productId) {
                 const data = doc.data();
                 reviews.push({ id: doc.id, ...data });
                 
-                // CRITICAL FIX: Force Type Casting to Number to prevent string concatenation
+                // Force Type Casting to Number
                 totalScore += Number(data.rating) || 0; 
             });
 
@@ -440,8 +464,10 @@ function initReviewsSystem(productId) {
                 }
             }
 
-            // Save rating strictly as a Number
-            await addDoc(collection(db, "reviews"), {
+            // Deterministic Document ID to enforce One-Review-Per-User
+            const reviewId = `${productId}_${currentUser.uid}`;
+
+            await setDoc(doc(db, "reviews", reviewId), {
                 productId: productId,
                 userId: currentUser.uid,
                 userName: userName,
@@ -450,15 +476,10 @@ function initReviewsSystem(productId) {
                 timestamp: serverTimestamp()
             });
 
-            // Reset UI State
-            reviewForm.reset();
-            currentRating = 0;
-            updateStarsUI(0);
-            
-            successMsg.classList.remove('hidden');
-            setTimeout(() => {
-                successMsg.classList.add('hidden');
-            }, 4000);
+            // Transition UI State
+            reviewForm.classList.add('hidden');
+            reviewForm.classList.remove('flex');
+            alreadyReviewedEl.classList.remove('hidden');
 
             // Re-render the reviews list and header rating seamlessly
             await fetchAndRenderReviews();
@@ -466,7 +487,7 @@ function initReviewsSystem(productId) {
         } catch (error) {
             console.error("Error posting review:", error);
             alert("Failed to post your review. Please try again.");
-        } finally {
+            
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
             submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
