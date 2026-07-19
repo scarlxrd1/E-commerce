@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // 1. Render the main product
             renderProduct(container, { id: docSnap.id, ...docSnap.data() });
             
-            // 2. Initialize the Reviews System
+            // 2. Initialize the Reviews System (which also populates the header rating)
             initReviewsSystem(productId);
         } else {
             renderError(container, "The requested piece could not be found.");
@@ -50,14 +50,12 @@ function renderProduct(container, product) {
         if (product.image) images.push(product.image);
         if (product.hoverImage && product.hoverImage !== product.image) images.push(product.hoverImage);
     }
-    // Remove duplicates
     images = [...new Set(images)];
-    if (images.length === 0) images.push(''); // fallback
+    if (images.length === 0) images.push('');
 
-    // Update document title for SEO/UX
+    // Update document title for SEO
     document.title = `AURA | ${product.title}`;
 
-    // Remove the centering classes used for the loading state
     container.classList.remove('flex', 'items-center', 'justify-center');
     
     // Build Thumbnails HTML
@@ -90,7 +88,7 @@ function renderProduct(container, product) {
         ${thumbnailsHTML}
     `;
 
-    // Inject stunning editorial layout
+    // Inject layout
     container.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-start">
             
@@ -111,6 +109,12 @@ function renderProduct(container, product) {
                 </nav>
 
                 <h1 class="font-serif text-4xl md:text-5xl text-stone-900 mb-4">${product.title}</h1>
+                
+                <!-- Dynamic Header Rating Placeholder -->
+                <div id="header-rating-container" class="flex items-center gap-3 mb-6 h-6">
+                    <!-- Injected by initReviewsSystem -->
+                </div>
+
                 <p class="font-sans text-xl text-stone-500 mb-8 font-medium">€${product.price.toLocaleString()}</p>
                 
                 <div class="w-12 h-px bg-stone-300 mb-8"></div>
@@ -170,14 +174,12 @@ function renderProduct(container, product) {
         const nextBtn = document.getElementById('next-image-btn');
 
         const updateGallery = (index) => {
-            // Fade out effect
             mainImageEl.style.opacity = 0;
             setTimeout(() => {
                 mainImageEl.src = images[index];
                 mainImageEl.style.opacity = 1;
             }, 150);
 
-            // Update thumbnails active state
             thumbnails.forEach(t => t.classList.remove('border-stone-900'));
             thumbnails.forEach(t => t.classList.add('border-transparent'));
             thumbnails[index].classList.remove('border-transparent');
@@ -207,7 +209,7 @@ function renderProduct(container, product) {
         });
     }
 
-    // Hook up Add to Cart functionality with Global State
+    // Hook up Add to Cart
     const addBtn = document.getElementById('add-to-cart-btn');
     addBtn.addEventListener('click', () => {
         const productData = {
@@ -256,17 +258,14 @@ function initReviewsSystem(productId) {
     const submitBtn = document.getElementById('submit-review-btn');
     const successMsg = document.getElementById('review-success-msg');
     const reviewsListContainer = document.getElementById('reviews-list-container');
+    const headerRatingContainer = document.getElementById('header-rating-container');
 
-    // Failsafe: If HTML is missing, do not crash the script
-    if (!reviewsSection) {
-        console.error("Reviews section HTML is missing from the DOM.");
-        return;
-    }
+    if (!reviewsSection) return;
 
-    // Unhide the reviews section wrapper now that product is loaded
+    // Unhide the reviews section wrapper
     reviewsSection.classList.remove('hidden');
 
-    // 1. Auth State Listener (Toggle Form)
+    // 1. Auth State Listener
     onAuthStateChanged(auth, (user) => {
         currentUser = user;
         if (user) {
@@ -280,17 +279,44 @@ function initReviewsSystem(productId) {
         }
     });
 
-    // 2. Fetch and Render Reviews
+    // 2. Helper to Render Header Stars
+    function renderHeaderStars(sum, count) {
+        if (!headerRatingContainer) return;
+        
+        if (count === 0) {
+            headerRatingContainer.innerHTML = `<span class="font-sans text-xs text-stone-400 italic">No reviews yet</span>`;
+            return;
+        }
+
+        const avg = Math.round(sum / count);
+        let starsHtml = '<div class="flex gap-1 text-sm">';
+        for (let i = 1; i <= 5; i++) {
+            starsHtml += `<i class="fa-solid fa-star ${i <= avg ? 'text-stone-900' : 'text-stone-200'}"></i>`;
+        }
+        starsHtml += `</div><span class="font-sans text-sm text-stone-500 ml-2">(${count})</span>`;
+        
+        headerRatingContainer.innerHTML = starsHtml;
+    }
+
+    // 3. Fetch and Render Reviews
     async function fetchAndRenderReviews() {
         try {
-            // Client-side sort prevents requiring a composite index setup in Firebase
             const q = query(collection(db, "reviews"), where("productId", "==", productId));
             const snapshot = await getDocs(q);
             
             let reviews = [];
-            snapshot.forEach(doc => reviews.push({ id: doc.id, ...doc.data() }));
+            let totalScore = 0;
 
-            // Sort Descending (Newest first)
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                reviews.push({ id: doc.id, ...data });
+                totalScore += data.rating;
+            });
+
+            // Update Header Rating
+            renderHeaderStars(totalScore, reviews.length);
+
+            // Sort Descending
             reviews.sort((a, b) => {
                 const timeA = a.timestamp ? a.timestamp.toMillis() : Date.now();
                 const timeB = b.timestamp ? b.timestamp.toMillis() : Date.now();
@@ -299,7 +325,7 @@ function initReviewsSystem(productId) {
 
             if (reviews.length === 0) {
                 reviewsListContainer.innerHTML = `
-                    <div class="bg-white border border-stone-200 p-12 rounded-sm text-center flex flex-col items-center shadow-sm">
+                    <div class="bg-white border border-stone-100 p-16 rounded-sm text-center flex flex-col items-center shadow-sm">
                         <svg class="w-12 h-12 text-stone-300 mb-4 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                         <h3 class="font-serif text-xl text-stone-900 mb-2">No reviews yet</h3>
                         <p class="font-sans text-sm text-stone-500">Be the first to review this piece and share your thoughts.</p>
@@ -310,24 +336,22 @@ function initReviewsSystem(productId) {
 
             let html = '';
             reviews.forEach(review => {
-                // Generate Star UI
                 let starsHtml = '';
                 for(let i = 1; i <= 5; i++) {
                     starsHtml += `<i class="fa-solid fa-star ${i <= review.rating ? 'text-stone-900' : 'text-stone-200'}"></i>`;
                 }
 
-                // Format Date
                 const dateObj = review.timestamp ? review.timestamp.toDate() : new Date();
                 const dateStr = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
                 html += `
-                    <div class="bg-white border border-stone-200 p-8 rounded-sm shadow-sm flex flex-col gap-4">
+                    <div class="bg-white border border-stone-100 p-8 md:p-10 rounded-sm shadow-sm flex flex-col gap-5">
                         <div class="flex justify-between items-start">
                             <div>
-                                <h4 class="font-sans font-semibold text-stone-900">${review.userName}</h4>
+                                <h4 class="font-sans font-semibold text-stone-900 text-sm md:text-base">${review.userName}</h4>
                                 <span class="font-sans text-xs text-stone-400 tracking-wider uppercase">${dateStr}</span>
                             </div>
-                            <div class="text-xs flex gap-0.5">
+                            <div class="text-xs flex gap-1">
                                 ${starsHtml}
                             </div>
                         </div>
@@ -347,16 +371,16 @@ function initReviewsSystem(productId) {
     // Initial Fetch
     fetchAndRenderReviews();
 
-    // 3. Star Rating Interactive Logic
+    // 4. Star Rating Interactive Logic
     function updateStarsUI(rating) {
         stars.forEach(star => {
             const starVal = parseInt(star.getAttribute('data-rating'));
             if (starVal <= rating) {
-                star.classList.remove('text-stone-300');
+                star.classList.remove('text-stone-200');
                 star.classList.add('text-stone-900');
             } else {
                 star.classList.remove('text-stone-900');
-                star.classList.add('text-stone-300');
+                star.classList.add('text-stone-200');
             }
         });
     }
@@ -377,7 +401,7 @@ function initReviewsSystem(productId) {
         updateStarsUI(currentRating);
     });
 
-    // 4. Form Submission Logic
+    // 5. Form Submission Logic
     reviewForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -397,8 +421,7 @@ function initReviewsSystem(productId) {
         submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
         try {
-            // Fetch User Profile Data for Name
-            let userName = currentUser.email.split('@')[0]; // fallback
+            let userName = currentUser.email.split('@')[0];
             const userDoc = await getDoc(doc(db, "users", currentUser.uid));
             
             if (userDoc.exists()) {
@@ -408,7 +431,6 @@ function initReviewsSystem(productId) {
                 }
             }
 
-            // Write to Firestore
             await addDoc(collection(db, "reviews"), {
                 productId: productId,
                 userId: currentUser.uid,
@@ -428,7 +450,7 @@ function initReviewsSystem(productId) {
                 successMsg.classList.add('hidden');
             }, 4000);
 
-            // Re-render the reviews list seamlessly
+            // Re-render the reviews list and header rating seamlessly
             await fetchAndRenderReviews();
 
         } catch (error) {
