@@ -1,27 +1,49 @@
 import { db } from './firebase-config.js';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Master array to hold all fetched products for client-side filtering
+// Master arrays for client-side filtering
 let allProducts = [];
+let ratingsMap = {}; // Will hold { productId: { sum: X, count: Y } }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    ensureFontAwesome();
     await fetchAndRenderCollection();
     initFilters();
 });
+
+// Utility to inject FontAwesome if missing (needed for stars)
+function ensureFontAwesome() {
+    if (!document.querySelector('link[href*="font-awesome"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+        document.head.appendChild(link);
+    }
+}
 
 async function fetchAndRenderCollection() {
     const productGrid = document.getElementById('product-grid');
     const countDisplay = document.getElementById('item-count');
 
     try {
-        // 1. Fetch all products once
+        // 1. Fetch All Reviews to calculate averages
+        const reviewsSnap = await getDocs(collection(db, "reviews"));
+        reviewsSnap.forEach(doc => {
+            const data = doc.data();
+            if (!ratingsMap[data.productId]) {
+                ratingsMap[data.productId] = { sum: 0, count: 0 };
+            }
+            ratingsMap[data.productId].sum += data.rating;
+            ratingsMap[data.productId].count += 1;
+        });
+
+        // 2. Fetch all products once
         const querySnapshot = await getDocs(collection(db, "products"));
         querySnapshot.forEach((doc) => {
-            // Include document ID and stock for cart logic
             allProducts.push({ id: doc.id, ...doc.data() });
         });
 
-        // 2. Apply initial filters (incorporates URL search, category, and price)
+        // 3. Apply initial filters (incorporates URL search, category, and price)
         applyFilters();
 
     } catch (error) {
@@ -74,6 +96,20 @@ function applyFilters() {
     renderGrid(filteredProducts);
 }
 
+// Helper to generate Star Rating HTML
+function generateStarsHTML(ratingObj) {
+    if (!ratingObj || ratingObj.count === 0) {
+        return `<span class="font-sans text-[10px] tracking-widest uppercase text-stone-400">No reviews yet</span>`;
+    }
+    const avg = Math.round(ratingObj.sum / ratingObj.count);
+    let starsHtml = '<div class="flex gap-[2px] text-xs">';
+    for (let i = 1; i <= 5; i++) {
+        starsHtml += `<i class="fa-solid fa-star ${i <= avg ? 'text-stone-900' : 'text-stone-200'}"></i>`;
+    }
+    starsHtml += `</div><span class="font-sans text-xs text-stone-500 ml-2">(${ratingObj.count})</span>`;
+    return `<div class="flex items-center justify-center">${starsHtml}</div>`;
+}
+
 // Helper to generate HTML and inject it based on a provided array
 function renderGrid(productsToRender) {
     const productGrid = document.getElementById('product-grid');
@@ -87,7 +123,10 @@ function renderGrid(productsToRender) {
         const mtClass = (index % 3 === 1) ? "lg:mt-24" : "";
         const hoverImg = product.hoverImage ? product.hoverImage : product.image;
 
-        // Wrap entirely in an anchor tag pointing to the new product page
+        // Get rating data
+        const ratingData = ratingsMap[product.id] || { sum: 0, count: 0 };
+        const ratingHTML = generateStarsHTML(ratingData);
+
         htmlString += `
             <a href="product.html?id=${product.id}" target="_blank" class="product-card fade-in-up group flex flex-col gap-6 ${mtClass}" data-category="${product.categories}">
                 <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
@@ -105,6 +144,7 @@ function renderGrid(productsToRender) {
                 </div>
                 <div class="flex flex-col items-center text-center">
                     <h2 class="font-serif text-xl text-stone-900 mb-2">${product.title}</h2>
+                    <div class="mb-3">${ratingHTML}</div>
                     <p class="font-sans text-sm text-stone-500">€${product.price.toLocaleString()}</p>
                 </div>
             </a>
@@ -130,7 +170,6 @@ function renderGrid(productsToRender) {
         }
     }
 
-    // Re-initialize dynamic interactions for newly created DOM elements
     initScrollAnimations();
     initQuickAdd();
 }
@@ -142,7 +181,6 @@ function initFilters() {
     // Category Buttons
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // 1. Update UI Styling for the Active Button
             filterBtns.forEach(b => {
                 b.classList.remove('border-stone-900', 'text-stone-900');
                 b.classList.add('border-transparent', 'text-stone-400');
@@ -150,14 +188,12 @@ function initFilters() {
             btn.classList.remove('border-transparent', 'text-stone-400');
             btn.classList.add('border-stone-900', 'text-stone-900');
 
-            // 2. Clear the Search Parameter from the URL without reloading the page
             const url = new URL(window.location);
             if (url.searchParams.has('search')) {
                 url.searchParams.delete('search');
                 window.history.pushState({}, '', url);
             }
 
-            // 3. Apply all active filters
             applyFilters();
         });
     });
@@ -188,7 +224,6 @@ function initQuickAdd() {
     const addBtns = document.querySelectorAll('.quick-add-btn');
     addBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            // Prevent the anchor tag from triggering a new tab
             e.preventDefault();
             e.stopPropagation();
 
@@ -200,11 +235,9 @@ function initQuickAdd() {
                 stock: parseInt(btn.getAttribute('data-stock'))
             };
 
-            // Attempt to add to cart
             const success = window.addToCart(productData);
             const originalText = "Quick Add";
 
-            // Handle UI Feedback based on Stock Limit
             if (success) {
                 btn.textContent = 'Added';
                 btn.classList.remove('bg-stone-900', 'hover:bg-stone-800');
@@ -215,7 +248,6 @@ function initQuickAdd() {
                 btn.classList.add('bg-stone-300', 'text-stone-600');
             }
 
-            // Revert back after 2 seconds
             setTimeout(() => {
                 btn.textContent = originalText;
                 btn.classList.remove('bg-stone-400', 'bg-stone-300', 'text-stone-900', 'text-stone-600');
