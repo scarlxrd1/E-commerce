@@ -279,21 +279,27 @@ function initReviewsSystem(productId) {
         }
     });
 
-    // 2. Helper to Render Header Stars
+    // 2. Helper to Render Header Stars (FIXED MATH LOGIC)
     function renderHeaderStars(sum, count) {
         if (!headerRatingContainer) return;
         
-        if (count === 0) {
+        if (count === 0 || isNaN(sum) || isNaN(count)) {
             headerRatingContainer.innerHTML = `<span class="font-sans text-xs text-stone-400 italic">No reviews yet</span>`;
             return;
         }
 
-        const avg = Math.round(sum / count);
+        // Calculate exact decimal average (e.g., 4.2)
+        const exactAvg = sum / count;
+        const displayAvg = (Math.round(exactAvg * 10) / 10).toFixed(1); 
+        
+        // Round to nearest whole number for the star loop
+        const roundedAvg = Math.round(exactAvg);
+
         let starsHtml = '<div class="flex gap-1 text-sm">';
         for (let i = 1; i <= 5; i++) {
-            starsHtml += `<i class="fa-solid fa-star ${i <= avg ? 'text-stone-900' : 'text-stone-200'}"></i>`;
+            starsHtml += `<i class="fa-solid fa-star ${i <= roundedAvg ? 'text-stone-900' : 'text-stone-200'}"></i>`;
         }
-        starsHtml += `</div><span class="font-sans text-sm text-stone-500 ml-2">(${count})</span>`;
+        starsHtml += `</div><span class="font-sans text-sm text-stone-500 ml-2 font-medium">${displayAvg} <span class="font-normal text-stone-400">(${count})</span></span>`;
         
         headerRatingContainer.innerHTML = starsHtml;
     }
@@ -310,7 +316,9 @@ function initReviewsSystem(productId) {
             snapshot.forEach(doc => {
                 const data = doc.data();
                 reviews.push({ id: doc.id, ...data });
-                totalScore += data.rating;
+                
+                // CRITICAL FIX: Force Type Casting to Number to prevent string concatenation
+                totalScore += Number(data.rating) || 0; 
             });
 
             // Update Header Rating
@@ -337,8 +345,9 @@ function initReviewsSystem(productId) {
             let html = '';
             reviews.forEach(review => {
                 let starsHtml = '';
+                const revRating = Number(review.rating) || 0;
                 for(let i = 1; i <= 5; i++) {
-                    starsHtml += `<i class="fa-solid fa-star ${i <= review.rating ? 'text-stone-900' : 'text-stone-200'}"></i>`;
+                    starsHtml += `<i class="fa-solid fa-star ${i <= revRating ? 'text-stone-900' : 'text-stone-200'}"></i>`;
                 }
 
                 const dateObj = review.timestamp ? review.timestamp.toDate() : new Date();
@@ -431,11 +440,12 @@ function initReviewsSystem(productId) {
                 }
             }
 
+            // Save rating strictly as a Number
             await addDoc(collection(db, "reviews"), {
                 productId: productId,
                 userId: currentUser.uid,
                 userName: userName,
-                rating: currentRating,
+                rating: Number(currentRating),
                 comment: comment,
                 timestamp: serverTimestamp()
             });
