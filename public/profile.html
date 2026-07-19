@@ -1,201 +1,195 @@
-import { app, db } from './firebase-config.js';
-import { getAuth, onAuthStateChanged, signOut, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-document.addEventListener('DOMContentLoaded', () => {
-    const auth = getAuth(app);
-    let currentUser = null;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA | My Account</title>
     
-    // View DOM Elements
-    const userNameHeaderEl = document.getElementById('user-name-header');
-    const profileNameEl = document.getElementById('profile-name');
-    const profileEmailEl = document.getElementById('profile-email');
-    const profilePhoneEl = document.getElementById('profile-phone');
-    const profileAddressEl = document.getElementById('profile-address');
-    const logoutBtn = document.getElementById('logout-btn');
-
-    // Edit DOM Elements
-    const viewModeContainer = document.getElementById('profile-view-mode');
-    const editModeContainer = document.getElementById('profile-edit-mode');
-    const editProfileBtn = document.getElementById('edit-profile-btn');
-    const cancelEditBtn = document.getElementById('cancel-edit-btn');
-    const saveEditBtn = document.getElementById('save-edit-btn');
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     
-    const editFirstNameInput = document.getElementById('edit-firstName');
-    const editLastNameInput = document.getElementById('edit-lastName');
-    const editPhoneInput = document.getElementById('edit-phone');
-    const editAddressInput = document.getElementById('edit-address');
-    const editCityInput = document.getElementById('edit-city');
-    const editCountryInput = document.getElementById('edit-country');
-    const editZipInput = document.getElementById('edit-zip');
-    
-    // Auth Edit Fields
-    const editEmailInput = document.getElementById('edit-email');
-    const editPasswordInput = document.getElementById('edit-password');
-
-    // 1. Route Protection & Fetching User Data
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUser = user;
-            await loadProfileData();
-        } else {
-            // No user is signed in, redirect instantly to the login page
-            window.location.replace('auth.html');
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: '#FBFBFA',
+                    }
+                }
+            }
         }
-    });
-
-    async function loadProfileData() {
-        try {
-            const docRef = doc(db, "users", currentUser.uid);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                
-                // Update View Mode
-                const firstName = data.firstName || '';
-                const lastName = data.lastName || '';
-                const fullName = `${firstName} ${lastName}`.trim();
-                
-                // Header Name
-                userNameHeaderEl.textContent = fullName || currentUser.email;
-                userNameHeaderEl.classList.remove('animate-pulse', 'bg-stone-200', 'text-transparent', 'rounded');
-                
-                profileNameEl.textContent = fullName || 'Not provided';
-                profileEmailEl.textContent = data.email || currentUser.email;
-                profilePhoneEl.textContent = data.phone || 'Not provided';
-                
-                // Format full address
-                const addressStr = data.address || '';
-                const cityStr = data.city || '';
-                const postalCodeStr = data.postalCode || data.zip || '';
-                const countryStr = data.country || '';
-                
-                const fullAddress = [addressStr, cityStr, postalCodeStr, countryStr]
-                                    .filter(Boolean)
-                                    .join(', ');
-                                    
-                profileAddressEl.textContent = fullAddress || 'Not provided';
-
-                // Pre-fill Edit Mode Inputs
-                editFirstNameInput.value = firstName;
-                editLastNameInput.value = lastName;
-                editPhoneInput.value = data.phone || '';
-                editAddressInput.value = addressStr;
-                editCityInput.value = cityStr;
-                editCountryInput.value = countryStr;
-                editZipInput.value = postalCodeStr;
-                editEmailInput.value = currentUser.email;
-
-            } else {
-                userNameHeaderEl.textContent = currentUser.email;
-                userNameHeaderEl.classList.remove('animate-pulse', 'bg-stone-200', 'text-transparent', 'rounded');
-                profileNameEl.textContent = 'Not provided';
-                profileEmailEl.textContent = currentUser.email;
-                profilePhoneEl.textContent = 'Not provided';
-                profileAddressEl.textContent = 'Not provided';
-            }
-        } catch (error) {
-            console.error("Error fetching user profile data:", error);
-            userNameHeaderEl.textContent = 'Error loading data';
-            userNameHeaderEl.classList.remove('animate-pulse', 'bg-stone-200', 'text-transparent', 'rounded');
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body { 
+            background-color: #FBFBFA; 
+            overflow-x: hidden;
         }
-    }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="font-sans text-stone-900 antialiased selection:bg-stone-200 selection:text-stone-900">
 
-    // 2. Toggle Edit/View Modes
-    editProfileBtn.addEventListener('click', () => {
-        viewModeContainer.classList.add('hidden');
-        editModeContainer.classList.remove('hidden');
-        editModeContainer.classList.add('flex');
-        editProfileBtn.classList.add('hidden');
-    });
+    <!-- ========================================== -->
+    <!-- DYNAMIC NAVBAR PLACEHOLDER -->
+    <!-- ========================================== -->
+    <div id="navbar-container"></div>
 
-    cancelEditBtn.addEventListener('click', () => {
-        editModeContainer.classList.add('hidden');
-        editModeContainer.classList.remove('flex');
-        viewModeContainer.classList.remove('hidden');
-        editProfileBtn.classList.remove('hidden');
-        // Reset inputs to original state and clear password
-        editPasswordInput.value = '';
-        loadProfileData(); 
-    });
+    <!-- Main Profile Container -->
+    <main class="max-w-[1200px] mx-auto px-6 md:px-12 py-24 min-h-[75vh]">
+        
+        <!-- Header -->
+        <header class="mb-16 border-b border-stone-200 pb-8">
+            <h1 class="font-serif text-4xl md:text-5xl text-stone-900 mb-4">My Account</h1>
+            <p class="font-sans text-stone-500">Welcome back, <span id="user-name-header" class="text-stone-900 font-medium animate-pulse bg-stone-200 text-transparent rounded">Loading...</span></p>
+        </header>
 
-    // 3. Handle Profile & Auth Save
-    editModeContainer.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const originalBtnText = saveEditBtn.textContent;
-        saveEditBtn.textContent = 'Saving...';
-        saveEditBtn.disabled = true;
-        saveEditBtn.classList.add('opacity-70', 'cursor-not-allowed');
-
-        try {
-            // A. Prepare Auth Updates (Email & Password)
-            let authUpdates = [];
-            const newEmail = editEmailInput.value.trim();
-            const newPassword = editPasswordInput.value;
-
-            if (newEmail && newEmail !== currentUser.email) {
-                authUpdates.push(updateEmail(currentUser, newEmail));
-            }
-            if (newPassword && newPassword.length > 6) {
-                authUpdates.push(updatePassword(currentUser, newPassword));
-            } else if (newPassword && newPassword.length <= 6) {
-                alert("Password must be greater than 6 characters.");
-                throw new Error("Validation Failed");
-            }
-
-            // Execute Auth Updates first (as they are more sensitive to recent login requirements)
-            if (authUpdates.length > 0) {
-                await Promise.all(authUpdates);
-            }
-
-            // B. Update Firestore Profile Data
-            const userRef = doc(db, "users", currentUser.uid);
-            await updateDoc(userRef, {
-                firstName: editFirstNameInput.value.trim(),
-                lastName: editLastNameInput.value.trim(),
-                phone: editPhoneInput.value.trim(),
-                address: editAddressInput.value.trim(),
-                city: editCityInput.value.trim(),
-                country: editCountryInput.value,
-                postalCode: editZipInput.value.trim(),
-                email: newEmail || currentUser.email // keep synced with auth
-            });
-
-            // Reload data and switch back to view mode
-            editPasswordInput.value = '';
-            await loadProfileData();
-            cancelEditBtn.click(); // Triggers the UI toggle back to view mode
-
-        } catch (error) {
-            console.error("Error updating profile:", error);
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-16 items-start">
             
-            if (error.code === 'auth/requires-recent-login') {
-                alert("For security reasons, please log out and log back in before changing your email or password.");
-            } else if (error.message !== "Validation Failed") {
-                alert("An error occurred while saving your profile: " + error.message);
-            }
-            
-        } finally {
-            saveEditBtn.textContent = originalBtnText;
-            saveEditBtn.disabled = false;
-            saveEditBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-        }
-    });
+            <!-- Sidebar Navigation -->
+            <aside class="lg:col-span-1 flex flex-col gap-6 font-sans text-sm tracking-widest uppercase sticky top-32">
+                <a href="#personal-info" class="text-stone-900 font-semibold border-l-2 border-stone-900 pl-4 py-1 transition-colors">Personal Info</a>
+                <a href="#orders" class="text-stone-400 hover:text-stone-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Order History</a>
+                <a href="#addresses" class="text-stone-400 hover:text-stone-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Saved Addresses</a>
+                
+                <div class="w-full h-px bg-stone-200 my-4"></div>
+                
+                <button id="logout-btn" class="text-left text-stone-400 hover:text-red-700 border-l-2 border-transparent pl-4 py-1 transition-colors">
+                    Log Out
+                </button>
+            </aside>
 
-    // 4. Handle Logout
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                const originalText = logoutBtn.textContent;
-                logoutBtn.textContent = 'Logging out...';
-                await signOut(auth);
-                window.location.href = 'index.html';
-            } catch (error) {
-                console.error('Error signing out:', error);
-                alert('An error occurred while logging out. Please try again.');
-                logoutBtn.textContent = originalText;
-            }
-        });
-    }
-});
+            <!-- Main Content Area -->
+            <div class="lg:col-span-3 space-y-24">
+                
+                <!-- Personal Information Section -->
+                <section id="personal-info" class="scroll-mt-32">
+                    <div class="flex items-center justify-between mb-8">
+                        <h2 class="font-serif text-2xl text-stone-900">Personal Information</h2>
+                        <button id="edit-profile-btn" class="font-sans text-xs tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-colors">
+                            Edit Profile
+                        </button>
+                    </div>
+                    
+                    <div class="border border-stone-200 bg-white p-10 md:p-14 rounded-sm shadow-sm transition-all duration-300">
+                        
+                        <!-- VIEW MODE -->
+                        <div id="profile-view-mode" class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div>
+                                <p class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Full Name</p>
+                                <p id="profile-name" class="font-sans text-stone-900 font-medium text-lg">
+                                    <span class="animate-pulse bg-stone-200 text-transparent rounded w-32 inline-block">Loading...</span>
+                                </p>
+                            </div>
+                            <div>
+                                <p class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Email Address</p>
+                                <p id="profile-email" class="font-sans text-stone-900 font-medium text-lg">
+                                    <span class="animate-pulse bg-stone-200 text-transparent rounded w-48 inline-block">Loading...</span>
+                                </p>
+                            </div>
+                            <div>
+                                <p class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Phone Number</p>
+                                <p id="profile-phone" class="font-sans text-stone-900 font-medium text-lg">
+                                    <span class="animate-pulse bg-stone-200 text-transparent rounded w-36 inline-block">Loading...</span>
+                                </p>
+                            </div>
+                            <div>
+                                <p class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Shipping Address</p>
+                                <p id="profile-address" class="font-sans text-stone-900 font-medium text-lg">
+                                    <span class="animate-pulse bg-stone-200 text-transparent rounded w-56 inline-block">Loading...</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- EDIT MODE (Hidden by default) -->
+                        <form id="profile-edit-mode" class="hidden flex-col gap-8">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div>
+                                    <label for="edit-firstName" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">First Name</label>
+                                    <input type="text" id="edit-firstName" class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                                </div>
+                                <div>
+                                    <label for="edit-lastName" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Last Name</label>
+                                    <input type="text" id="edit-lastName" class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="edit-phone" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Phone Number</label>
+                                <input type="tel" id="edit-phone" class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                            </div>
+                            <div>
+                                <label for="edit-address" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Home Address</label>
+                                <input type="text" id="edit-address" class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                            </div>
+                            <div>
+                                <label for="edit-zip" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Postal Code (ZIP)</label>
+                                <input type="text" id="edit-zip" class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                            </div>
+                            
+                            <div class="flex justify-end gap-4 mt-4">
+                                <button type="button" id="cancel-edit-btn" class="font-sans text-xs tracking-widest uppercase border border-stone-300 text-stone-600 px-6 py-3 hover:bg-stone-50 transition-colors rounded-sm">
+                                    Cancel
+                                </button>
+                                <button type="submit" id="save-edit-btn" class="font-sans text-xs tracking-widest uppercase bg-stone-900 text-white px-6 py-3 hover:bg-stone-800 transition-colors shadow-sm rounded-sm">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+
+                    </div>
+                </section>
+
+                <!-- Order History Section -->
+                <section id="orders" class="scroll-mt-32">
+                    <h2 class="font-serif text-2xl text-stone-900 mb-8">Order History</h2>
+                    <div class="border border-stone-200 bg-white p-16 rounded-sm flex flex-col items-center justify-center text-center shadow-sm">
+                        <svg class="w-12 h-12 text-stone-300 mb-4 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        <h3 class="font-sans text-stone-900 font-medium mb-2">No orders yet</h3>
+                        <p class="font-sans text-sm text-stone-500 mb-6 max-w-sm">When you place an order, it will appear here. Discover our latest minimalist pieces to elevate your space.</p>
+                        <a href="collection.html" class="font-sans text-xs tracking-widest uppercase border-b border-stone-900 text-stone-900 pb-1 hover:text-stone-600 hover:border-stone-600 transition-colors">
+                            Explore Collection
+                        </a>
+                    </div>
+                </section>
+
+                <!-- Saved Addresses Section -->
+                <section id="addresses" class="scroll-mt-32">
+                    <div class="flex items-center justify-between mb-8">
+                        <h2 class="font-serif text-2xl text-stone-900">Saved Addresses</h2>
+                        <button class="font-sans text-xs tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-colors">
+                            + Add New
+                        </button>
+                    </div>
+                    <div class="border border-stone-200 bg-white p-16 rounded-sm flex flex-col items-center justify-center text-center shadow-sm">
+                        <svg class="w-12 h-12 text-stone-300 mb-4 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        <h3 class="font-sans text-stone-900 font-medium mb-2">No alternate addresses saved</h3>
+                        <p class="font-sans text-sm text-stone-500 max-w-sm">Save your shipping and billing addresses for a faster checkout experience.</p>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- DYNAMIC FOOTER PLACEHOLDER -->
+    <!-- ========================================== -->
+    <div id="footer-container"></div>
+
+    <!-- Global Scripts -->
+    <script type="module" src="./js/global.js"></script>
+    
+    <!-- Profile Logic Script -->
+    <script type="module" src="./js/profile.js"></script>
+</body>
+</html>
