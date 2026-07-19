@@ -9,11 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const autofillContainer = document.getElementById('autofill-container');
     const autofillToggle = document.getElementById('autofill-toggle');
+    const errorContainer = document.getElementById('checkout-error');
     
     const fnInput = document.getElementById('checkout-fn');
     const lnInput = document.getElementById('checkout-ln');
     const emailInput = document.getElementById('checkout-email');
     const addressInput = document.getElementById('checkout-address');
+    const cityInput = document.getElementById('checkout-city');
+    const countryInput = document.getElementById('checkout-country');
     const zipInput = document.getElementById('checkout-zip');
     const phoneInput = document.getElementById('checkout-phone');
     
@@ -130,6 +133,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     emailInput.value = data.email || currentUser.email || '';
                     phoneInput.value = data.phone || '';
                     addressInput.value = data.address || '';
+                    cityInput.value = data.city || '';
+                    countryInput.value = data.country || '';
                     zipInput.value = data.postalCode || data.zip || '';
                 }
             } catch (error) {
@@ -142,6 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
             emailInput.value = '';
             phoneInput.value = '';
             addressInput.value = '';
+            cityInput.value = '';
+            countryInput.value = '';
             zipInput.value = '';
         }
     });
@@ -157,9 +164,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 5. Form Submission Placeholder
+    // Helper: Display Error
+    function showError(message) {
+        errorContainer.textContent = message;
+        errorContainer.classList.remove('hidden');
+        errorContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // Helper: Hide Error
+    function hideError() {
+        errorContainer.textContent = '';
+        errorContainer.classList.add('hidden');
+    }
+
+    // 5. Form Submission & Validation
     checkoutForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        hideError();
+
+        // Strict Validations
+        const nameRegex = /^[a-zA-Zα-ωΑ-ΩάέήίόύώΆΈΉΊΌΎΏ\s]+$/;
+        const phoneRegex = /^\+?\d+$/;
+
+        if (!nameRegex.test(fnInput.value.trim())) {
+            showError("First name can only contain letters.");
+            return;
+        }
+        if (!nameRegex.test(lnInput.value.trim())) {
+            showError("Last name can only contain letters.");
+            return;
+        }
+        if (!phoneRegex.test(phoneInput.value.trim())) {
+            showError("Phone number can only contain numbers and an optional leading '+'.");
+            return;
+        }
+
+        // Proceed with simulated checkout
         const submitBtn = checkoutForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
         
