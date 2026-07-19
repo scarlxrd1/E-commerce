@@ -17,8 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const lastNameInput = document.getElementById('lastName');
     const phoneInput = document.getElementById('phone');
     const addressInput = document.getElementById('address');
+    const cityInput = document.getElementById('city');
+    const countryInput = document.getElementById('country');
     const postalCodeInput = document.getElementById('postalCode');
-    const allRegisterInputs = [firstNameInput, lastNameInput, phoneInput, addressInput, postalCodeInput];
+    
+    // Array of fields to toggle 'required' attribute on
+    const allRegisterInputs = [firstNameInput, lastNameInput, phoneInput, addressInput, cityInput, countryInput, postalCodeInput];
 
     // UI Elements
     const titleEl = document.getElementById('auth-title');
@@ -62,13 +66,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Handle Form Submission
+    // Handle Form Submission with Strict Validation
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
 
         const email = emailInput.value.trim();
         const password = passwordInput.value;
+
+        // Strict Validations for Registration Mode
+        if (!isLoginMode) {
+            const nameRegex = /^[a-zA-Zα-ωΑ-ΩάέήίόύώΆΈΉΊΌΎΏ\s]+$/;
+            const phoneRegex = /^\+?\d+$/;
+
+            if (!nameRegex.test(firstNameInput.value.trim())) {
+                showError("First name can only contain letters.");
+                return;
+            }
+            if (!nameRegex.test(lastNameInput.value.trim())) {
+                showError("Last name can only contain letters.");
+                return;
+            }
+            if (!phoneRegex.test(phoneInput.value.trim())) {
+                showError("Phone number can only contain numbers and an optional leading '+'.");
+                return;
+            }
+            if (password.length <= 6) {
+                showError("Password must be greater than 6 characters.");
+                return;
+            }
+        }
+
         const originalBtnText = submitBtn.textContent;
 
         // UI Loading State
@@ -85,12 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // Create the user document in Firestore with shipping details AND initialize the empty cloud cart
+                // Create the user document in Firestore with strict shipping details
                 await setDoc(doc(db, "users", user.uid), {
                     firstName: firstNameInput.value.trim(),
                     lastName: lastNameInput.value.trim(),
                     phone: phoneInput.value.trim(),
                     address: addressInput.value.trim(),
+                    city: cityInput.value.trim(),
+                    country: countryInput.value,
                     postalCode: postalCodeInput.value.trim(),
                     email: email,
                     cart: [], // Initialize empty cloud cart
@@ -99,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             // On success, redirect to the homepage
-            // (The cart merge logic happens automatically via global.js onAuthStateChanged)
             window.location.href = 'index.html';
 
         } catch (error) {
