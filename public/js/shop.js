@@ -31,7 +31,8 @@ async function fetchAndRenderProducts() {
             if (!ratingsMap[data.productId]) {
                 ratingsMap[data.productId] = { sum: 0, count: 0 };
             }
-            ratingsMap[data.productId].sum += data.rating;
+            // CRITICAL FIX: Force Type Casting to Number
+            ratingsMap[data.productId].sum += Number(data.rating) || 0;
             ratingsMap[data.productId].count += 1;
         });
 
@@ -52,17 +53,24 @@ async function fetchAndRenderProducts() {
     }
 }
 
-// Helper to generate Star Rating HTML
+// Helper to generate Star Rating HTML (FIXED MATH LOGIC)
 function generateStarsHTML(ratingObj) {
-    if (!ratingObj || ratingObj.count === 0) {
+    if (!ratingObj || ratingObj.count === 0 || isNaN(ratingObj.sum) || isNaN(ratingObj.count)) {
         return `<span class="font-sans text-[10px] tracking-widest uppercase text-stone-400">No reviews yet</span>`;
     }
-    const avg = Math.round(ratingObj.sum / ratingObj.count);
+    
+    // Calculate exact decimal average
+    const exactAvg = ratingObj.sum / ratingObj.count;
+    
+    // Round to nearest whole number for the star loop
+    const roundedAvg = Math.round(exactAvg);
+    
     let starsHtml = '<div class="flex gap-[2px] text-xs">';
     for (let i = 1; i <= 5; i++) {
-        starsHtml += `<i class="fa-solid fa-star ${i <= avg ? 'text-stone-900' : 'text-stone-200'}"></i>`;
+        starsHtml += `<i class="fa-solid fa-star ${i <= roundedAvg ? 'text-stone-900' : 'text-stone-200'}"></i>`;
     }
     starsHtml += `</div><span class="font-sans text-xs text-stone-500 ml-2">(${ratingObj.count})</span>`;
+    
     return `<div class="flex items-center">${starsHtml}</div>`;
 }
 
