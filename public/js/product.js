@@ -17,7 +17,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
+            // 1. Render the main product
             renderProduct(container, { id: docSnap.id, ...docSnap.data() });
+            
+            // 2. Initialize the Reviews System
             initReviewsSystem(productId);
         } else {
             renderError(container, "The requested piece could not be found.");
@@ -253,6 +256,12 @@ function initReviewsSystem(productId) {
     const submitBtn = document.getElementById('submit-review-btn');
     const successMsg = document.getElementById('review-success-msg');
     const reviewsListContainer = document.getElementById('reviews-list-container');
+
+    // Failsafe: If HTML is missing, do not crash the script
+    if (!reviewsSection) {
+        console.error("Reviews section HTML is missing from the DOM.");
+        return;
+    }
 
     // Unhide the reviews section wrapper now that product is loaded
     reviewsSection.classList.remove('hidden');
