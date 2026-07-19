@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA | Secure Checkout</title>
+    
+    <!-- Google Fonts: Playfair Display (Serif) & Inter (Sans-Serif) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Inter"', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: '#FAFAFA',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background-color: #FAFAFA; 
+            overflow-x: hidden;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="font-sans text-stone-900 antialiased selection:bg-stone-200 selection:text-stone-900">
+
+    <!-- ========================================== -->
+    <!-- DYNAMIC NAVBAR PLACEHOLDER -->
+    <!-- ========================================== -->
+    <div id="navbar-container"></div>
+
+    <!-- ========================================== -->
+    <!-- CHECKOUT MAIN CONTAINER -->
+    <!-- ========================================== -->
+    <main class="max-w-[1400px] mx-auto px-6 md:px-12 py-16 md:py-24 min-h-[75vh]">
+        
+        <div class="text-center mb-16 border-b border-stone-200 pb-8">
+            <h1 class="font-serif text-4xl md:text-5xl text-stone-900 mb-4">Secure Checkout</h1>
+            <p class="font-sans text-stone-500 text-sm">Complete your purchase to elevate your space.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
+            
+            <!-- Left Column: Shipping & Payment Form -->
+            <div class="lg:col-span-7 flex flex-col gap-12">
+                
+                <form id="checkout-form" class="flex flex-col gap-12">
+                    
+                    <!-- Shipping Section -->
+                    <section>
+                        <div class="flex items-center justify-between mb-8">
+                            <h2 class="font-serif text-2xl text-stone-900">Shipping Details</h2>
+                            
+                            <!-- Autofill Toggle (Hidden for Guests) -->
+                            <div id="autofill-container" class="hidden items-center gap-3">
+                                <label for="autofill-toggle" class="font-sans text-xs tracking-widest uppercase text-stone-500 cursor-pointer select-none">Use Account Info</label>
+                                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                    <input type="checkbox" id="autofill-toggle" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-stone-200 appearance-none cursor-pointer transition-transform duration-300 ease-in-out checked:translate-x-5 checked:border-stone-900"/>
+                                    <label for="autofill-toggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-stone-200 cursor-pointer transition-colors duration-300"></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <label for="checkout-fn" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">First Name</label>
+                                <input type="text" id="checkout-fn" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                            </div>
+                            <div>
+                                <label for="checkout-ln" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Last Name</label>
+                                <input type="text" id="checkout-ln" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="checkout-email" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Email Address</label>
+                                <input type="email" id="checkout-email" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="checkout-address" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Street Address</label>
+                                <input type="text" id="checkout-address" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                            </div>
+                            <div>
+                                <label for="checkout-zip" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Postal Code (ZIP)</label>
+                                <input type="text" id="checkout-zip" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                            </div>
+                            <div>
+                                <label for="checkout-phone" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Phone Number</label>
+                                <input type="tel" id="checkout-phone" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Payment Section -->
+                    <section>
+                        <h2 class="font-serif text-2xl text-stone-900 mb-8">Payment Method</h2>
+                        
+                        <div class="flex flex-col gap-4">
+                            <!-- Credit Card Option -->
+                            <label class="flex items-center justify-between p-5 border border-stone-200 rounded-sm cursor-pointer hover:border-stone-400 transition-colors bg-white">
+                                <div class="flex items-center gap-4">
+                                    <input type="radio" name="payment-method" value="credit-card" checked class="w-4 h-4 text-stone-900 bg-stone-100 border-stone-300 focus:ring-stone-900 focus:ring-2">
+                                    <span class="font-sans text-sm font-medium text-stone-900">Credit / Debit Card</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <svg class="w-8 h-auto opacity-60" viewBox="0 0 38 24" fill="none"><rect width="38" height="24" rx="2" fill="#222222"/><path d="M12.9375 16.5H10.125V7.5H12.9375C15.225 7.5 16.875 8.85 16.875 12C16.875 15.15 15.225 16.5 12.9375 16.5ZM12.5625 9.375H11.625V14.625H12.5625C13.875 14.625 14.8125 13.875 14.8125 12C14.8125 10.125 13.875 9.375 12.5625 9.375Z" fill="white"/><path d="M21.75 16.5H19.5L23.4375 7.5H25.6875L21.75 16.5Z" fill="white"/><path d="M30 16.5H27.75V7.5H30V16.5Z" fill="white"/></svg>
+                                </div>
+                            </label>
+
+                            <!-- Credit Card Details Placeholder (Revealed if CC selected) -->
+                            <div id="cc-details" class="bg-stone-50 border border-stone-200 p-6 rounded-sm grid grid-cols-2 gap-6 transition-all duration-300">
+                                <div class="col-span-2">
+                                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Card Number</label>
+                                    <input type="text" placeholder="0000 0000 0000 0000" class="w-full bg-white border border-stone-300 py-3 px-4 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors rounded-sm shadow-inner">
+                                </div>
+                                <div>
+                                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Expiry Date</label>
+                                    <input type="text" placeholder="MM / YY" class="w-full bg-white border border-stone-300 py-3 px-4 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors rounded-sm shadow-inner">
+                                </div>
+                                <div>
+                                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">CVC</label>
+                                    <input type="text" placeholder="123" class="w-full bg-white border border-stone-300 py-3 px-4 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors rounded-sm shadow-inner">
+                                </div>
+                            </div>
+
+                            <!-- PayPal Option -->
+                            <label class="flex items-center justify-between p-5 border border-stone-200 rounded-sm cursor-pointer hover:border-stone-400 transition-colors bg-white">
+                                <div class="flex items-center gap-4">
+                                    <input type="radio" name="payment-method" value="paypal" class="w-4 h-4 text-stone-900 bg-stone-100 border-stone-300 focus:ring-stone-900 focus:ring-2">
+                                    <span class="font-sans text-sm font-medium text-stone-900">PayPal</span>
+                                </div>
+                            </label>
+
+                            <!-- COD Option -->
+                            <label class="flex items-center justify-between p-5 border border-stone-200 rounded-sm cursor-pointer hover:border-stone-400 transition-colors bg-white">
+                                <div class="flex items-center gap-4">
+                                    <input type="radio" name="payment-method" value="cod" class="w-4 h-4 text-stone-900 bg-stone-100 border-stone-300 focus:ring-stone-900 focus:ring-2">
+                                    <span class="font-sans text-sm font-medium text-stone-900">Cash on Delivery</span>
+                                </div>
+                            </label>
+                        </div>
+                    </section>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-6 rounded-sm hover:bg-stone-800 transition-colors shadow-lg mt-4">
+                        Complete Order
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Column: Order Summary Drawer -->
+            <aside class="lg:col-span-5 bg-white border border-stone-200 p-8 md:p-10 rounded-sm shadow-sm sticky top-32">
+                <h2 class="font-serif text-2xl text-stone-900 mb-8">Order Summary</h2>
+                
+                <!-- Items Container -->
+                <div id="checkout-items-container" class="flex flex-col gap-6 mb-8 max-h-[40vh] overflow-y-auto pr-2 no-scrollbar">
+                    <p class="text-stone-400 font-sans text-sm animate-pulse">Loading cart...</p>
+                </div>
+
+                <div class="border-t border-stone-200 pt-8 space-y-4">
+                    <div class="flex justify-between items-center font-sans text-sm text-stone-500">
+                        <span>Subtotal</span>
+                        <span id="checkout-subtotal">€0</span>
+                    </div>
+                    <div class="flex justify-between items-center font-sans text-sm text-stone-500">
+                        <span>Shipping</span>
+                        <span class="text-stone-900">Complimentary</span>
+                    </div>
+                    <div class="flex justify-between items-center font-sans text-sm text-stone-500">
+                        <span>Taxes</span>
+                        <span>Included</span>
+                    </div>
+                    
+                    <div class="w-full h-px bg-stone-200 my-6"></div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="font-sans text-sm font-bold tracking-widest uppercase text-stone-900">Total</span>
+                        <span id="checkout-total" class="font-serif text-3xl text-stone-900">€0</span>
+                    </div>
+                </div>
+            </aside>
+            
+        </div>
+    </main>
+
+    <!-- ========================================== -->
+    <!-- DYNAMIC FOOTER PLACEHOLDER -->
+    <!-- ========================================== -->
+    <div id="footer-container"></div>
+
+    <!-- Global Scripts -->
+    <script type="module" src="./js/global.js"></script>
+    
+    <!-- Checkout Logic Script -->
+    <script type="module" src="./js/checkout.js"></script>
+</body>
+</html>
