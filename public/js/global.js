@@ -358,22 +358,18 @@ window.closeCart = function() {
     }, 300);
 };
 
+// Redirect to the new Checkout Page
 window.checkout = async function() {
     if (cart.length === 0) return alert("Your cart is empty.");
-    try {
-        const checkoutBtn = document.querySelector('#cart-drawer button[onclick="window.checkout()"]');
-        const originalText = checkoutBtn.textContent;
-        checkoutBtn.textContent = "Processing...";
-        checkoutBtn.classList.add('opacity-70', 'cursor-not-allowed');
-        
-        setTimeout(() => {
-            alert("This is a frontend demo. Backend integration required for actual checkout.");
-            checkoutBtn.textContent = originalText;
-            checkoutBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-        }, 1500);
-    } catch (error) {
-        console.error("Checkout process encountered an error:", error);
-    }
+    
+    const checkoutBtn = document.querySelector('#cart-drawer button[onclick="window.checkout()"]');
+    const originalText = checkoutBtn.textContent;
+    checkoutBtn.textContent = "Redirecting...";
+    checkoutBtn.classList.add('opacity-70', 'cursor-not-allowed');
+    
+    setTimeout(() => {
+        window.location.href = 'checkout.html';
+    }, 300);
 };
 
 // ==========================================
