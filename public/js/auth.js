@@ -182,10 +182,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
+                const fName = firstNameInput.value.trim();
+                const lName = lastNameInput.value.trim();
+
                 // Create the user document in Firestore with strict shipping details
                 await setDoc(doc(db, "users", user.uid), {
-                    firstName: firstNameInput.value.trim(),
-                    lastName: lastNameInput.value.trim(),
+                    firstName: fName,
+                    lastName: lName,
                     phone: phoneInput.value.trim(),
                     address: addressInput.value.trim(),
                     city: cityInput.value.trim(),
@@ -195,6 +198,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     cart: [], // Initialize empty cloud cart
                     createdAt: new Date().toISOString()
                 });
+
+                // Send Automated Welcome Email via EmailJS
+                // This is non-blocking (fire and forget)
+                const templateParams = {
+                    user_name: `${fName} ${lName}`.trim(),
+                    user_email: email
+                };
+                
+                emailjs.send("YOUR_SERVICE_ID_HERE", "YOUR_TEMPLATE_ID_HERE", templateParams)
+                    .then(function(response) {
+                        console.log('Welcome email sent successfully!', response.status, response.text);
+                    }, function(error) {
+                        console.error('Failed to send welcome email:', error);
+                    });
             }
             
             // On success, redirect to the homepage
