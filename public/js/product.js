@@ -88,7 +88,7 @@ function renderProduct(container, product) {
         ${thumbnailsHTML}
     `;
 
-    // Inject layout
+    // Inject layout (Including Dynamic Product Description)
     container.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-start">
             
@@ -119,8 +119,9 @@ function renderProduct(container, product) {
                 
                 <div class="w-12 h-px bg-stone-300 mb-8"></div>
                 
+                <!-- Dynamic Description Injection -->
                 <div class="prose prose-stone font-sans text-stone-500 leading-relaxed mb-10">
-                    <p>${product.desc || 'No description available for this piece.'}</p>
+                    <p id="product-description">${product.description || product.desc || 'No description available for this piece.'}</p>
                 </div>
 
                 <!-- Shipping Perks -->
