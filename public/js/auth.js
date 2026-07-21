@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     user_email: email
                 };
                 
-                emailjs.send("YOUR_SERVICE_ID_HERE", "YOUR_TEMPLATE_ID_HERE", templateParams)
+                emailjs.send("service_c24ml8x", "template_y5ko9jj", templateParams)
                     .then(function(response) {
                         console.log('Welcome email sent successfully!', response.status, response.text);
                     }, function(error) {
