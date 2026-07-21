@@ -5,7 +5,7 @@ import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Initialize EmailJS explicitly on the window object
     if (window.emailjs) {
-        window.emailjs.init("YOUR_PUBLIC_KEY_HERE");
+        window.emailjs.init("VjioTcL168a56Y0fO");
     } else {
         console.error("EmailJS SDK not loaded.");
     }
@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 
                 if (window.emailjs) {
-                    window.emailjs.send("YOUR_SERVICE_ID_HERE", "YOUR_TEMPLATE_ID_HERE", templateParams)
+                    window.emailjs.send("service_c24ml8x", "template_y5ko9jj", templateParams)
                         .then(response => {
                             console.log("EMAILJS SUCCESS:", response.status, response.text);
                             // Redirect ONLY after successful email dispatch
