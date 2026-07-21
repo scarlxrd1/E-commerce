@@ -3,6 +3,13 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } f
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Initialize EmailJS explicitly on the window object
+    if (window.emailjs) {
+        window.emailjs.init("YOUR_PUBLIC_KEY_HERE");
+    } else {
+        console.error("EmailJS SDK not loaded.");
+    }
+
     const auth = getAuth(app);
     let isLoginMode = true;
     let currentCaptcha = '';
@@ -207,17 +214,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     user_email: email
                 };
                 
-                emailjs.send("service_c24ml8x", "template_y5ko9jj", templateParams)
-                    .then(response => {
-                        console.log("EMAILJS SUCCESS:", response.status, response.text);
-                        // Redirect ONLY after successful email dispatch
-                        window.location.href = 'index.html';
-                    })
-                    .catch(error => {
-                        console.error("EMAILJS CRITICAL ERROR:", error);
-                        // Fallback redirect in case email fails, so user isn't stuck
-                        window.location.href = 'index.html';
-                    });
+                if (window.emailjs) {
+                    window.emailjs.send("YOUR_SERVICE_ID_HERE", "YOUR_TEMPLATE_ID_HERE", templateParams)
+                        .then(response => {
+                            console.log("EMAILJS SUCCESS:", response.status, response.text);
+                            // Redirect ONLY after successful email dispatch
+                            window.location.href = 'index.html';
+                        })
+                        .catch(error => {
+                            console.error("EMAILJS CRITICAL ERROR:", error);
+                            alert("EMAILJS ERROR: " + JSON.stringify(error));
+                            // Fallback redirect in case email fails, so user isn't stuck
+                            window.location.href = 'index.html';
+                        });
+                } else {
+                    console.error("EmailJS not initialized. Skipping email.");
+                    window.location.href = 'index.html';
+                }
             }
 
         } catch (error) {
