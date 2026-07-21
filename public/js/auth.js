@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const postalCodeInput = document.getElementById('postalCode');
     
     // Captcha Elements
-    const captchaTextEl = document.getElementById('captcha-text');
+    const captchaCanvas = document.getElementById('captcha-canvas');
     const captchaInput = document.getElementById('captcha-input');
     const refreshCaptchaBtn = document.getElementById('refresh-captcha-btn');
 
@@ -38,16 +38,56 @@ document.addEventListener('DOMContentLoaded', () => {
     const togglePrefix = document.getElementById('toggle-text-prefix');
     const errorContainer = document.getElementById('auth-error');
 
-    // Captcha Generator Function
+    // Captcha Generator Function (Clean UI, High Contrast, No Distortion)
     function generateCaptcha() {
-        const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        // Excluded ambiguous characters like 0, O, 1, I, l
+        const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
         let captcha = '';
         for (let i = 0; i < 6; i++) {
             captcha += chars[Math.floor(Math.random() * chars.length)];
         }
-        captchaTextEl.textContent = captcha;
-        captchaInput.value = '';
         currentCaptcha = captcha;
+        captchaInput.value = '';
+
+        if (captchaCanvas) {
+            const ctx = captchaCanvas.getContext('2d');
+            const width = captchaCanvas.width;
+            const height = captchaCanvas.height;
+
+            // 1. Clean Background (Stone 100)
+            ctx.fillStyle = '#F5F5F4'; 
+            ctx.fillRect(0, 0, width, height);
+
+            // 2. Minimal, elegant noise (subtle dots instead of harsh lines)
+            ctx.fillStyle = '#E7E5E4'; // Stone 200
+            for (let i = 0; i < 40; i++) {
+                ctx.beginPath();
+                ctx.arc(Math.random() * width, Math.random() * height, Math.random() * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // 3. Draw highly readable text
+            ctx.font = 'bold 22px monospace';
+            ctx.fillStyle = '#1C1917'; // Stone 900 (High contrast)
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Clear letter spacing and minimal rotation
+            const startX = width / 2 - 60; // Center the 6 characters
+            const spacing = 24;
+            
+            for (let i = 0; i < 6; i++) {
+                ctx.save();
+                ctx.translate(startX + (i * spacing), height / 2);
+                
+                // Very slight rotation (-5 to 5 degrees) for basic security without ruining readability
+                const angle = (Math.random() - 0.5) * 0.1; 
+                ctx.rotate(angle);
+                
+                ctx.fillText(captcha[i], 0, 0);
+                ctx.restore();
+            }
+        }
     }
 
     refreshCaptchaBtn.addEventListener('click', generateCaptcha);
@@ -118,8 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 showError("Password must be greater than 6 characters.");
                 return;
             }
-            if (captchaInput.value !== currentCaptcha) {
-                showError("Captcha verification failed. Please try again.");
+            // Captcha Validation (Case-Insensitive for better UX)
+            if (captchaInput.value.trim().toUpperCase() !== currentCaptcha.toUpperCase()) {
+                showError("Security check failed. Please try again.");
                 generateCaptcha();
                 return;
             }
