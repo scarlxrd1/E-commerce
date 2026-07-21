@@ -177,6 +177,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isLoginMode) {
                 // LOGIN LOGIC
                 await signInWithEmailAndPassword(auth, email, password);
+                // Redirect immediately for login
+                window.location.href = 'index.html';
             } else {
                 // REGISTRATION LOGIC
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -200,22 +202,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 // Send Automated Welcome Email via EmailJS
-                // This is non-blocking (fire and forget)
                 const templateParams = {
                     user_name: `${fName} ${lName}`.trim(),
                     user_email: email
                 };
                 
                 emailjs.send("service_c24ml8x", "template_y5ko9jj", templateParams)
-                    .then(function(response) {
-                        console.log('Welcome email sent successfully!', response.status, response.text);
-                    }, function(error) {
-                        console.error('Failed to send welcome email:', error);
+                    .then(response => {
+                        console.log("EMAILJS SUCCESS:", response.status, response.text);
+                        // Redirect ONLY after successful email dispatch
+                        window.location.href = 'index.html';
+                    })
+                    .catch(error => {
+                        console.error("EMAILJS CRITICAL ERROR:", error);
+                        // Fallback redirect in case email fails, so user isn't stuck
+                        window.location.href = 'index.html';
                     });
             }
-            
-            // On success, redirect to the homepage
-            window.location.href = 'index.html';
 
         } catch (error) {
             console.error("Authentication Error:", error);
