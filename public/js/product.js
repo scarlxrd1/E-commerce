@@ -88,7 +88,7 @@ function renderProduct(container, product) {
         ${thumbnailsHTML}
     `;
 
-    // Inject layout (Including Dynamic Product Description)
+    // Inject layout (Including Dynamic Product Description & Dispatch Time)
     container.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-start">
             
@@ -132,7 +132,7 @@ function renderProduct(container, product) {
                     </div>
                     <div class="flex items-center gap-4 text-sm font-sans text-stone-600">
                         <svg class="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Estimated Dispatch: 3-5 Business Days
+                        Estimated Dispatch: <span id="product-dispatch">${product.estimated_dispatch || '3-5 Business Days'}</span>
                     </div>
                 </div>
 
