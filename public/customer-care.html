@@ -64,21 +64,51 @@
             
             <!-- Left Column: Contact Form -->
             <section>
-                <h2 class="font-serif text-3xl text-stone-900 mb-10">Get in Touch</h2>
-                <form id="contact-form" class="flex flex-col gap-8">
-                    <div>
-                        <label for="name" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Full Name</label>
-                        <input type="text" id="name" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                <div class="flex items-center gap-3 mb-10 relative">
+                    <h2 class="font-serif text-3xl text-stone-900">Get in Touch</h2>
+                    <!-- Tooltip Info -->
+                    <div class="group relative cursor-help flex items-center justify-center mt-1">
+                        <span class="text-stone-400 border border-stone-300 rounded-full w-5 h-5 flex items-center justify-center text-xs font-serif hover:bg-stone-100 transition-colors">?</span>
+                        <div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 hidden group-hover:block w-64 p-4 bg-stone-900 text-white text-xs font-sans rounded-sm shadow-xl z-20 text-center leading-relaxed">
+                            If you are logged into your account, your registration details are securely and automatically attached to this request.
+                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-900"></div>
+                        </div>
                     </div>
+                </div>
+
+                <form id="support-form" class="flex flex-col gap-8">
+                    
+                    <!-- Guest Fields (Hidden if logged in) -->
+                    <div id="guest-fields" class="flex flex-col gap-8 transition-all duration-300">
+                        <div>
+                            <label for="name" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Full Name</label>
+                            <input type="text" id="name" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        </div>
+                        <div>
+                            <label for="email" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Email Address</label>
+                            <input type="email" id="email" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        </div>
+                        <div>
+                            <label for="phone" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Telephone Number</label>
+                            <input type="tel" id="phone" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        </div>
+                    </div>
+
+                    <!-- Always Visible Fields -->
                     <div>
-                        <label for="phone" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Telephone Number</label>
-                        <input type="tel" id="phone" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        <label for="issue-type" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Issue Type</label>
+                        <select id="issue-type" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 focus:outline-none focus:border-stone-900 transition-colors appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a8a29e%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.2rem top 50%; background-size: 0.65rem auto;">
+                            <option value="" disabled selected>Select an option</option>
+                            <option value="General Inquiry">General Inquiry</option>
+                            <option value="Order/Product Issue">Order/Product Issue</option>
+                            <option value="Technical Problem">Technical Problem</option>
+                        </select>
                     </div>
                     <div>
                         <label for="message" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">How can we help you?</label>
                         <textarea id="message" rows="4" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors resize-none"></textarea>
                     </div>
-                    <button type="submit" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-5 mt-4 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">
+                    <button type="submit" id="submit-support-btn" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-5 mt-4 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">
                         Submit Inquiry
                     </button>
                 </form>
@@ -148,16 +178,10 @@
     <!-- ========================================== -->
     <div id="footer-container"></div>
 
-    <!-- Global Scripts (Cart & Nav logic) -->
+    <!-- Global Scripts -->
     <script type="module" src="./js/global.js"></script>
 
-    <!-- Form Submission Script -->
-    <script>
-        document.getElementById('contact-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Your message has been sent to Administration.');
-            this.reset();
-        });
-    </script>
+    <!-- Support Ticket Script -->
+    <script type="module" src="./js/customer-care.js"></script>
 </body>
 </html>
