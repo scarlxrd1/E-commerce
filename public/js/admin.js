@@ -280,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 stock: parseInt(document.getElementById('add-stock').value),
                 categories: document.getElementById('add-category').value.trim().toLowerCase(),
                 description: document.getElementById('add-description').value.trim(),
+                estimated_dispatch: document.getElementById('add-dispatch').value.trim(),
                 image: primaryImage,
                 hoverImage: hoverImage,
                 images: images
@@ -328,6 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('edit-stock').value = product.stock || 0;
         document.getElementById('edit-category').value = product.categories || '';
         document.getElementById('edit-description').value = product.description || product.desc || '';
+        document.getElementById('edit-dispatch').value = product.estimated_dispatch || '3-5 Business Days';
 
         // Populate images
         editImageInputsContainer.innerHTML = '';
@@ -384,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 stock: parseInt(document.getElementById('edit-stock').value),
                 categories: document.getElementById('edit-category').value.trim().toLowerCase(),
                 description: document.getElementById('edit-description').value.trim(),
+                estimated_dispatch: document.getElementById('edit-dispatch').value.trim(),
                 image: primaryImage,
                 hoverImage: hoverImage,
                 images: images
