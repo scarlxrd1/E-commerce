@@ -1,116 +1,187 @@
-import { app, db } from './firebase-config.js';
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-document.addEventListener('DOMContentLoaded', () => {
-    const auth = getAuth(app);
-    let currentUser = null;
-
-    // DOM Elements
-    const supportForm = document.getElementById('support-form');
-    const guestFields = document.getElementById('guest-fields');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA | Customer Care</title>
     
-    const nameInput = document.getElementById('name');
-    const emailInput = document.getElementById('email');
-    const phoneInput = document.getElementById('phone');
-    const issueTypeInput = document.getElementById('issue-type');
-    const messageInput = document.getElementById('message');
-    const submitBtn = document.getElementById('submit-support-btn');
-
-    // 1. Listen to Auth State
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUser = user;
-            // Hide guest fields
-            guestFields.classList.add('hidden');
-            guestFields.classList.remove('flex');
-            // Remove required attributes so form can submit
-            nameInput.removeAttribute('required');
-            emailInput.removeAttribute('required');
-            phoneInput.removeAttribute('required');
-        } else {
-            currentUser = null;
-            // Show guest fields
-            guestFields.classList.remove('hidden');
-            guestFields.classList.add('flex');
-            // Add required attributes back
-            nameInput.setAttribute('required', 'true');
-            emailInput.setAttribute('required', 'true');
-            phoneInput.setAttribute('required', 'true');
-        }
-    });
-
-    // 2. Handle Form Submission
-    supportForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Submitting Request...';
-        submitBtn.disabled = true;
-        submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
-
-        try {
-            let ticketPayload = {
-                issueType: issueTypeInput.value,
-                message: messageInput.value.trim(),
-                timestamp: serverTimestamp()
-            };
-
-            if (currentUser) {
-                // Fetch registered user details from Firestore
-                const userDocRef = doc(db, "users", currentUser.uid);
-                const userDocSnap = await getDoc(userDocRef);
-                
-                if (userDocSnap.exists()) {
-                    const data = userDocSnap.data();
-                    const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'No Name Provided';
-                    
-                    ticketPayload = {
-                        ...ticketPayload,
-                        isRegistered: true,
-                        userId: currentUser.uid,
-                        senderName: fullName,
-                        senderEmail: data.email || currentUser.email,
-                        senderPhone: data.phone || 'N/A',
-                        senderAddress: `${data.address || ''}, ${data.city || ''}, ${data.country || ''}`.replace(/^, | , $/g, '').trim() || 'N/A'
-                    };
-                } else {
-                    // Fallback if user doc is missing
-                    ticketPayload = {
-                        ...ticketPayload,
-                        isRegistered: true,
-                        userId: currentUser.uid,
-                        senderName: 'Registered User',
-                        senderEmail: currentUser.email,
-                        senderPhone: 'N/A',
-                        senderAddress: 'N/A'
-                    };
+    <!-- Google Fonts: Playfair Display (Serif) & Inter (Sans-Serif) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Inter"', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: '#FAFAFA',
+                    }
                 }
-            } else {
-                // Use Guest Inputs
-                ticketPayload = {
-                    ...ticketPayload,
-                    isRegistered: false,
-                    senderName: nameInput.value.trim(),
-                    senderEmail: emailInput.value.trim(),
-                    senderPhone: phoneInput.value.trim(),
-                    senderAddress: 'Guest (No Address)'
-                };
             }
-
-            // Save to Firestore 'support_tickets' collection
-            await addDoc(collection(db, "support_tickets"), ticketPayload);
-
-            alert("Your request has been successfully submitted. Our team will contact you shortly.");
-            supportForm.reset();
-
-        } catch (error) {
-            console.error("Error submitting support ticket:", error);
-            alert("An error occurred while submitting your request. Please try again.");
-        } finally {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
         }
-    });
-});
+    </script>
+    <style>
+        body { 
+            background-color: #FAFAFA; 
+            overflow-x: hidden;
+        }
+        /* Details/Summary Accordion Styling */
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+    </style>
+</head>
+<body class="font-sans text-stone-900 antialiased selection:bg-stone-200 selection:text-stone-900">
+
+    <!-- ========================================== -->
+    <!-- DYNAMIC NAVBAR PLACEHOLDER -->
+    <!-- ========================================== -->
+    <div id="navbar-container"></div>
+
+    <!-- Main Content -->
+    <main class="max-w-[1200px] mx-auto px-6 md:px-12 pt-24 pb-32">
+        
+        <!-- Page Header -->
+        <header class="text-center mb-24">
+            <h1 class="font-serif text-5xl md:text-6xl text-stone-900 mb-6">Customer Care</h1>
+            <p class="font-sans text-stone-500 max-w-lg mx-auto leading-relaxed">
+                We are dedicated to providing a seamless experience. Whether you have a question about a piece, shipping, or need assistance with an existing order, we are here to help.
+            </p>
+        </header>
+
+        <!-- Two Column Layout: Contact Form & FAQs -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 mb-24">
+            
+            <!-- Left Column: Contact Form -->
+            <section>
+                <div class="flex items-center gap-3 mb-10 relative">
+                    <h2 class="font-serif text-3xl text-stone-900">Get in Touch</h2>
+                    <!-- Tooltip Info -->
+                    <div class="group relative cursor-help flex items-center justify-center mt-1">
+                        <span class="text-stone-400 border border-stone-300 rounded-full w-5 h-5 flex items-center justify-center text-xs font-serif hover:bg-stone-100 transition-colors">?</span>
+                        <div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 hidden group-hover:block w-64 p-4 bg-stone-900 text-white text-xs font-sans rounded-sm shadow-xl z-20 text-center leading-relaxed">
+                            If you are logged into your account, your registration details are securely and automatically attached to this request.
+                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-900"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="support-form" class="flex flex-col gap-8">
+                    
+                    <!-- Guest Fields (Hidden if logged in) -->
+                    <div id="guest-fields" class="flex flex-col gap-8 transition-all duration-300">
+                        <div>
+                            <label for="name" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Full Name</label>
+                            <input type="text" id="name" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        </div>
+                        <div>
+                            <label for="email" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Email Address</label>
+                            <input type="email" id="email" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        </div>
+                        <div>
+                            <label for="phone" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Telephone Number</label>
+                            <input type="tel" id="phone" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        </div>
+                    </div>
+
+                    <!-- Always Visible Fields -->
+                    <div>
+                        <label for="issue-type" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Issue Type</label>
+                        <select id="issue-type" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 focus:outline-none focus:border-stone-900 transition-colors appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a8a29e%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.2rem top 50%; background-size: 0.65rem auto;">
+                            <option value="" disabled selected>Select an option</option>
+                            <option value="General Inquiry">General Inquiry</option>
+                            <option value="Order/Product Issue">Order/Product Issue</option>
+                            <option value="Technical Problem">Technical Problem</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="message" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">How can we help you?</label>
+                        <textarea id="message" rows="4" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors resize-none"></textarea>
+                    </div>
+                    <button type="submit" id="submit-support-btn" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-5 mt-4 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">
+                        Submit Inquiry
+                    </button>
+                </form>
+            </section>
+
+            <!-- Right Column: FAQs -->
+            <section>
+                <h2 class="font-serif text-3xl text-stone-900 mb-10">Frequently Asked Questions</h2>
+                <div class="border-t border-stone-200">
+                    
+                    <!-- FAQ 1 -->
+                    <details class="group border-b border-stone-200 py-6">
+                        <summary class="font-sans text-sm font-medium tracking-wide text-stone-900 cursor-pointer flex justify-between items-center">
+                            What are your standard shipping times?
+                            <span class="text-stone-400 transition-transform duration-300 group-open:rotate-45">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"></path></svg>
+                            </span>
+                        </summary>
+                        <p class="font-sans text-sm text-stone-500 mt-6 leading-relaxed">
+                            Because many of our pieces are crafted to order, standard delivery generally takes between 4 to 6 weeks. In-stock decor items are usually dispatched within 3-5 business days. You will receive a tracking link once your order leaves our facility.
+                        </p>
+                    </details>
+
+                    <!-- FAQ 2 -->
+                    <details class="group border-b border-stone-200 py-6">
+                        <summary class="font-sans text-sm font-medium tracking-wide text-stone-900 cursor-pointer flex justify-between items-center">
+                            Do you offer white-glove delivery and assembly?
+                            <span class="text-stone-400 transition-transform duration-300 group-open:rotate-45">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"></path></svg>
+                            </span>
+                        </summary>
+                        <p class="font-sans text-sm text-stone-500 mt-6 leading-relaxed">
+                            Yes, white-glove delivery is available for all large furniture items (tables, seating) at an additional tier during checkout. Our team will deliver the piece to your room of choice, handle all assembly, and remove the packaging materials.
+                        </p>
+                    </details>
+
+                    <!-- FAQ 3 -->
+                    <details class="group border-b border-stone-200 py-6">
+                        <summary class="font-sans text-sm font-medium tracking-wide text-stone-900 cursor-pointer flex justify-between items-center">
+                            Are your materials sustainably sourced?
+                            <span class="text-stone-400 transition-transform duration-300 group-open:rotate-45">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"></path></svg>
+                            </span>
+                        </summary>
+                        <p class="font-sans text-sm text-stone-500 mt-6 leading-relaxed">
+                            Sustainability is at the core of AURA. We strictly utilize FSC-certified timbers, organic linens, and non-toxic finishes. We partner directly with artisans to ensure a transparent, ethical supply chain.
+                        </p>
+                    </details>
+                    
+                </div>
+            </section>
+        </div>
+
+        <!-- Returns & Exchanges Block -->
+        <section class="bg-stone-100 p-10 md:p-16 rounded-sm text-center">
+            <h2 class="font-serif text-2xl text-stone-900 mb-4">Returns & Exchanges</h2>
+            <div class="w-12 h-px bg-stone-300 mx-auto mb-6"></div>
+            <p class="font-sans text-sm text-stone-500 max-w-2xl mx-auto leading-relaxed">
+                We take immense pride in the craftsmanship of our collection. If you are not entirely satisfied with your purchase, AURA accepts returns of unused, undamaged items within <strong>30 days of delivery</strong>. Custom or made-to-order pieces are final sale. To initiate a return, simply fill out the contact form above with your order number.
+            </p>
+        </section>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- DYNAMIC FOOTER PLACEHOLDER -->
+    <!-- ========================================== -->
+    <div id="footer-container"></div>
+
+    <!-- Global Scripts -->
+    <script type="module" src="./js/global.js"></script>
+
+    <!-- Support Ticket Script -->
+    <script type="module" src="./js/customer-care.js"></script>
+</body>
+</html>
