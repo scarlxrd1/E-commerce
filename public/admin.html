@@ -79,6 +79,7 @@
                 <nav class="flex flex-col gap-6 font-sans text-sm tracking-widest uppercase">
                     <button id="nav-products" class="text-left text-stone-900 font-semibold border-l-2 border-stone-900 pl-4 py-1 transition-colors">Products</button>
                     <button id="nav-customers" class="text-left text-stone-400 hover:text-stone-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Customers</button>
+                    <button id="nav-support" class="text-left text-stone-400 hover:text-stone-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Customer Care Support</button>
                 </nav>
             </div>
             
@@ -185,6 +186,29 @@
                         <tbody id="customers-table-body" class="divide-y divide-stone-100 font-sans text-sm text-stone-900">
                             <!-- Injected dynamically -->
                             <tr><td colspan="4" class="p-8 text-center text-stone-400">Loading customers...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SUPPORT TICKETS SECTION -->
+            <section id="support-section" class="hidden">
+                <h1 class="font-serif text-3xl text-stone-900 mb-10">Customer Care Tickets</h1>
+                
+                <div class="bg-white border border-stone-200 rounded-sm shadow-sm overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead>
+                            <tr class="bg-stone-50 border-b border-stone-200 font-sans text-xs tracking-widest uppercase text-stone-500">
+                                <th class="p-4 font-medium">Sender Info</th>
+                                <th class="p-4 font-medium">Issue Type</th>
+                                <th class="p-4 font-medium">Message</th>
+                                <th class="p-4 font-medium">Status</th>
+                                <th class="p-4 font-medium text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="support-table-body" class="divide-y divide-stone-100 font-sans text-sm text-stone-900">
+                            <!-- Injected dynamically -->
+                            <tr><td colspan="5" class="p-8 text-center text-stone-400">Loading tickets...</td></tr>
                         </tbody>
                     </table>
                 </div>
