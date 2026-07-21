@@ -279,6 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 price: parseFloat(document.getElementById('add-price').value),
                 stock: parseInt(document.getElementById('add-stock').value),
                 categories: document.getElementById('add-category').value.trim().toLowerCase(),
+                description: document.getElementById('add-description').value.trim(),
                 image: primaryImage,
                 hoverImage: hoverImage,
                 images: images
@@ -326,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('edit-price').value = product.price || 0;
         document.getElementById('edit-stock').value = product.stock || 0;
         document.getElementById('edit-category').value = product.categories || '';
+        document.getElementById('edit-description').value = product.description || product.desc || '';
 
         // Populate images
         editImageInputsContainer.innerHTML = '';
@@ -381,6 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 price: parseFloat(document.getElementById('edit-price').value),
                 stock: parseInt(document.getElementById('edit-stock').value),
                 categories: document.getElementById('edit-category').value.trim().toLowerCase(),
+                description: document.getElementById('edit-description').value.trim(),
                 image: primaryImage,
                 hoverImage: hoverImage,
                 images: images
