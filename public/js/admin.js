@@ -19,8 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Navigation & Layout Elements
     const navProducts = document.getElementById('nav-products');
     const navCustomers = document.getElementById('nav-customers');
+    const navSupport = document.getElementById('nav-support');
+    
     const productsSection = document.getElementById('products-section');
     const customersSection = document.getElementById('customers-section');
+    const supportSection = document.getElementById('support-section');
+    
     const logoutBtn = document.getElementById('logout-btn');
 
     // Products Elements
@@ -38,6 +42,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Customers Elements
     const customersTableBody = document.getElementById('customers-table-body');
+
+    // Support Elements
+    const supportTableBody = document.getElementById('support-table-body');
 
     // Dynamic Images Elements
     const addImageBtn = document.getElementById('add-image-btn');
@@ -63,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showDashboardView();
                     fetchProducts();
                     fetchCustomers();
+                    fetchSupportTickets();
                 } else {
                     // Unauthorized User
                     alert("Access Denied: Unauthorized account. You do not have admin privileges.");
@@ -121,30 +129,40 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 2. DASHBOARD NAVIGATION
     // ==========================================
+    function resetNavStyles() {
+        [navProducts, navCustomers, navSupport].forEach(btn => {
+            btn.classList.replace('text-stone-900', 'text-stone-400');
+            btn.classList.replace('border-stone-900', 'border-transparent');
+            btn.classList.remove('font-semibold');
+        });
+        
+        [productsSection, customersSection, supportSection].forEach(sec => {
+            sec.classList.add('hidden');
+        });
+    }
+
     navProducts.addEventListener('click', () => {
+        resetNavStyles();
         navProducts.classList.replace('text-stone-400', 'text-stone-900');
         navProducts.classList.replace('border-transparent', 'border-stone-900');
         navProducts.classList.add('font-semibold');
-        
-        navCustomers.classList.replace('text-stone-900', 'text-stone-400');
-        navCustomers.classList.replace('border-stone-900', 'border-transparent');
-        navCustomers.classList.remove('font-semibold');
-
         productsSection.classList.remove('hidden');
-        customersSection.classList.add('hidden');
     });
 
     navCustomers.addEventListener('click', () => {
+        resetNavStyles();
         navCustomers.classList.replace('text-stone-400', 'text-stone-900');
         navCustomers.classList.replace('border-transparent', 'border-stone-900');
         navCustomers.classList.add('font-semibold');
-        
-        navProducts.classList.replace('text-stone-900', 'text-stone-400');
-        navProducts.classList.replace('border-stone-900', 'border-transparent');
-        navProducts.classList.remove('font-semibold');
-
         customersSection.classList.remove('hidden');
-        productsSection.classList.add('hidden');
+    });
+
+    navSupport.addEventListener('click', () => {
+        resetNavStyles();
+        navSupport.classList.replace('text-stone-400', 'text-stone-900');
+        navSupport.classList.replace('border-transparent', 'border-stone-900');
+        navSupport.classList.add('font-semibold');
+        supportSection.classList.remove('hidden');
     });
 
     // ==========================================
@@ -443,4 +461,90 @@ document.addEventListener('DOMContentLoaded', () => {
             customersTableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-red-500">Failed to load customers.</td></tr>`;
         }
     }
+
+    // ==========================================
+    // 5. SUPPORT TICKETS MANAGEMENT
+    // ==========================================
+    async function fetchSupportTickets() {
+        supportTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-stone-400">Loading tickets...</td></tr>`;
+        try {
+            const querySnapshot = await getDocs(collection(db, "support_tickets"));
+            let tickets = [];
+            
+            querySnapshot.forEach((doc) => {
+                tickets.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Sort by timestamp descending (newest first)
+            tickets.sort((a, b) => {
+                const timeA = a.timestamp ? a.timestamp.toMillis() : Date.now();
+                const timeB = b.timestamp ? b.timestamp.toMillis() : Date.now();
+                return timeB - timeA;
+            });
+
+            if (tickets.length === 0) {
+                supportTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-stone-400">No support tickets found.</td></tr>`;
+                return;
+            }
+
+            supportTableBody.innerHTML = tickets.map(ticket => {
+                const badgeHtml = ticket.isRegistered 
+                    ? `<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-[10px] uppercase font-bold tracking-wider">Registered</span>`
+                    : `<span class="px-2 py-1 bg-stone-200 text-stone-700 rounded text-[10px] uppercase font-bold tracking-wider">Guest</span>`;
+
+                const dateObj = ticket.timestamp ? ticket.timestamp.toDate() : new Date();
+                const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                return `
+                    <tr class="hover:bg-stone-50 transition-colors align-top">
+                        <td class="p-4">
+                            <div class="flex flex-col gap-1">
+                                <span class="font-medium text-stone-900">${ticket.senderName || 'N/A'}</span>
+                                <span class="text-stone-500 text-xs">${ticket.senderEmail || 'N/A'}</span>
+                                <span class="text-stone-500 text-xs">${ticket.senderPhone || 'N/A'}</span>
+                                <span class="text-stone-400 text-xs mt-1 max-w-[200px] truncate" title="${ticket.senderAddress || ''}">${ticket.senderAddress || 'N/A'}</span>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex flex-col gap-1">
+                                <span class="text-stone-900 font-medium">${ticket.issueType || 'General Inquiry'}</span>
+                                <span class="text-stone-400 text-xs">${dateStr}</span>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <div class="text-stone-600 text-sm max-w-sm whitespace-pre-wrap">${ticket.message || 'No message provided.'}</div>
+                        </td>
+                        <td class="p-4">
+                            ${badgeHtml}
+                        </td>
+                        <td class="p-4 text-right">
+                            <button class="delete-ticket-btn text-red-400 hover:text-red-700 transition-colors underline underline-offset-4 text-xs tracking-widest uppercase" data-id="${ticket.id}">
+                                Mark Resolved
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+        } catch (error) {
+            console.error("Error fetching support tickets:", error);
+            supportTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-500">Failed to load support tickets.</td></tr>`;
+        }
+    }
+
+    // Event Delegation for Delete/Resolve Ticket Button
+    supportTableBody.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('delete-ticket-btn')) {
+            const ticketId = e.target.getAttribute('data-id');
+            if (confirm("Are you sure you want to mark this ticket as resolved? This will permanently delete the record.")) {
+                try {
+                    await deleteDoc(doc(db, "support_tickets", ticketId));
+                    await fetchSupportTickets(); // Refresh UI instantly
+                } catch (error) {
+                    console.error("Error deleting ticket:", error);
+                    alert("Failed to resolve the ticket. Please try again.");
+                }
+            }
+        }
+    });
 });
