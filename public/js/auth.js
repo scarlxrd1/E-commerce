@@ -201,30 +201,38 @@ document.addEventListener('DOMContentLoaded', () => {
                     createdAt: new Date().toISOString()
                 });
 
-                // Send Automated Welcome Email via EmailJS
-                const templateParams = {
-                    user_name: `${fName} ${lName}`.trim(),
-                    user_email: email
+                // Send Automated Welcome Email via EmailJS REST API
+                const payload = {
+                    service_id: "service_c24ml8x",
+                    template_id: "template_y5ko9jj",
+                    user_id: "VjioTcL168a56Y0fO",
+                    template_params: {
+                        user_name: `${fName} ${lName}`.trim(),
+                        user_email: email
+                    }
                 };
-                
-                if (window.emailjs) {
-                    // Pass the Public Key directly as the 4th parameter to avoid scope issues
-                    window.emailjs.send("service_c24ml8x", "template_y5ko9jj", templateParams, "VjioTcL168a56Y0fO")
-                        .then(response => {
-                            console.log("EMAILJS SUCCESS:", response.status, response.text);
-                            // Redirect ONLY after successful email dispatch
-                            window.location.href = 'index.html';
-                        })
-                        .catch(error => {
-                            console.error("EMAILJS CRITICAL ERROR:", error);
-                            alert("EMAILJS ERROR: " + JSON.stringify(error));
-                            // Fallback redirect in case email fails, so user isn't stuck
-                            window.location.href = 'index.html';
-                        });
-                } else {
-                    console.error("EmailJS SDK not found. Skipping email.");
-                    window.location.href = 'index.html';
+
+                try {
+                    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        console.log("EMAILJS SUCCESS: Email sent via REST API");
+                    } else {
+                        const errorText = await response.text();
+                        console.error("EMAILJS ERROR:", errorText);
+                    }
+                } catch (emailError) {
+                    console.error("EMAILJS CRITICAL ERROR:", emailError);
                 }
+
+                // Redirect ONLY after email attempt completes (whether success or fail)
+                window.location.href = 'index.html';
             }
 
         } catch (error) {
