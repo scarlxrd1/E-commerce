@@ -3,13 +3,6 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } f
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Initialize EmailJS explicitly on the window object
-    if (window.emailjs) {
-        window.emailjs.init("VjioTcL168a56Y0fO");
-    } else {
-        console.error("EmailJS SDK not loaded.");
-    }
-
     const auth = getAuth(app);
     let isLoginMode = true;
     let currentCaptcha = '';
@@ -215,7 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 
                 if (window.emailjs) {
-                    window.emailjs.send("service_c24ml8x", "template_y5ko9jj", templateParams)
+                    // Pass the Public Key directly as the 4th parameter to avoid scope issues
+                    window.emailjs.send("service_c24ml8x", "template_y5ko9jj", templateParams, "VjioTcL168a56Y0fO")
                         .then(response => {
                             console.log("EMAILJS SUCCESS:", response.status, response.text);
                             // Redirect ONLY after successful email dispatch
@@ -228,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             window.location.href = 'index.html';
                         });
                 } else {
-                    console.error("EmailJS not initialized. Skipping email.");
+                    console.error("EmailJS SDK not found. Skipping email.");
                     window.location.href = 'index.html';
                 }
             }
