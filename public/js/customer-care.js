@@ -5,6 +5,7 @@ import { collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gs
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
     let currentUser = null;
+    let currentCaptcha = '';
 
     // DOM Elements
     const supportForm = document.getElementById('support-form');
@@ -17,7 +18,68 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageInput = document.getElementById('message');
     const submitBtn = document.getElementById('submit-support-btn');
 
-    // 1. Listen to Auth State
+    // Captcha Elements
+    const captchaCanvas = document.getElementById('captcha-canvas');
+    const captchaInput = document.getElementById('captcha-input');
+    const refreshCaptchaBtn = document.getElementById('refresh-captcha-btn');
+
+    // 1. Captcha Generator Function (Clean UI, High Contrast, No Distortion)
+    function generateCaptcha() {
+        // Excluded ambiguous characters like 0, O, 1, I, l
+        const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+        let captcha = '';
+        for (let i = 0; i < 6; i++) {
+            captcha += chars[Math.floor(Math.random() * chars.length)];
+        }
+        currentCaptcha = captcha;
+        captchaInput.value = '';
+
+        if (captchaCanvas) {
+            const ctx = captchaCanvas.getContext('2d');
+            const width = captchaCanvas.width;
+            const height = captchaCanvas.height;
+
+            // Clean Background (Stone 100)
+            ctx.fillStyle = '#F5F5F4'; 
+            ctx.fillRect(0, 0, width, height);
+
+            // Minimal, elegant noise (subtle dots instead of harsh lines)
+            ctx.fillStyle = '#E7E5E4'; // Stone 200
+            for (let i = 0; i < 40; i++) {
+                ctx.beginPath();
+                ctx.arc(Math.random() * width, Math.random() * height, Math.random() * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Draw highly readable text
+            ctx.font = 'bold 22px monospace';
+            ctx.fillStyle = '#1C1917'; // Stone 900 (High contrast)
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Clear letter spacing and minimal rotation
+            const startX = width / 2 - 60; // Center the 6 characters
+            const spacing = 24;
+            
+            for (let i = 0; i < 6; i++) {
+                ctx.save();
+                ctx.translate(startX + (i * spacing), height / 2);
+                
+                // Very slight rotation (-5 to 5 degrees) for basic security without ruining readability
+                const angle = (Math.random() - 0.5) * 0.1; 
+                ctx.rotate(angle);
+                
+                ctx.fillText(captcha[i], 0, 0);
+                ctx.restore();
+            }
+        }
+    }
+
+    // Initialize Captcha
+    refreshCaptchaBtn.addEventListener('click', generateCaptcha);
+    generateCaptcha();
+
+    // 2. Listen to Auth State
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
@@ -40,9 +102,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. Handle Form Submission
+    // 3. Handle Form Submission
     supportForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // Validate Captcha First
+        if (captchaInput.value.trim().toUpperCase() !== currentCaptcha.toUpperCase()) {
+            alert("Security check failed. Please try again.");
+            generateCaptcha();
+            return;
+        }
 
         const originalText = submitBtn.textContent;
         submitBtn.textContent = 'Submitting Request...';
@@ -103,10 +172,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             alert("Your request has been successfully submitted. Our team will contact you shortly.");
             supportForm.reset();
+            generateCaptcha(); // Refresh captcha on successful submission
 
         } catch (error) {
             console.error("Error submitting support ticket:", error);
             alert("An error occurred while submitting your request. Please try again.");
+            generateCaptcha(); // Refresh captcha on error as a safety measure
         } finally {
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
