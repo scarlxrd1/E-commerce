@@ -122,6 +122,10 @@
                             <input type="text" id="add-category" required class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
                         </div>
                         <div class="md:col-span-2">
+                            <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Description</label>
+                            <textarea id="add-description" rows="4" class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 resize-none placeholder-stone-400" placeholder="Enter product description..."></textarea>
+                        </div>
+                        <div class="md:col-span-2">
                             <div class="flex items-center justify-between mb-2">
                                 <label class="block font-sans text-xs tracking-widest uppercase text-stone-500">Product Images</label>
                                 <button type="button" id="add-image-btn" class="text-stone-900 hover:text-stone-600 font-bold text-lg leading-none" title="Add another image">+</button>
@@ -193,7 +197,7 @@
         <div id="edit-modal-backdrop" class="absolute inset-0 bg-stone-900/40 backdrop-blur-sm"></div>
         
         <!-- Modal Content -->
-        <div class="relative w-full max-w-lg bg-white p-8 md:p-10 rounded-sm shadow-2xl z-10">
+        <div class="relative w-full max-w-lg bg-white p-8 md:p-10 rounded-sm shadow-2xl z-10 max-h-[90vh] overflow-y-auto no-scrollbar">
             <h3 class="font-serif text-2xl text-stone-900 mb-6">Edit Product</h3>
             <form id="edit-product-form" class="flex flex-col gap-6">
                 <input type="hidden" id="edit-id">
@@ -214,6 +218,10 @@
                 <div>
                     <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Category (e.g., seating, tables)</label>
                     <input type="text" id="edit-category" required class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
+                </div>
+                <div>
+                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Description</label>
+                    <textarea id="edit-description" rows="4" class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 resize-none placeholder-stone-400" placeholder="Enter product description..."></textarea>
                 </div>
                 <div>
                     <div class="flex items-center justify-between mb-2">
