@@ -108,6 +108,21 @@
                         <label for="message" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">How can we help you?</label>
                         <textarea id="message" rows="4" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors resize-none"></textarea>
                     </div>
+
+                    <!-- Custom Security Captcha (Cleaned UI) -->
+                    <div class="flex flex-col gap-3 mt-2">
+                        <label for="captcha-input" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">Security Check</label>
+                        <div class="flex items-center gap-4">
+                            <div class="relative bg-stone-100 border border-stone-200 rounded-sm select-none overflow-hidden flex items-center justify-center shadow-inner">
+                                <canvas id="captcha-canvas" width="160" height="48" class="block cursor-crosshair"></canvas>
+                            </div>
+                            <button type="button" id="refresh-captcha-btn" class="text-stone-400 hover:text-stone-900 transition-colors" title="Refresh Captcha">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            </button>
+                        </div>
+                        <input type="text" id="captcha-input" required placeholder="Enter the 6-character code" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                    </div>
+
                     <button type="submit" id="submit-support-btn" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-5 mt-4 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">
                         Submit Inquiry
                     </button>
