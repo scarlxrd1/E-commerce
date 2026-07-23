@@ -49,21 +49,21 @@
         
         <!-- Header -->
         <header class="mb-16 border-b border-stone-200 pb-8">
-            <h1 class="font-serif text-4xl md:text-5xl text-stone-900 mb-4">My Account</h1>
-            <p class="font-sans text-stone-500">Welcome back, <span id="user-name-header" class="text-stone-900 font-medium animate-pulse bg-stone-200 text-transparent rounded">Loading...</span></p>
+            <h1 data-i18n="profile.title" class="font-serif text-4xl md:text-5xl text-stone-900 mb-4">My Account</h1>
+            <p class="font-sans text-stone-500"><span data-i18n="profile.welcome">Welcome back, </span><span id="user-name-header" class="text-stone-900 font-medium animate-pulse bg-stone-200 text-transparent rounded" data-i18n="profile.loading">Loading...</span></p>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-16 items-start">
             
             <!-- Sidebar Navigation -->
             <aside class="lg:col-span-1 flex flex-col gap-6 font-sans text-sm tracking-widest uppercase sticky top-32">
-                <a href="#personal-info" class="text-stone-900 font-semibold border-l-2 border-stone-900 pl-4 py-1 transition-colors">Personal Info</a>
-                <a href="#orders" class="text-stone-400 hover:text-stone-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Order History</a>
-                <a href="#addresses" class="text-stone-400 hover:text-stone-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Saved Addresses</a>
+                <a data-i18n="profile.sidebar.personal_info" href="#personal-info" class="text-stone-900 font-semibold border-l-2 border-stone-900 pl-4 py-1 transition-colors">Personal Info</a>
+                <a data-i18n="profile.sidebar.order_history" href="#orders" class="text-stone-400 hover:text-stone-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Order History</a>
+                <a data-i18n="profile.sidebar.saved_addresses" href="#addresses" class="text-stone-400 hover:text-stone-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Saved Addresses</a>
                 
                 <div class="w-full h-px bg-stone-200 my-4"></div>
                 
-                <button id="logout-btn" class="text-left text-stone-400 hover:text-red-700 border-l-2 border-transparent pl-4 py-1 transition-colors">
+                <button data-i18n="profile.sidebar.logout" id="logout-btn" class="text-left text-stone-400 hover:text-red-700 border-l-2 border-transparent pl-4 py-1 transition-colors">
                     Log Out
                 </button>
             </aside>
@@ -74,8 +74,8 @@
                 <!-- Personal Information Section -->
                 <section id="personal-info" class="scroll-mt-32">
                     <div class="flex items-center justify-between mb-8">
-                        <h2 class="font-serif text-2xl text-stone-900">Personal Information</h2>
-                        <button id="edit-profile-btn" class="font-sans text-xs tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-colors">
+                        <h2 data-i18n="profile.personal_info.title" class="font-serif text-2xl text-stone-900">Personal Information</h2>
+                        <button data-i18n="profile.personal_info.edit_btn" id="edit-profile-btn" class="font-sans text-xs tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-colors">
                             Edit Profile
                         </button>
                     </div>
@@ -85,27 +85,27 @@
                         <!-- VIEW MODE -->
                         <div id="profile-view-mode" class="grid grid-cols-1 md:grid-cols-2 gap-10">
                             <div>
-                                <p class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Full Name</p>
+                                <p data-i18n="profile.personal_info.full_name" class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Full Name</p>
                                 <p id="profile-name" class="font-sans text-stone-900 font-medium text-lg">
-                                    <span class="animate-pulse bg-stone-200 text-transparent rounded w-32 inline-block">Loading...</span>
+                                    <span data-i18n="profile.loading" class="animate-pulse bg-stone-200 text-transparent rounded w-32 inline-block">Loading...</span>
                                 </p>
                             </div>
                             <div>
-                                <p class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Email Address</p>
+                                <p data-i18n="profile.personal_info.email" class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Email Address</p>
                                 <p id="profile-email" class="font-sans text-stone-900 font-medium text-lg">
-                                    <span class="animate-pulse bg-stone-200 text-transparent rounded w-48 inline-block">Loading...</span>
+                                    <span data-i18n="profile.loading" class="animate-pulse bg-stone-200 text-transparent rounded w-48 inline-block">Loading...</span>
                                 </p>
                             </div>
                             <div>
-                                <p class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Phone Number</p>
+                                <p data-i18n="profile.personal_info.phone" class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Phone Number</p>
                                 <p id="profile-phone" class="font-sans text-stone-900 font-medium text-lg">
-                                    <span class="animate-pulse bg-stone-200 text-transparent rounded w-36 inline-block">Loading...</span>
+                                    <span data-i18n="profile.loading" class="animate-pulse bg-stone-200 text-transparent rounded w-36 inline-block">Loading...</span>
                                 </p>
                             </div>
                             <div>
-                                <p class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Shipping Address</p>
+                                <p data-i18n="profile.personal_info.address" class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-2">Shipping Address</p>
                                 <p id="profile-address" class="font-sans text-stone-900 font-medium text-lg">
-                                    <span class="animate-pulse bg-stone-200 text-transparent rounded w-56 inline-block">Loading...</span>
+                                    <span data-i18n="profile.loading" class="animate-pulse bg-stone-200 text-transparent rounded w-56 inline-block">Loading...</span>
                                 </p>
                             </div>
                         </div>
@@ -114,58 +114,58 @@
                         <form id="profile-edit-mode" class="hidden flex-col gap-8">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div>
-                                    <label for="edit-firstName" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">First Name</label>
+                                    <label data-i18n="profile.edit_form.labels.first_name" for="edit-firstName" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">First Name</label>
                                     <input type="text" id="edit-firstName" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                                 </div>
                                 <div>
-                                    <label for="edit-lastName" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Last Name</label>
+                                    <label data-i18n="profile.edit_form.labels.last_name" for="edit-lastName" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Last Name</label>
                                     <input type="text" id="edit-lastName" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                                 </div>
                                 <div>
-                                    <label for="edit-phone" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Phone Number</label>
+                                    <label data-i18n="profile.edit_form.labels.phone" for="edit-phone" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Phone Number</label>
                                     <input type="tel" id="edit-phone" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                                 </div>
                                 <div>
-                                    <label for="edit-address" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Street Address</label>
+                                    <label data-i18n="profile.edit_form.labels.address" for="edit-address" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Street Address</label>
                                     <input type="text" id="edit-address" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                                 </div>
                                 <div>
-                                    <label for="edit-city" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">City</label>
+                                    <label data-i18n="profile.edit_form.labels.city" for="edit-city" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">City</label>
                                     <input type="text" id="edit-city" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                                 </div>
                                 <div>
-                                    <label for="edit-country" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Country</label>
+                                    <label data-i18n="profile.edit_form.labels.country" for="edit-country" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Country</label>
                                     <select id="edit-country" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 focus:outline-none focus:border-stone-900 transition-colors appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a8a29e%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.2rem top 50%; background-size: 0.65rem auto;">
-                                        <option value="" disabled selected>Select Country</option>
-                                        <option value="Greece">Greece</option>
-                                        <option value="Cyprus">Cyprus</option>
+                                        <option data-i18n="profile.edit_form.countries.select" value="" disabled selected>Select Country</option>
+                                        <option data-i18n="profile.edit_form.countries.greece" value="Greece">Greece</option>
+                                        <option data-i18n="profile.edit_form.countries.cyprus" value="Cyprus">Cyprus</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label for="edit-zip" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Postal Code (ZIP)</label>
+                                    <label data-i18n="profile.edit_form.labels.postal_code" for="edit-zip" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Postal Code (ZIP)</label>
                                     <input type="text" id="edit-zip" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                                 </div>
                             </div>
                             
                             <div class="w-full h-px bg-stone-200 my-4"></div>
                             
-                            <h3 class="font-serif text-xl text-stone-900 mb-2">Account Security</h3>
+                            <h3 data-i18n="profile.edit_form.labels.account_security" class="font-serif text-xl text-stone-900 mb-2">Account Security</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div>
-                                    <label for="edit-email" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Change Email</label>
+                                    <label data-i18n="profile.edit_form.labels.change_email" for="edit-email" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Change Email</label>
                                     <input type="email" id="edit-email" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                                 </div>
                                 <div>
-                                    <label for="edit-password" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Change Password</label>
-                                    <input type="password" id="edit-password" placeholder="Leave blank to keep current" class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                                    <label data-i18n="profile.edit_form.labels.change_password" for="edit-password" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Change Password</label>
+                                    <input data-i18n="profile.edit_form.placeholders.password" type="password" id="edit-password" placeholder="Leave blank to keep current" class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                                 </div>
                             </div>
                             
                             <div class="flex justify-end gap-4 mt-6">
-                                <button type="button" id="cancel-edit-btn" class="font-sans text-xs tracking-widest uppercase border border-stone-300 text-stone-600 px-6 py-3 hover:bg-stone-50 transition-colors rounded-sm">
+                                <button data-i18n="profile.edit_form.cancel" type="button" id="cancel-edit-btn" class="font-sans text-xs tracking-widest uppercase border border-stone-300 text-stone-600 px-6 py-3 hover:bg-stone-50 transition-colors rounded-sm">
                                     Cancel
                                 </button>
-                                <button type="submit" id="save-edit-btn" class="font-sans text-xs tracking-widest uppercase bg-stone-900 text-white px-6 py-3 hover:bg-stone-800 transition-colors shadow-sm rounded-sm">
+                                <button data-i18n="profile.edit_form.save" type="submit" id="save-edit-btn" class="font-sans text-xs tracking-widest uppercase bg-stone-900 text-white px-6 py-3 hover:bg-stone-800 transition-colors shadow-sm rounded-sm">
                                     Save Changes
                                 </button>
                             </div>
@@ -176,12 +176,12 @@
 
                 <!-- Order History Section -->
                 <section id="orders" class="scroll-mt-32">
-                    <h2 class="font-serif text-2xl text-stone-900 mb-8">Order History</h2>
+                    <h2 data-i18n="profile.orders.title" class="font-serif text-2xl text-stone-900 mb-8">Order History</h2>
                     <div class="border border-stone-200 bg-white p-16 rounded-sm flex flex-col items-center justify-center text-center shadow-sm">
                         <svg class="w-12 h-12 text-stone-300 mb-4 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                        <h3 class="font-sans text-stone-900 font-medium mb-2">No orders yet</h3>
-                        <p class="font-sans text-sm text-stone-500 mb-6 max-w-sm">When you place an order, it will appear here. Discover our latest minimalist pieces to elevate your space.</p>
-                        <a href="collection.html" class="font-sans text-xs tracking-widest uppercase border-b border-stone-900 text-stone-900 pb-1 hover:text-stone-600 hover:border-stone-600 transition-colors">
+                        <h3 data-i18n="profile.orders.empty_title" class="font-sans text-stone-900 font-medium mb-2">No orders yet</h3>
+                        <p data-i18n="profile.orders.empty_desc" class="font-sans text-sm text-stone-500 mb-6 max-w-sm">When you place an order, it will appear here. Discover our latest minimalist pieces to elevate your space.</p>
+                        <a data-i18n="profile.orders.explore_btn" href="collection.html" class="font-sans text-xs tracking-widest uppercase border-b border-stone-900 text-stone-900 pb-1 hover:text-stone-600 hover:border-stone-600 transition-colors">
                             Explore Collection
                         </a>
                     </div>
@@ -190,15 +190,15 @@
                 <!-- Saved Addresses Section -->
                 <section id="addresses" class="scroll-mt-32">
                     <div class="flex items-center justify-between mb-8">
-                        <h2 class="font-serif text-2xl text-stone-900">Saved Addresses</h2>
-                        <button class="font-sans text-xs tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-colors">
+                        <h2 data-i18n="profile.addresses.title" class="font-serif text-2xl text-stone-900">Saved Addresses</h2>
+                        <button data-i18n="profile.addresses.add_new" class="font-sans text-xs tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-colors">
                             + Add New
                         </button>
                     </div>
                     <div class="border border-stone-200 bg-white p-16 rounded-sm flex flex-col items-center justify-center text-center shadow-sm">
                         <svg class="w-12 h-12 text-stone-300 mb-4 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                        <h3 class="font-sans text-stone-900 font-medium mb-2">No alternate addresses saved</h3>
-                        <p class="font-sans text-sm text-stone-500 max-w-sm">Save your shipping and billing addresses for a faster checkout experience.</p>
+                        <h3 data-i18n="profile.addresses.empty_title" class="font-sans text-stone-900 font-medium mb-2">No alternate addresses saved</h3>
+                        <p data-i18n="profile.addresses.empty_desc" class="font-sans text-sm text-stone-500 max-w-sm">Save your shipping and billing addresses for a faster checkout experience.</p>
                     </div>
                 </section>
 
