@@ -48,8 +48,8 @@
         
         <div class="w-full max-w-lg bg-white p-10 md:p-14 shadow-sm border border-stone-100 rounded-sm transition-all duration-300">
             <div class="text-center mb-10">
-                <h1 id="auth-title" class="font-serif text-3xl md:text-4xl text-stone-900 mb-3">Sign In</h1>
-                <p id="auth-subtitle" class="font-sans text-sm text-stone-500">Access your AURA account.</p>
+                <h1 data-i18n="auth.sign_in_title" id="auth-title" class="font-serif text-3xl md:text-4xl text-stone-900 mb-3">Sign In</h1>
+                <p data-i18n="auth.sign_in_subtitle" id="auth-subtitle" class="font-sans text-sm text-stone-500">Access your AURA account.</p>
             </div>
 
             <!-- Error/Success Message Container -->
@@ -63,48 +63,48 @@
                 <div id="register-fields" class="hidden flex-col gap-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="firstName" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">First Name</label>
+                            <label data-i18n="auth.labels.first_name" for="firstName" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">First Name</label>
                             <input type="text" id="firstName" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                         </div>
                         <div>
-                            <label for="lastName" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Last Name</label>
+                            <label data-i18n="auth.labels.last_name" for="lastName" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Last Name</label>
                             <input type="text" id="lastName" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                         </div>
                     </div>
 
                     <div>
-                        <label for="phone" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Phone Number</label>
+                        <label data-i18n="auth.labels.phone" for="phone" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Phone Number</label>
                         <input type="tel" id="phone" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                     </div>
 
                     <div>
-                        <label for="address" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Home Address</label>
+                        <label data-i18n="auth.labels.address" for="address" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Home Address</label>
                         <input type="text" id="address" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="city" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">City</label>
+                            <label data-i18n="auth.labels.city" for="city" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">City</label>
                             <input type="text" id="city" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                         </div>
                         <div>
-                            <label for="country" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Country</label>
+                            <label data-i18n="auth.labels.country" for="country" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Country</label>
                             <select id="country" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 focus:outline-none focus:border-stone-900 transition-colors appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a8a29e%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.2rem top 50%; background-size: 0.65rem auto;">
-                                <option value="" disabled selected>Select Country</option>
-                                <option value="Greece">Greece</option>
-                                <option value="Cyprus">Cyprus</option>
+                                <option data-i18n="auth.countries.select" value="" disabled selected>Select Country</option>
+                                <option data-i18n="auth.countries.greece" value="Greece">Greece</option>
+                                <option data-i18n="auth.countries.cyprus" value="Cyprus">Cyprus</option>
                             </select>
                         </div>
                     </div>
 
                     <div>
-                        <label for="postalCode" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Postal Code (ZIP)</label>
+                        <label data-i18n="auth.labels.postal_code" for="postalCode" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Postal Code (ZIP)</label>
                         <input type="text" id="postalCode" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                     </div>
 
                     <!-- Custom Security Captcha -->
                     <div class="flex flex-col gap-3 mt-4">
-                        <label for="captcha-input" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">Security Check</label>
+                        <label data-i18n="auth.labels.security_check" for="captcha-input" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">Security Check</label>
                         <div class="flex items-center gap-4">
                             <div class="relative bg-stone-200 text-stone-800 font-mono text-xl tracking-[0.4em] px-6 py-3 rounded-sm select-none overflow-hidden flex items-center justify-center w-36 h-12 shadow-inner">
                                 <div class="absolute inset-0 opacity-20" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, #000 4px, #000 5px);"></div>
@@ -114,32 +114,32 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                             </button>
                         </div>
-                        <input type="text" id="captcha-input" placeholder="Enter the 6-character code" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        <input data-i18n="auth.placeholders.captcha" type="text" id="captcha-input" placeholder="Enter the 6-character code" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                     </div>
                 </div>
 
                 <!-- Standard Fields (Always Visible) -->
                 <div>
-                    <label for="email" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Email Address</label>
+                    <label data-i18n="auth.labels.email" for="email" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Email Address</label>
                     <input type="email" id="email" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                 </div>
                 <div>
-                    <label for="password" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Password</label>
+                    <label data-i18n="auth.labels.password" for="password" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Password</label>
                     <input type="password" id="password" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                     <div id="forgot-password-container" class="flex justify-end mt-2">
-                        <button type="button" id="forgot-password-btn" class="font-sans text-xs text-stone-500 hover:text-stone-900 transition-colors">Forgot your password?</button>
+                        <button data-i18n="auth.forgot_password" type="button" id="forgot-password-btn" class="font-sans text-xs text-stone-500 hover:text-stone-900 transition-colors">Forgot your password?</button>
                     </div>
                 </div>
                 
-                <button type="submit" id="auth-submit-btn" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-4 mt-4 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">
+                <button data-i18n="auth.sign_in_btn" type="submit" id="auth-submit-btn" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-4 mt-4 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">
                     Sign In
                 </button>
             </form>
 
             <div class="mt-8 text-center">
                 <p class="font-sans text-sm text-stone-500">
-                    <span id="toggle-text-prefix">Don't have an account?</span> 
-                    <button type="button" id="toggle-mode-btn" class="text-stone-900 hover:text-stone-600 transition-colors underline underline-offset-4 font-medium ml-1">Create one</button>
+                    <span data-i18n="auth.no_account" id="toggle-text-prefix">Don't have an account?</span> 
+                    <button data-i18n="auth.create_one" type="button" id="toggle-mode-btn" class="text-stone-900 hover:text-stone-600 transition-colors underline underline-offset-4 font-medium ml-1">Create one</button>
                 </p>
             </div>
         </div>
