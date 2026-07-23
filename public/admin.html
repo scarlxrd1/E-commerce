@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AURA | Admin Control</title>
     
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -33,13 +31,17 @@
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Custom Select Arrow */
+        .custom-select {
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a8a29e%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 0.2rem top 50%;
+            background-size: 0.65rem auto;
+        }
     </style>
 </head>
 <body class="font-sans text-stone-900 antialiased selection:bg-stone-200 selection:text-stone-900">
 
-    <!-- ========================================== -->
-    <!-- LOGIN VIEW (Hidden when authenticated) -->
-    <!-- ========================================== -->
     <div id="login-view" class="min-h-screen flex items-center justify-center px-6">
         <div class="w-full max-w-md bg-white p-10 md:p-14 shadow-sm border border-stone-100 rounded-sm">
             <div class="text-center mb-10">
@@ -66,12 +68,8 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- DASHBOARD VIEW (Hidden when logged out) -->
-    <!-- ========================================== -->
     <div id="dashboard-view" class="hidden min-h-screen bg-stone-50 flex-col md:flex-row">
         
-        <!-- Sidebar Navigation -->
         <aside class="w-full md:w-64 bg-white border-r border-stone-200 flex flex-col justify-between sticky top-0 md:h-screen z-20">
             <div class="p-8">
                 <h2 class="font-serif text-2xl text-stone-900 mb-12">AURA. <span class="font-sans text-xs tracking-widest uppercase text-stone-400 block mt-2">Workspace</span></h2>
@@ -90,10 +88,8 @@
             </div>
         </aside>
 
-        <!-- Main Content Area -->
         <main class="flex-1 p-8 md:p-12 overflow-y-auto">
             
-            <!-- PRODUCTS SECTION -->
             <section id="products-section" class="block">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                     <h1 class="font-serif text-3xl text-stone-900">Products Management</h1>
@@ -102,7 +98,6 @@
                     </button>
                 </div>
 
-                <!-- Add Product Form (Collapsible) -->
                 <div id="add-product-container" class="hidden bg-white p-8 border border-stone-200 rounded-sm mb-10 shadow-sm">
                     <h3 class="font-sans text-sm tracking-widest uppercase text-stone-900 mb-6">Create New Piece</h3>
                     <form id="add-product-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -119,12 +114,32 @@
                             <input type="number" id="add-stock" required min="0" class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
                         </div>
                         <div>
-                            <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Category (e.g., seating, tables)</label>
-                            <input type="text" id="add-category" required class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
+                            <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Category</label>
+                            <select id="add-category" required class="custom-select w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 appearance-none cursor-pointer">
+                                <option value="" disabled selected>Select Category</option>
+                                <option value="seating">Seating</option>
+                                <option value="tables">Tables</option>
+                                <option value="decor">Decor</option>
+                                <option value="lighting">Lighting</option>
+                                <option value="storage">Storage</option>
+                            </select>
                         </div>
                         <div>
                             <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Estimated Dispatch</label>
-                            <input type="text" id="add-dispatch" required class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900" placeholder="e.g., 3-5 Business Days">
+                            <select id="add-dispatch" required class="custom-select w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 appearance-none cursor-pointer">
+                                <option value="" disabled selected>Select Dispatch Time</option>
+                                <option value="2-3 estimated days">2-3 estimated days</option>
+                                <option value="5-12 estimated days">5-12 estimated days</option>
+                                <option value="2-3 weeks">2-3 weeks</option>
+                                <option value="1 month">1 month</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Product Status / Visibility</label>
+                            <select id="add-status" required class="custom-select w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 appearance-none cursor-pointer">
+                                <option value="active" selected>Active / Visible</option>
+                                <option value="hidden">Disabled / Hidden</option>
+                            </select>
                         </div>
                         <div class="md:col-span-2">
                             <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Description</label>
@@ -149,7 +164,6 @@
                     </form>
                 </div>
 
-                <!-- Products Table -->
                 <div class="bg-white border border-stone-200 rounded-sm shadow-sm overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -158,18 +172,17 @@
                                 <th class="p-4 font-medium">Category</th>
                                 <th class="p-4 font-medium">Price</th>
                                 <th class="p-4 font-medium">Stock</th>
+                                <th class="p-4 font-medium">Status</th>
                                 <th class="p-4 font-medium text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="products-table-body" class="divide-y divide-stone-100 font-sans text-sm text-stone-900">
-                            <!-- Injected dynamically -->
-                            <tr><td colspan="5" class="p-8 text-center text-stone-400">Loading products...</td></tr>
+                            <tr><td colspan="6" class="p-8 text-center text-stone-400">Loading products...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- CUSTOMERS SECTION -->
             <section id="customers-section" class="hidden">
                 <h1 class="font-serif text-3xl text-stone-900 mb-10">Customers Directory</h1>
                 
@@ -184,14 +197,12 @@
                             </tr>
                         </thead>
                         <tbody id="customers-table-body" class="divide-y divide-stone-100 font-sans text-sm text-stone-900">
-                            <!-- Injected dynamically -->
                             <tr><td colspan="4" class="p-8 text-center text-stone-400">Loading customers...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- SUPPORT TICKETS SECTION -->
             <section id="support-section" class="hidden">
                 <h1 class="font-serif text-3xl text-stone-900 mb-10">Customer Care Tickets</h1>
                 
@@ -207,7 +218,6 @@
                             </tr>
                         </thead>
                         <tbody id="support-table-body" class="divide-y divide-stone-100 font-sans text-sm text-stone-900">
-                            <!-- Injected dynamically -->
                             <tr><td colspan="5" class="p-8 text-center text-stone-400">Loading tickets...</td></tr>
                         </tbody>
                     </table>
@@ -217,14 +227,9 @@
         </main>
     </div>
 
-    <!-- ========================================== -->
-    <!-- EDIT PRODUCT MODAL (Hidden by default) -->
-    <!-- ========================================== -->
     <div id="edit-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <!-- Backdrop -->
         <div id="edit-modal-backdrop" class="absolute inset-0 bg-stone-900/40 backdrop-blur-sm"></div>
         
-        <!-- Modal Content -->
         <div class="relative w-full max-w-lg bg-white p-8 md:p-10 rounded-sm shadow-2xl z-10 max-h-[90vh] overflow-y-auto no-scrollbar">
             <h3 class="font-serif text-2xl text-stone-900 mb-6">Edit Product</h3>
             <form id="edit-product-form" class="flex flex-col gap-6">
@@ -244,12 +249,30 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Category (e.g., seating, tables)</label>
-                    <input type="text" id="edit-category" required class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
+                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Category</label>
+                    <select id="edit-category" required class="custom-select w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 appearance-none cursor-pointer">
+                        <option value="seating">Seating</option>
+                        <option value="tables">Tables</option>
+                        <option value="decor">Decor</option>
+                        <option value="lighting">Lighting</option>
+                        <option value="storage">Storage</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Estimated Dispatch</label>
-                    <input type="text" id="edit-dispatch" required class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900" placeholder="e.g., 3-5 Business Days">
+                    <select id="edit-dispatch" required class="custom-select w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 appearance-none cursor-pointer">
+                        <option value="2-3 estimated days">2-3 estimated days</option>
+                        <option value="5-12 estimated days">5-12 estimated days</option>
+                        <option value="2-3 weeks">2-3 weeks</option>
+                        <option value="1 month">1 month</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Product Status / Visibility</label>
+                    <select id="edit-status" required class="custom-select w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 appearance-none cursor-pointer">
+                        <option value="active">Active / Visible</option>
+                        <option value="hidden">Disabled / Hidden</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Description</label>
@@ -261,8 +284,7 @@
                         <button type="button" id="edit-add-image-btn" class="text-stone-900 hover:text-stone-600 font-bold text-lg leading-none" title="Add another image">+</button>
                     </div>
                     <div id="edit-image-inputs" class="space-y-4 max-h-48 overflow-y-auto pr-2 no-scrollbar">
-                        <!-- Injected dynamically -->
-                    </div>
+                        </div>
                     <p class="font-sans text-xs text-stone-400 mt-2">The first image is primary, the second is hover. Up to 10 images.</p>
                 </div>
                 
@@ -274,7 +296,6 @@
         </div>
     </div>
 
-    <!-- Admin Logic Script -->
     <script type="module" src="./js/admin.js"></script>
 </body>
 </html>
