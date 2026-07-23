@@ -17,10 +17,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            // 1. Render the main product
-            renderProduct(container, { id: docSnap.id, ...docSnap.data() });
+            const data = docSnap.data();
             
-            // 2. Initialize the Reviews System (which also populates the header rating)
+            // Check Visibility Status
+            if (data.status === 'hidden') {
+                renderError(container, "This piece is currently unavailable.");
+                return;
+            }
+
+            // 1. Render the main product
+            renderProduct(container, { id: docSnap.id, ...data });
+            
+            // 2. Initialize the Reviews System
             initReviewsSystem(productId);
         } else {
             renderError(container, "The requested piece could not be found.");
@@ -88,18 +96,28 @@ function renderProduct(container, product) {
         ${thumbnailsHTML}
     `;
 
-    // Inject layout (Including Dynamic Product Description & Dispatch Time)
+    // Out of Stock Logic
+    const isOutOfStock = product.stock <= 0;
+    const stockBadgeHTML = isOutOfStock
+        ? `<span class="inline-block px-3 py-1 bg-red-50 text-red-600 border border-red-100 text-xs tracking-widest uppercase rounded-sm mb-6 font-medium">Out of Stock</span>`
+        : `<span class="inline-block px-3 py-1 bg-green-50 text-green-600 border border-green-100 text-xs tracking-widest uppercase rounded-sm mb-6 font-medium">In Stock</span>`;
+
+    const btnClasses = isOutOfStock
+        ? `w-full bg-stone-200 text-stone-400 font-sans text-sm tracking-widest uppercase py-5 rounded-sm cursor-not-allowed mb-8 shadow-inner`
+        : `w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-5 rounded-sm hover:bg-stone-800 transition-colors shadow-sm mb-8`;
+    
+    const btnText = isOutOfStock ? `Out of Stock` : `Add to Cart`;
+    const btnDisabled = isOutOfStock ? `disabled` : ``;
+
+    // Inject layout
     container.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-start">
             
-            <!-- Left Column: Image Gallery Slider -->
             <div class="flex flex-col w-full max-w-2xl mx-auto md:max-w-none">
                 ${sliderHTML}
             </div>
 
-            <!-- Right Column: Product Info (Sticky) -->
             <div class="flex flex-col sticky top-32">
-                <!-- Breadcrumbs -->
                 <nav class="flex text-xs font-sans tracking-widest uppercase text-stone-400 mb-8 gap-2">
                     <a href="index.html" class="hover:text-stone-900 transition-colors">Home</a>
                     <span>/</span>
@@ -110,21 +128,21 @@ function renderProduct(container, product) {
 
                 <h1 class="font-serif text-4xl md:text-5xl text-stone-900 mb-4">${product.title}</h1>
                 
-                <!-- Dynamic Header Rating Placeholder -->
                 <div id="header-rating-container" class="flex items-center gap-3 mb-6 h-6">
-                    <!-- Injected by initReviewsSystem -->
-                </div>
+                    </div>
 
-                <p class="font-sans text-xl text-stone-500 mb-8 font-medium">€${product.price.toLocaleString()}</p>
+                <div class="flex items-center justify-between mb-4">
+                    <p class="font-sans text-xl text-stone-500 font-medium">€${product.price.toLocaleString()}</p>
+                </div>
+                
+                <div>${stockBadgeHTML}</div>
                 
                 <div class="w-12 h-px bg-stone-300 mb-8"></div>
                 
-                <!-- Dynamic Description Injection -->
                 <div class="prose prose-stone font-sans text-stone-500 leading-relaxed mb-10">
                     <p id="product-description">${product.description || product.desc || 'No description available for this piece.'}</p>
                 </div>
 
-                <!-- Shipping Perks -->
                 <div class="space-y-6 mb-12">
                     <div class="flex items-center gap-4 text-sm font-sans text-stone-600">
                         <svg class="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"></path></svg>
@@ -136,17 +154,15 @@ function renderProduct(container, product) {
                     </div>
                 </div>
 
-                <!-- Add to Cart Action -->
-                <button id="add-to-cart-btn" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-5 rounded-sm hover:bg-stone-800 transition-colors shadow-sm mb-8"
+                <button id="add-to-cart-btn" class="${btnClasses}" ${btnDisabled}
                     data-id="${product.id}"
                     data-title="${product.title}"
                     data-price="${product.price}"
                     data-image="${product.image}"
                     data-stock="${product.stock || 0}">
-                    Add to Cart
+                    ${btnText}
                 </button>
 
-                <!-- Accordion Details -->
                 <div class="border-t border-stone-200">
                     <details class="group border-b border-stone-200 py-5" open>
                         <summary class="font-sans text-sm font-medium tracking-wide text-stone-900 cursor-pointer flex justify-between items-center list-none [&::-webkit-details-marker]:hidden">
@@ -212,34 +228,36 @@ function renderProduct(container, product) {
 
     // Hook up Add to Cart
     const addBtn = document.getElementById('add-to-cart-btn');
-    addBtn.addEventListener('click', () => {
-        const productData = {
-            id: addBtn.getAttribute('data-id'),
-            title: addBtn.getAttribute('data-title'),
-            price: parseInt(addBtn.getAttribute('data-price')),
-            image: addBtn.getAttribute('data-image'),
-            stock: parseInt(addBtn.getAttribute('data-stock'))
-        };
-        
-        const success = window.addToCart(productData);
-        const originalText = "Add to Cart";
+    if (addBtn && !isOutOfStock) {
+        addBtn.addEventListener('click', () => {
+            const productData = {
+                id: addBtn.getAttribute('data-id'),
+                title: addBtn.getAttribute('data-title'),
+                price: parseInt(addBtn.getAttribute('data-price')),
+                image: addBtn.getAttribute('data-image'),
+                stock: parseInt(addBtn.getAttribute('data-stock'))
+            };
+            
+            const success = window.addToCart(productData);
+            const originalText = "Add to Cart";
 
-        if (success) {
-            addBtn.textContent = 'Added';
-            addBtn.classList.remove('bg-stone-900', 'hover:bg-stone-800');
-            addBtn.classList.add('bg-stone-400', 'text-stone-900');
-        } else {
-            addBtn.textContent = 'Max Limit Reached';
-            addBtn.classList.remove('bg-stone-900', 'hover:bg-stone-800');
-            addBtn.classList.add('bg-stone-300', 'text-stone-600');
-        }
+            if (success) {
+                addBtn.textContent = 'Added';
+                addBtn.classList.remove('bg-stone-900', 'hover:bg-stone-800');
+                addBtn.classList.add('bg-stone-400', 'text-stone-900');
+            } else {
+                addBtn.textContent = 'Max Limit Reached';
+                addBtn.classList.remove('bg-stone-900', 'hover:bg-stone-800');
+                addBtn.classList.add('bg-stone-300', 'text-stone-600');
+            }
 
-        setTimeout(() => {
-            addBtn.textContent = originalText;
-            addBtn.classList.remove('bg-stone-400', 'bg-stone-300', 'text-stone-900', 'text-stone-600');
-            addBtn.classList.add('bg-stone-900', 'hover:bg-stone-800');
-        }, 2000);
-    });
+            setTimeout(() => {
+                addBtn.textContent = originalText;
+                addBtn.classList.remove('bg-stone-400', 'bg-stone-300', 'text-stone-900', 'text-stone-600');
+                addBtn.classList.add('bg-stone-900', 'hover:bg-stone-800');
+            }, 2000);
+        });
+    }
 }
 
 // ==========================================
