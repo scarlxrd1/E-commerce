@@ -1,24 +1,25 @@
 /**
  * AURA Global Engine
- * Handles UI Component Injection (Navbar/Footer/Cart), Global Cart State, Hybrid Cloud/Local Sync, and Auth State.
+ * Handles UI Component Injection (Navbar/Footer/Cart), Global Cart State, Hybrid Cloud/Local Sync, Auth State, and i18n Translation.
  */
 
 import { app, db } from './firebase-config.js';
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { translations } from './translations.js';
 
 const navbarHTML = `
     <nav class="sticky top-0 z-50 bg-cream/90 backdrop-blur-md border-b border-stone-200/50 transition-all">
         <div class="max-w-[1400px] mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
             <a href="index.html" class="font-serif text-2xl tracking-wide text-stone-900">AURA.</a>
             <div class="hidden md:flex items-center gap-10">
-                <a href="collection.html" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors">Collection</a>
+                <a href="collection.html" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors" data-i18n="nav.collection">Collection</a>
             </div>
             <div class="flex items-center gap-4 sm:gap-6 text-stone-900">
                 
                 <!-- Global Search Form -->
                 <form id="global-search-form" class="flex items-center">
-                    <input type="text" id="global-search-input" placeholder="Search..." class="w-20 sm:w-28 md:w-40 bg-transparent border-b border-transparent focus:border-stone-300 py-1 px-2 text-sm font-sans text-stone-900 placeholder-stone-400 focus:outline-none transition-all duration-300 mr-1">
+                    <input type="text" id="global-search-input" data-i18n="nav.search" placeholder="Search..." class="w-20 sm:w-28 md:w-40 bg-transparent border-b border-transparent focus:border-stone-300 py-1 px-2 text-sm font-sans text-stone-900 placeholder-stone-400 focus:outline-none transition-all duration-300 mr-1">
                     <button type="submit" id="global-search-btn" class="hover:opacity-70 transition-opacity p-1" aria-label="Search">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </button>
@@ -29,6 +30,17 @@ const navbarHTML = `
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     <span id="auth-indicator" class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-stone-900 rounded-full border-2 border-[#FBFBFA] hidden transition-all duration-300"></span>
                 </a>
+
+                <!-- Language Toggle -->
+                <div class="relative group hidden sm:block">
+                    <button class="font-sans text-xs font-medium tracking-widest text-stone-500 hover:text-stone-900 transition-colors uppercase flex items-center gap-1" id="current-lang-display">
+                        EN
+                    </button>
+                    <div class="absolute top-full right-0 mt-2 w-16 bg-white border border-stone-200 shadow-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 flex flex-col z-50">
+                        <button onclick="window.changeLanguage('en')" class="text-xs font-sans tracking-widest text-stone-500 hover:text-stone-900 hover:bg-stone-50 py-3 w-full text-center transition-colors">EN</button>
+                        <button onclick="window.changeLanguage('el')" class="text-xs font-sans tracking-widest text-stone-500 hover:text-stone-900 hover:bg-stone-50 py-3 w-full text-center transition-colors border-t border-stone-100">EL</button>
+                    </div>
+                </div>
 
                 <button id="cart-icon-btn" class="relative hover:opacity-70 transition-opacity" aria-label="Cart">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
@@ -45,34 +57,34 @@ const footerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                 <div class="md:col-span-1">
                     <a href="index.html" class="font-serif text-2xl tracking-wide text-stone-900 block mb-6">AURA.</a>
-                    <p class="font-sans text-sm text-stone-500 leading-relaxed">Defining the modern sanctuary through minimalist, sustainable, and timeless interior design.</p>
+                    <p class="font-sans text-sm text-stone-500 leading-relaxed" data-i18n="footer.desc">Defining the modern sanctuary through minimalist, sustainable, and timeless interior design.</p>
                 </div>
                 <div>
                     <a href="customer-care.html" class="block group mb-6">
-                        <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 group-hover:text-stone-500 transition-colors">Customer Care</h4>
+                        <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 group-hover:text-stone-500 transition-colors" data-i18n="footer.customer_care">Customer Care</h4>
                     </a>
                     <ul class="space-y-4 font-sans text-sm text-stone-500">
-                        <li class="leading-relaxed">123 Aura Boulevard, Suite 400<br>New York, NY 10012</li>
+                        <li class="leading-relaxed" data-i18n="footer.address">123 Aura Boulevard, Suite 400<br>New York, NY 10012</li>
                         <li>+1 800 555 0199</li>
                         <li><a href="mailto:hello@aurafurniture.com" class="hover:text-stone-900 transition-colors">hello@aurafurniture.com</a></li>
-                        <li class="pt-2"><a href="customer-care.html" class="hover:text-stone-900 transition-colors underline underline-offset-4 decoration-stone-300">FAQs & Returns</a></li>
+                        <li class="pt-2"><a href="customer-care.html" class="hover:text-stone-900 transition-colors underline underline-offset-4 decoration-stone-300" data-i18n="footer.faq">FAQs & Returns</a></li>
                     </ul>
                 </div>
                 <div>
                     <a href="details.html" class="block group mb-6">
-                        <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 group-hover:text-stone-500 transition-colors">Details</h4>
+                        <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 group-hover:text-stone-500 transition-colors" data-i18n="footer.details">Details</h4>
                     </a>
                     <ul class="space-y-4 font-sans text-sm text-stone-500">
-                        <li><a href="details.html#shipping" class="hover:text-stone-900 transition-colors">Shipping Information</a></li>
-                        <li><a href="details.html#sustainability" class="hover:text-stone-900 transition-colors">Sustainability</a></li>
-                        <li><a href="details.html#terms" class="hover:text-stone-900 transition-colors">Terms of Service</a></li>
+                        <li><a href="details.html#shipping" class="hover:text-stone-900 transition-colors" data-i18n="footer.shipping">Shipping Information</a></li>
+                        <li><a href="details.html#sustainability" class="hover:text-stone-900 transition-colors" data-i18n="footer.sustainability">Sustainability</a></li>
+                        <li><a href="details.html#terms" class="hover:text-stone-900 transition-colors" data-i18n="footer.terms">Terms of Service</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6">Newsletter</h4>
-                    <p class="font-sans text-sm text-stone-500 mb-4">Subscribe to receive updates, access to exclusive deals, and more.</p>
+                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6" data-i18n="footer.newsletter">Newsletter</h4>
+                    <p class="font-sans text-sm text-stone-500 mb-4" data-i18n="footer.newsletter_desc">Subscribe to receive updates, access to exclusive deals, and more.</p>
                     <form class="flex items-end group" onsubmit="event.preventDefault();">
-                        <input type="email" placeholder="Enter your email address" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        <input type="email" data-i18n="footer.newsletter_placeholder" placeholder="Enter your email address" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                         <button type="submit" class="pb-2 pl-2 text-stone-400 group-hover:text-stone-900 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                         </button>
@@ -80,7 +92,7 @@ const footerHTML = `
                 </div>
             </div>
             <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-stone-200">
-                <p class="font-sans text-xs text-stone-400">&copy; 2024 AURA Interior Design. All rights reserved.</p>
+                <p class="font-sans text-xs text-stone-400" data-i18n="footer.rights">&copy; 2024 AURA Interior Design. All rights reserved.</p>
                 <div class="flex gap-6 mt-4 md:mt-0">
                     <a href="#" class="text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium">IG</a>
                     <a href="#" class="text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium">PT</a>
@@ -95,7 +107,7 @@ const cartDrawerHTML = `
         <div id="cart-backdrop" class="absolute inset-0 bg-stone-900/20 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-auto"></div>
         <div id="cart-drawer" class="absolute top-0 right-0 h-full w-full max-w-md bg-[#FAFAFA] shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col pointer-events-auto">
             <div class="flex items-center justify-between px-8 py-6 border-b border-stone-200">
-                <h2 class="font-serif text-2xl text-stone-900">Your Cart</h2>
+                <h2 class="font-serif text-2xl text-stone-900" data-i18n="cart.title">Your Cart</h2>
                 <button id="close-cart-btn" class="p-2 -mr-2 text-stone-500 hover:text-stone-900 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
@@ -105,11 +117,11 @@ const cartDrawerHTML = `
             </div>
             <div class="px-8 py-6 border-t border-stone-200 bg-stone-50/50">
                 <div class="flex justify-between items-center mb-6">
-                    <span class="font-sans text-stone-500 uppercase tracking-widest text-xs font-semibold">Subtotal</span>
+                    <span class="font-sans text-stone-500 uppercase tracking-widest text-xs font-semibold" data-i18n="cart.subtotal">Subtotal</span>
                     <span id="cart-total" class="font-serif text-2xl text-stone-900">€0</span>
                 </div>
-                <p class="font-sans text-xs text-stone-400 mb-6">Shipping and taxes calculated at checkout.</p>
-                <button onclick="window.checkout()" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-4 rounded-md hover:bg-stone-800 transition-colors shadow-sm">
+                <p class="font-sans text-xs text-stone-400 mb-6" data-i18n="cart.shipping_note">Shipping and taxes calculated at checkout.</p>
+                <button onclick="window.checkout()" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-4 rounded-md hover:bg-stone-800 transition-colors shadow-sm" data-i18n="cart.checkout">
                     Secure Checkout
                 </button>
             </div>
@@ -124,7 +136,42 @@ let cart = [];
 let currentUser = null;
 
 // ==========================================
-// 2. INJECT UI & INITIALIZE
+// 2. I18N TRANSLATION ENGINE
+// ==========================================
+window.changeLanguage = function(lang) {
+    localStorage.setItem('aura_lang', lang);
+    document.documentElement.lang = lang;
+
+    const elements = document.querySelectorAll('[data-i18n]');
+    elements.forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const keys = key.split('.');
+        let value = translations[lang];
+        
+        for (const k of keys) {
+            if (value) value = value[k];
+        }
+
+        if (value) {
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.placeholder = value;
+            } else {
+                el.innerHTML = value; 
+            }
+        }
+    });
+
+    const langDisplay = document.getElementById('current-lang-display');
+    if (langDisplay) {
+        langDisplay.textContent = lang.toUpperCase();
+    }
+
+    // Re-render cart to ensure dynamic strings (like Empty Cart) are translated
+    renderCart();
+};
+
+// ==========================================
+// 3. INJECT UI & INITIALIZE
 // ==========================================
 function initGlobalUI() {
     const navContainer = document.getElementById('navbar-container');
@@ -136,6 +183,10 @@ function initGlobalUI() {
     if (!document.getElementById('cart-drawer-container')) {
         document.body.insertAdjacentHTML('beforeend', cartDrawerHTML);
     }
+
+    // Initialize Language
+    const savedLang = localStorage.getItem('aura_lang') || 'en';
+    window.changeLanguage(savedLang);
 
     // Global Search Logic
     const searchForm = document.getElementById('global-search-form');
@@ -180,7 +231,7 @@ function initGlobalUI() {
 }
 
 // ==========================================
-// 3. HYBRID CART LOGIC
+// 4. HYBRID CART LOGIC
 // ==========================================
 async function syncCartOnLogin(user) {
     const userRef = doc(db, "users", user.uid);
@@ -254,11 +305,15 @@ function renderCart() {
     let count = 0;
     let html = '';
 
+    const currentLang = localStorage.getItem('aura_lang') || 'en';
+    const emptyMsg = translations[currentLang]?.cart?.empty || translations['en'].cart.empty;
+    const qtyLabel = translations[currentLang]?.cart?.qty || translations['en'].cart.qty;
+
     if (cart.length === 0) {
         html = `
             <div id="empty-cart-msg" class="h-full flex flex-col items-center justify-center text-center text-stone-400 space-y-4">
                 <svg class="w-12 h-12 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                <p class="font-sans text-sm">Your cart is currently empty.</p>
+                <p class="font-sans text-sm" data-i18n="cart.empty">${emptyMsg}</p>
             </div>
         `;
     } else {
@@ -277,7 +332,7 @@ function renderCart() {
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                             </button>
                         </div>
-                        <p class="font-sans text-stone-500 text-sm mt-1">€${item.price.toLocaleString()} <span class="text-xs text-stone-400 ml-2">Qty: ${item.quantity}</span></p>
+                        <p class="font-sans text-stone-500 text-sm mt-1">€${item.price.toLocaleString()} <span class="text-xs text-stone-400 ml-2"><span data-i18n="cart.qty">${qtyLabel}</span>: ${item.quantity}</span></p>
                     </div>
                 </div>
             `;
@@ -373,7 +428,7 @@ window.checkout = async function() {
 };
 
 // ==========================================
-// 4. EVENT LISTENERS & TAB SYNC
+// 5. EVENT LISTENERS & TAB SYNC
 // ==========================================
 document.addEventListener('click', (e) => {
     const cartOpenBtn = e.target.closest('[aria-label="Cart"], #cart-icon-btn');
