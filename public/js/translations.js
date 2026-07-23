@@ -144,6 +144,121 @@ export const translations = {
             taxes: "Taxes",
             included: "Included",
             total: "Total"
+        },
+        profile: {
+            title: "My Account",
+            welcome: "Welcome back, ",
+            loading: "Loading...",
+            sidebar: {
+                personal_info: "Personal Info",
+                order_history: "Order History",
+                saved_addresses: "Saved Addresses",
+                logout: "Log Out"
+            },
+            personal_info: {
+                title: "Personal Information",
+                edit_btn: "Edit Profile",
+                full_name: "Full Name",
+                email: "Email Address",
+                phone: "Phone Number",
+                address: "Shipping Address"
+            },
+            edit_form: {
+                labels: {
+                    first_name: "First Name",
+                    last_name: "Last Name",
+                    phone: "Phone Number",
+                    address: "Street Address",
+                    city: "City",
+                    country: "Country",
+                    postal_code: "Postal Code (ZIP)",
+                    account_security: "Account Security",
+                    change_email: "Change Email",
+                    change_password: "Change Password"
+                },
+                countries: {
+                    select: "Select Country",
+                    greece: "Greece",
+                    cyprus: "Cyprus"
+                },
+                placeholders: {
+                    password: "Leave blank to keep current"
+                },
+                cancel: "Cancel",
+                save: "Save Changes"
+            },
+            orders: {
+                title: "Order History",
+                empty_title: "No orders yet",
+                empty_desc: "When you place an order, it will appear here. Discover our latest minimalist pieces to elevate your space.",
+                explore_btn: "Explore Collection"
+            },
+            addresses: {
+                title: "Saved Addresses",
+                add_new: "+ Add New",
+                empty_title: "No alternate addresses saved",
+                empty_desc: "Save your shipping and billing addresses for a faster checkout experience."
+            }
+        },
+        customer_care: {
+            title: "Customer Care",
+            subtitle: "We are dedicated to providing a seamless experience. Whether you have a question about a piece, shipping, or need assistance with an existing order, we are here to help.",
+            form: {
+                title: "Get in Touch",
+                tooltip: "If you are logged into your account, your registration details are securely and automatically attached to this request.<div class='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-900'></div>",
+                labels: {
+                    name: "Full Name",
+                    email: "Email Address",
+                    phone: "Telephone Number",
+                    issue_type: "Issue Type",
+                    message: "How can we help you?",
+                    security_check: "Security Check"
+                },
+                issues: {
+                    select: "Select an option",
+                    general: "General Inquiry",
+                    order: "Order/Product Issue",
+                    technical: "Technical Problem"
+                },
+                captcha_placeholder: "Enter the 6-character code",
+                submit: "Submit Inquiry"
+            },
+            faq: {
+                title: "Frequently Asked Questions",
+                q1: "What are your standard shipping times?",
+                a1: "Because many of our pieces are crafted to order, standard delivery generally takes between 4 to 6 weeks. In-stock decor items are usually dispatched within 3-5 business days. You will receive a tracking link once your order leaves our facility.",
+                q2: "Do you offer white-glove delivery and assembly?",
+                a2: "Yes, white-glove delivery is available for all large furniture items (tables, seating) at an additional tier during checkout. Our team will deliver the piece to your room of choice, handle all assembly, and remove the packaging materials.",
+                q3: "Are your materials sustainably sourced?",
+                a3: "Sustainability is at the core of AURA. We strictly utilize FSC-certified timbers, organic linens, and non-toxic finishes. We partner directly with artisans to ensure a transparent, ethical supply chain."
+            },
+            returns: {
+                title: "Returns & Exchanges",
+                desc: "We take immense pride in the craftsmanship of our collection. If you are not entirely satisfied with your purchase, AURA accepts returns of unused, undamaged items within <strong>30 days of delivery</strong>. Custom or made-to-order pieces are final sale. To initiate a return, simply fill out the contact form above with your order number."
+            }
+        },
+        details: {
+            title: "Company Details",
+            subtitle: "Everything you need to know about our shipping practices, our commitment to the earth, and our terms of service.",
+            shipping: {
+                title: "Shipping Information",
+                p1: "At AURA, we believe the delivery of your new piece should be as seamless and refined as the design itself. We offer complimentary standard shipping on all decor items within the contiguous United States and Europe. For our larger furniture pieces—including tables, seating, and heavy lighting fixtures—we utilize a specialized freight network.",
+                p2: "<strong>Premium White-Glove Delivery:</strong> For an unparalleled experience, select our White-Glove service at checkout. Our dedicated logistics team will deliver the item to your room of choice, professionally assemble it, and carefully remove all packaging materials, leaving your sanctuary pristine.",
+                p3: "<strong>International Shipping & Tracking:</strong> We ship globally. International transit times vary between 2 to 4 weeks depending on the destination and customs processing. Once your order has been dispatched from our workshop, you will receive a curated email containing your tracking itinerary."
+            },
+            sustainability: {
+                title: "Sustainability",
+                p1: "Our commitment to minimalist design extends beyond aesthetics; it is a philosophy of consuming less, but better. We are deeply committed to minimizing our environmental footprint and ensuring that our creations respect the natural world from which their materials are derived.",
+                p2: "<strong>Ethically Sourced Materials:</strong> Every piece of timber used in our collection is strictly FSC-certified, ensuring it is harvested from responsibly managed forests. Our textiles are woven from organic, unbleached linens and our finishes are non-toxic, low-VOC oils that protect both your home's air quality and the environment.",
+                p3: "<strong>Carbon-Neutral Operations:</strong> We have partnered with global environmental initiatives to offset 100% of the carbon emissions generated by our shipping and logistics network. We design for longevity, creating heirloom-quality pieces intended to be passed down through generations, fundamentally opposing the culture of disposable furniture."
+            },
+            terms: {
+                title: "Terms of Service",
+                p1: "<strong class='text-stone-900 font-medium'>1. User Agreement:</strong> By accessing and using the AURA website, you agree to be bound by these Terms of Service. If you do not agree to all the terms and conditions of this agreement, then you may not access the website or use any services. We reserve the right to update, change or replace any part of these Terms by posting updates to our website.",
+                p2: "<strong class='text-stone-900 font-medium'>2. Intellectual Property:</strong> All content included on this site, such as text, graphics, logos, images, audio clips, digital downloads, and software, is the property of AURA or its content suppliers and protected by international copyright laws. The compilation of all content on this site is the exclusive property of AURA.",
+                p3: "<strong class='text-stone-900 font-medium'>3. Products and Pricing:</strong> We have made every effort to display as accurately as possible the colors and images of our products that appear at the store. We cannot guarantee that your computer monitor's display of any color will be accurate. Prices for our products are subject to change without notice. We reserve the right at any time to modify or discontinue the Service without notice at any time.",
+                p4: "<strong class='text-stone-900 font-medium'>4. Limitation of Liability:</strong> In no case shall AURA, our directors, officers, employees, affiliates, agents, contractors, or licensors be liable for any injury, loss, claim, or any direct, indirect, incidental, punitive, special, or consequential damages of any kind, including, without limitation lost profits, lost revenue, lost savings, loss of data, replacement costs, or any similar damages, whether based in contract, tort (including negligence), strict liability or otherwise, arising from your use of any of the service or any products procured using the service."
+            }
         }
     },
     el: {
@@ -291,6 +406,121 @@ export const translations = {
             taxes: "Φόροι",
             included: "Συμπεριλαμβάνονται",
             total: "Σύνολο"
+        },
+        profile: {
+            title: "Ο Λογαριασμός μου",
+            welcome: "Καλώς ήρθατε, ",
+            loading: "Φόρτωση...",
+            sidebar: {
+                personal_info: "Προσωπικές Πληροφορίες",
+                order_history: "Ιστορικό Παραγγελιών",
+                saved_addresses: "Αποθηκευμένες Διευθύνσεις",
+                logout: "Αποσύνδεση"
+            },
+            personal_info: {
+                title: "Προσωπικές Πληροφορίες",
+                edit_btn: "Επεξεργασία Προφίλ",
+                full_name: "Ονοματεπώνυμο",
+                email: "Διεύθυνση Email",
+                phone: "Αριθμός Τηλεφώνου",
+                address: "Διεύθυνση Αποστολής"
+            },
+            edit_form: {
+                labels: {
+                    first_name: "Όνομα",
+                    last_name: "Επώνυμο",
+                    phone: "Αριθμός Τηλεφώνου",
+                    address: "Οδός & Αριθμός",
+                    city: "Πόλη",
+                    country: "Χώρα",
+                    postal_code: "Ταχυδρομικός Κώδικας (Τ.Κ.)",
+                    account_security: "Ασφάλεια Λογαριασμού",
+                    change_email: "Αλλαγή Email",
+                    change_password: "Αλλαγή Κωδικού"
+                },
+                countries: {
+                    select: "Επιλέξτε Χώρα",
+                    greece: "Ελλάδα",
+                    cyprus: "Κύπρος"
+                },
+                placeholders: {
+                    password: "Αφήστε κενό για διατήρηση"
+                },
+                cancel: "Ακύρωση",
+                save: "Αποθήκευση Αλλαγών"
+            },
+            orders: {
+                title: "Ιστορικό Παραγγελιών",
+                empty_title: "Δεν υπάρχουν παραγγελίες",
+                empty_desc: "Όταν κάνετε μια παραγγελία, θα εμφανιστεί εδώ. Ανακαλύψτε τα νεότερα μινιμαλιστικά κομμάτια μας για να αναβαθμίσετε τον χώρο σας.",
+                explore_btn: "Εξερευνήστε τη Συλλογή"
+            },
+            addresses: {
+                title: "Αποθηκευμένες Διευθύνσεις",
+                add_new: "+ Προσθήκη Νέας",
+                empty_title: "Δεν υπάρχουν εναλλακτικές διευθύνσεις",
+                empty_desc: "Αποθηκεύστε τις διευθύνσεις αποστολής και χρέωσης για μια πιο γρήγορη εμπειρία αγοράς."
+            }
+        },
+        customer_care: {
+            title: "Εξυπηρέτηση Πελατών",
+            subtitle: "Είμαστε αφοσιωμένοι στο να παρέχουμε μια απρόσκοπτη εμπειρία. Είτε έχετε μια ερώτηση για ένα κομμάτι, την αποστολή, είτε χρειάζεστε βοήθεια με μια υπάρχουσα παραγγελία, είμαστε εδώ για να βοηθήσουμε.",
+            form: {
+                title: "Επικοινωνήστε μαζί μας",
+                tooltip: "Εάν είστε συνδεδεμένοι στον λογαριασμό σας, τα στοιχεία εγγραφής σας επισυνάπτονται αυτόματα και με ασφάλεια σε αυτό το αίτημα.<div class='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-900'></div>",
+                labels: {
+                    name: "Ονοματεπώνυμο",
+                    email: "Διεύθυνση Email",
+                    phone: "Αριθμός Τηλεφώνου",
+                    issue_type: "Τύπος Προβλήματος",
+                    message: "Πώς μπορούμε να σας βοηθήσουμε;",
+                    security_check: "Έλεγχος Ασφαλείας"
+                },
+                issues: {
+                    select: "Επιλέξτε μια επιλογή",
+                    general: "Γενική Ερώτηση",
+                    order: "Πρόβλημα Παραγγελίας/Προϊόντος",
+                    technical: "Τεχνικό Πρόβλημα"
+                },
+                captcha_placeholder: "Εισάγετε τον 6-ψήφιο κωδικό",
+                submit: "Υποβολή Αιτήματος"
+            },
+            faq: {
+                title: "Συχνές Ερωτήσεις",
+                q1: "Ποιοι είναι οι τυπικοί χρόνοι αποστολής;",
+                a1: "Επειδή πολλά από τα κομμάτια μας κατασκευάζονται κατά παραγγελία, η τυπική παράδοση διαρκεί συνήθως 4 έως 6 εβδομάδες. Τα διαθέσιμα είδη διακόσμησης αποστέλλονται συνήθως εντός 3-5 εργάσιμων ημερών. Θα λάβετε έναν σύνδεσμο παρακολούθησης μόλις η παραγγελία σας αναχωρήσει από τις εγκαταστάσεις μας.",
+                q2: "Προσφέρετε υπηρεσία παράδοσης white-glove και συναρμολόγησης;",
+                a2: "Ναι, η υπηρεσία παράδοσης white-glove είναι διαθέσιμη για όλα τα μεγάλα έπιπλα (τραπέζια, καθίσματα) με επιπλέον χρέωση κατά την ολοκλήρωση της παραγγελίας. Η ομάδα μας θα παραδώσει το κομμάτι στο δωμάτιο της επιλογής σας, θα αναλάβει την πλήρη συναρμολόγηση και θα απομακρύνει τα υλικά συσκευασίας.",
+                q3: "Είναι τα υλικά σας βιώσιμα;",
+                a3: "Η βιωσιμότητα βρίσκεται στον πυρήνα της AURA. Χρησιμοποιούμε αυστηρά ξυλεία με πιστοποίηση FSC, οργανικά λινά και μη τοξικά φινιρίσματα. Συνεργαζόμαστε άμεσα με τεχνίτες για να διασφαλίσουμε μια διαφανή, ηθική αλυσίδα εφοδιασμού."
+            },
+            returns: {
+                title: "Επιστροφές & Αλλαγές",
+                desc: "Είμαστε εξαιρετικά περήφανοι για την ποιότητα κατασκευής της συλλογής μας. Εάν δεν είστε απόλυτα ικανοποιημένοι με την αγορά σας, η AURA δέχεται επιστροφές αχρησιμοποίητων, άθικτων αντικειμένων εντός <strong>30 ημερών από την παράδοση</strong>. Τα προσαρμοσμένα ή custom κομμάτια δεν επιστρέφονται. Για να ξεκινήσετε μια επιστροφή, απλώς συμπληρώστε την παραπάνω φόρμα επικοινωνίας με τον αριθμό παραγγελίας σας."
+            }
+        },
+        details: {
+            title: "Στοιχεία Εταιρείας",
+            subtitle: "Όλα όσα πρέπει να γνωρίζετε για τις πρακτικές αποστολής μας, τη δέσμευσή μας προς τον πλανήτη και τους όρους χρήσης μας.",
+            shipping: {
+                title: "Πληροφορίες Αποστολής",
+                p1: "Στην AURA, πιστεύουμε ότι η παράδοση του νέου σας κομματιού πρέπει να είναι τόσο απρόσκοπτη και εκλεπτυσμένη όσο και ο ίδιος ο σχεδιασμός. Προσφέρουμε δωρεάν τυπική αποστολή σε όλα τα είδη διακόσμησης εντός των ηπειρωτικών Ηνωμένων Πολιτειών και της Ευρώπης. Για τα μεγαλύτερα έπιπλά μας — συμπεριλαμβανομένων των τραπεζιών, των καθισμάτων και των βαριών φωτιστικών — χρησιμοποιούμε ένα εξειδικευμένο δίκτυο μεταφορών.",
+                p2: "<strong>Υπηρεσία Παράδοσης White-Glove:</strong> Για μια απαράμιλλη εμπειρία, επιλέξτε την υπηρεσία White-Glove κατά την ολοκλήρωση της παραγγελίας. Η εξειδικευμένη ομάδα logistics μας θα παραδώσει το αντικείμενο στο δωμάτιο της επιλογής σας, θα το συναρμολογήσει επαγγελματικά και θα αφαιρέσει προσεκτικά όλα τα υλικά συσκευασίας, αφήνοντας το καταφύγιό σας άψογο.",
+                p3: "<strong>Διεθνής Αποστολή & Παρακολούθηση:</strong> Αποστέλλουμε παγκοσμίως. Οι διεθνείς χρόνοι μεταφοράς ποικίλλουν μεταξύ 2 έως 4 εβδομάδων ανάλογα με τον προορισμό και την επεξεργασία του τελωνείου. Μόλις η παραγγελία σας αποσταλεί από το εργαστήριό μας, θα λάβετε ένα επιμελημένο email που θα περιέχει το δρομολόγιο παρακολούθησής σας."
+            },
+            sustainability: {
+                title: "Βιωσιμότητα",
+                p1: "Η δέσμευσή μας στον μινιμαλιστικό σχεδιασμό εκτείνεται πέρα από την αισθητική· είναι μια φιλοσοφία του να καταναλώνουμε λιγότερο, αλλά καλύτερα. Είμαστε βαθιά δεσμευμένοι στην ελαχιστοποίηση του περιβαλλοντικού μας αποτυπώματος και στη διασφάλιση ότι οι δημιουργίες μας σέβονται τον φυσικό κόσμο από τον οποίο προέρχονται τα υλικά τους.",
+                p2: "<strong>Ηθικά Προερχόμενα Υλικά:</strong> Κάθε κομμάτι ξυλείας που χρησιμοποιείται στη συλλογή μας είναι αυστηρά πιστοποιημένο κατά FSC, διασφαλίζοντας ότι συλλέγεται από υπεύθυνα διαχειριζόμενα δάση. Τα υφάσματά μας είναι υφασμένα από οργανικά, αλεύκαντα λινά και τα φινιρίσματά μας είναι μη τοξικά έλαια χαμηλών ΠΟΕ που προστατεύουν τόσο την ποιότητα του αέρα του σπιτιού σας όσο και το περιβάλλον.",
+                p3: "<strong>Λειτουργίες Ουδέτερου Ισοζυγίου Άνθρακα:</strong> Έχουμε συνεργαστεί με παγκόσμιες περιβαλλοντικές πρωτοβουλίες για να αντισταθμίσουμε το 100% των εκπομπών άνθρακα που παράγονται από το δίκτυο αποστολής και logistics μας. Σχεδιάζουμε με γνώμονα τη μακροζωία, δημιουργώντας κομμάτια ποιότητας κειμηλίου που προορίζονται να περάσουν από γενιά σε γενιά, αντιτιθέμενοι θεμελιωδώς στην κουλτούρα των επίπλων μιας χρήσης."
+            },
+            terms: {
+                title: "Όροι Χρήσης",
+                p1: "<strong class='text-stone-900 font-medium'>1. Συμφωνία Χρήστη:</strong> Με την πρόσβαση και τη χρήση του ιστότοπου της AURA, συμφωνείτε να δεσμεύεστε από αυτούς τους Όρους Χρήσης. Εάν δεν συμφωνείτε με όλους τους όρους και τις προϋποθέσεις αυτής της συμφωνίας, τότε δεν μπορείτε να έχετε πρόσβαση στον ιστότοπο ή να χρησιμοποιήσετε οποιεσδήποτε υπηρεσίες. Διατηρούμε το δικαίωμα να ενημερώσουμε, να αλλάξουμε ή να αντικαταστήσουμε οποιοδήποτε μέρος αυτών των Όρων δημοσιεύοντας ενημερώσεις στον ιστότοπό μας.",
+                p2: "<strong class='text-stone-900 font-medium'>2. Πνευματική Ιδιοκτησία:</strong> Όλο το περιεχόμενο που περιλαμβάνεται σε αυτόν τον ιστότοπο, όπως κείμενο, γραφικά, λογότυπα, εικόνες, ηχητικά κλιπ, ψηφιακές λήψεις και λογισμικό, αποτελεί ιδιοκτησία της AURA ή των προμηθευτών περιεχομένου της και προστατεύεται από τους διεθνείς νόμους περί πνευματικών δικαιωμάτων. Η συλλογή όλου του περιεχομένου σε αυτόν τον ιστότοπο αποτελεί αποκλειστική ιδιοκτησία της AURA.",
+                p3: "<strong class='text-stone-900 font-medium'>3. Προϊόντα και Τιμολόγηση:</strong> Έχουμε καταβάλει κάθε δυνατή προσπάθεια για να εμφανίσουμε όσο το δυνατόν ακριβέστερα τα χρώματα και τις εικόνες των προϊόντων μας που εμφανίζονται στο κατάστημα. Δεν μπορούμε να εγγυηθούμε ότι η εμφάνιση οποιουδήποτε χρώματος στην οθόνη του υπολογιστή σας θα είναι ακριβής. Οι τιμές των προϊόντων μας υπόκεινται σε αλλαγές χωρίς προειδοποίηση. Διατηρούμε το δικαίωμα ανά πάσα στιγμή να τροποποιήσουμε ή να διακόψουμε την Υπηρεσία χωρίς προειδοποίηση ανά πάσα στιγμή.",
+                p4: "<strong class='text-stone-900 font-medium'>4. Περιορισμός Ευθύνης:</strong> Σε καμία περίπτωση η AURA, οι διευθυντές, οι αξιωματούχοι, οι υπάλληλοι, οι θυγατρικές, οι πράκτορες, οι εργολάβοι ή οι δικαιοπάροχοί μας δεν ευθύνονται για οποιονδήποτε τραυματισμό, απώλεια, αξίωση ή οποιαδήποτε άμεση, έμμεση, τυχαία, τιμωρητική, ειδική ή παρεπόμενη ζημία οποιουδήποτε είδους, συμπεριλαμβανομένων, ενδεικτικά, διαφυγόντων κερδών, διαφυγόντων εσόδων, απώλειας αποταμιεύσεων, απώλειας δεδομένων, κόστους αντικατάστασης ή οποιωνδήποτε παρόμοιων ζημιών, είτε βασίζονται σε σύμβαση, αδικοπραξία (συμπεριλαμβανομένης της αμέλειας), αυστηρή ευθύνη ή άλλως, που προκύπτουν από τη χρήση οποιασδήποτε υπηρεσίας ή οποιωνδήποτε προϊόντων που προμηθευτήκατε χρησιμοποιώντας την υπηρεσία."
+            }
         }
     }
 };
