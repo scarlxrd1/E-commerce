@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Fetch and Render Products
     async function fetchProducts() {
-        productsTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-stone-400">Loading products...</td></tr>`;
+        productsTableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-stone-400">Loading products...</td></tr>`;
         try {
             const querySnapshot = await getDocs(collection(db, "products"));
             productsList = [];
@@ -181,41 +181,51 @@ document.addEventListener('DOMContentLoaded', () => {
             renderProductsTable();
         } catch (error) {
             console.error("Error fetching products:", error);
-            productsTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-500">Failed to load products.</td></tr>`;
+            productsTableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500">Failed to load products.</td></tr>`;
         }
     }
 
     function renderProductsTable() {
         if (productsList.length === 0) {
-            productsTableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-stone-400">No products found.</td></tr>`;
+            productsTableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-stone-400">No products found.</td></tr>`;
             return;
         }
 
-        productsTableBody.innerHTML = productsList.map(product => `
-            <tr class="hover:bg-stone-50 transition-colors">
-                <td class="p-4">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-stone-100 rounded-sm overflow-hidden flex-shrink-0">
-                            <img src="${product.image || ''}" alt="${product.title}" class="w-full h-full object-cover">
+        productsTableBody.innerHTML = productsList.map(product => {
+            // Badges
+            const statusBadge = product.status === 'hidden'
+                ? `<span class="px-2 py-1 bg-stone-200 text-stone-600 rounded text-[10px] uppercase font-bold tracking-wider">Hidden</span>`
+                : `<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-[10px] uppercase font-bold tracking-wider">Active</span>`;
+                
+            const stockBadge = product.stock <= 0
+                ? `<span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-bold">Out of Stock</span>`
+                : `<span class="px-2 py-1 bg-stone-100 rounded text-xs">${product.stock} in stock</span>`;
+
+            return `
+                <tr class="hover:bg-stone-50 transition-colors">
+                    <td class="p-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-stone-100 rounded-sm overflow-hidden flex-shrink-0">
+                                <img src="${product.image || ''}" alt="${product.title}" class="w-full h-full object-cover">
+                            </div>
+                            <span class="font-serif font-medium">${product.title}</span>
                         </div>
-                        <span class="font-serif font-medium">${product.title}</span>
-                    </div>
-                </td>
-                <td class="p-4 capitalize text-stone-500">${product.categories || 'N/A'}</td>
-                <td class="p-4">€${(product.price || 0).toLocaleString()}</td>
-                <td class="p-4">
-                    <span class="px-2 py-1 bg-stone-100 rounded text-xs">${product.stock || 0} in stock</span>
-                </td>
-                <td class="p-4 text-right space-x-3">
-                    <button class="edit-product-btn text-stone-400 hover:text-stone-900 transition-colors underline underline-offset-4 text-xs tracking-widest uppercase" data-id="${product.id}">
-                        Edit
-                    </button>
-                    <button class="delete-product-btn text-red-400 hover:text-red-700 transition-colors underline underline-offset-4 text-xs tracking-widest uppercase" data-id="${product.id}">
-                        Delete
-                    </button>
-                </td>
-            </tr>
-        `).join('');
+                    </td>
+                    <td class="p-4 capitalize text-stone-500">${product.categories || 'N/A'}</td>
+                    <td class="p-4">€${(product.price || 0).toLocaleString()}</td>
+                    <td class="p-4">${stockBadge}</td>
+                    <td class="p-4">${statusBadge}</td>
+                    <td class="p-4 text-right space-x-3">
+                        <button class="edit-product-btn text-stone-400 hover:text-stone-900 transition-colors underline underline-offset-4 text-xs tracking-widest uppercase" data-id="${product.id}">
+                            Edit
+                        </button>
+                        <button class="delete-product-btn text-red-400 hover:text-red-700 transition-colors underline underline-offset-4 text-xs tracking-widest uppercase" data-id="${product.id}">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
     // Dynamic Image Inputs Logic
@@ -296,9 +306,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 title: document.getElementById('add-title').value.trim(),
                 price: parseFloat(document.getElementById('add-price').value),
                 stock: parseInt(document.getElementById('add-stock').value),
-                categories: document.getElementById('add-category').value.trim().toLowerCase(),
+                categories: document.getElementById('add-category').value,
+                estimated_dispatch: document.getElementById('add-dispatch').value,
+                status: document.getElementById('add-status').value,
                 description: document.getElementById('add-description').value.trim(),
-                estimated_dispatch: document.getElementById('add-dispatch').value.trim(),
                 image: primaryImage,
                 hoverImage: hoverImage,
                 images: images
@@ -345,9 +356,28 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('edit-title').value = product.title;
         document.getElementById('edit-price').value = product.price || 0;
         document.getElementById('edit-stock').value = product.stock || 0;
-        document.getElementById('edit-category').value = product.categories || '';
+        
+        // Handle selects safely
+        const categorySelect = document.getElementById('edit-category');
+        if([...categorySelect.options].some(o => o.value === product.categories)) {
+            categorySelect.value = product.categories;
+        }
+        
+        const dispatchSelect = document.getElementById('edit-dispatch');
+        if([...dispatchSelect.options].some(o => o.value === product.estimated_dispatch)) {
+            dispatchSelect.value = product.estimated_dispatch;
+        } else {
+            dispatchSelect.value = "3-5 Business Days"; // Fallback if old data
+        }
+
+        const statusSelect = document.getElementById('edit-status');
+        if([...statusSelect.options].some(o => o.value === product.status)) {
+            statusSelect.value = product.status;
+        } else {
+            statusSelect.value = "active"; // Default fallback
+        }
+
         document.getElementById('edit-description').value = product.description || product.desc || '';
-        document.getElementById('edit-dispatch').value = product.estimated_dispatch || '3-5 Business Days';
 
         // Populate images
         editImageInputsContainer.innerHTML = '';
@@ -402,9 +432,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 title: document.getElementById('edit-title').value.trim(),
                 price: parseFloat(document.getElementById('edit-price').value),
                 stock: parseInt(document.getElementById('edit-stock').value),
-                categories: document.getElementById('edit-category').value.trim().toLowerCase(),
+                categories: document.getElementById('edit-category').value,
+                estimated_dispatch: document.getElementById('edit-dispatch').value,
+                status: document.getElementById('edit-status').value,
                 description: document.getElementById('edit-description').value.trim(),
-                estimated_dispatch: document.getElementById('edit-dispatch').value.trim(),
                 image: primaryImage,
                 hoverImage: hoverImage,
                 images: images
