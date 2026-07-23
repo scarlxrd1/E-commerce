@@ -53,8 +53,8 @@
         
         <!-- Page Header -->
         <header class="text-center mb-24">
-            <h1 class="font-serif text-5xl md:text-6xl text-stone-900 mb-6">Customer Care</h1>
-            <p class="font-sans text-stone-500 max-w-lg mx-auto leading-relaxed">
+            <h1 data-i18n="customer_care.title" class="font-serif text-5xl md:text-6xl text-stone-900 mb-6">Customer Care</h1>
+            <p data-i18n="customer_care.subtitle" class="font-sans text-stone-500 max-w-lg mx-auto leading-relaxed">
                 We are dedicated to providing a seamless experience. Whether you have a question about a piece, shipping, or need assistance with an existing order, we are here to help.
             </p>
         </header>
@@ -65,11 +65,11 @@
             <!-- Left Column: Contact Form -->
             <section>
                 <div class="flex items-center gap-3 mb-10 relative">
-                    <h2 class="font-serif text-3xl text-stone-900">Get in Touch</h2>
+                    <h2 data-i18n="customer_care.form.title" class="font-serif text-3xl text-stone-900">Get in Touch</h2>
                     <!-- Tooltip Info -->
                     <div class="group relative cursor-help flex items-center justify-center mt-1">
                         <span class="text-stone-400 border border-stone-300 rounded-full w-5 h-5 flex items-center justify-center text-xs font-serif hover:bg-stone-100 transition-colors">?</span>
-                        <div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 hidden group-hover:block w-64 p-4 bg-stone-900 text-white text-xs font-sans rounded-sm shadow-xl z-20 text-center leading-relaxed">
+                        <div data-i18n="customer_care.form.tooltip" class="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 hidden group-hover:block w-64 p-4 bg-stone-900 text-white text-xs font-sans rounded-sm shadow-xl z-20 text-center leading-relaxed">
                             If you are logged into your account, your registration details are securely and automatically attached to this request.
                             <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-900"></div>
                         </div>
@@ -81,37 +81,37 @@
                     <!-- Guest Fields (Hidden if logged in) -->
                     <div id="guest-fields" class="flex flex-col gap-8 transition-all duration-300">
                         <div>
-                            <label for="name" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Full Name</label>
+                            <label data-i18n="customer_care.form.labels.name" for="name" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Full Name</label>
                             <input type="text" id="name" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                         </div>
                         <div>
-                            <label for="email" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Email Address</label>
+                            <label data-i18n="customer_care.form.labels.email" for="email" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Email Address</label>
                             <input type="email" id="email" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                         </div>
                         <div>
-                            <label for="phone" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Telephone Number</label>
+                            <label data-i18n="customer_care.form.labels.phone" for="phone" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Telephone Number</label>
                             <input type="tel" id="phone" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                         </div>
                     </div>
 
                     <!-- Always Visible Fields -->
                     <div>
-                        <label for="issue-type" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Issue Type</label>
+                        <label data-i18n="customer_care.form.labels.issue_type" for="issue-type" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Issue Type</label>
                         <select id="issue-type" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 focus:outline-none focus:border-stone-900 transition-colors appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a8a29e%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 0.2rem top 50%; background-size: 0.65rem auto;">
-                            <option value="" disabled selected>Select an option</option>
-                            <option value="General Inquiry">General Inquiry</option>
-                            <option value="Order/Product Issue">Order/Product Issue</option>
-                            <option value="Technical Problem">Technical Problem</option>
+                            <option data-i18n="customer_care.form.issues.select" value="" disabled selected>Select an option</option>
+                            <option data-i18n="customer_care.form.issues.general" value="General Inquiry">General Inquiry</option>
+                            <option data-i18n="customer_care.form.issues.order" value="Order/Product Issue">Order/Product Issue</option>
+                            <option data-i18n="customer_care.form.issues.technical" value="Technical Problem">Technical Problem</option>
                         </select>
                     </div>
                     <div>
-                        <label for="message" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">How can we help you?</label>
+                        <label data-i18n="customer_care.form.labels.message" for="message" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">How can we help you?</label>
                         <textarea id="message" rows="4" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors resize-none"></textarea>
                     </div>
 
                     <!-- Custom Security Captcha (Cleaned UI) -->
                     <div class="flex flex-col gap-3 mt-2">
-                        <label for="captcha-input" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">Security Check</label>
+                        <label data-i18n="customer_care.form.labels.security_check" for="captcha-input" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">Security Check</label>
                         <div class="flex items-center gap-4">
                             <div class="relative bg-stone-100 border border-stone-200 rounded-sm select-none overflow-hidden flex items-center justify-center shadow-inner">
                                 <canvas id="captcha-canvas" width="160" height="48" class="block cursor-crosshair"></canvas>
@@ -120,10 +120,10 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                             </button>
                         </div>
-                        <input type="text" id="captcha-input" required placeholder="Enter the 6-character code" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        <input data-i18n="customer_care.form.captcha_placeholder" type="text" id="captcha-input" required placeholder="Enter the 6-character code" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                     </div>
 
-                    <button type="submit" id="submit-support-btn" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-5 mt-4 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">
+                    <button data-i18n="customer_care.form.submit" type="submit" id="submit-support-btn" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-5 mt-4 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">
                         Submit Inquiry
                     </button>
                 </form>
@@ -131,18 +131,18 @@
 
             <!-- Right Column: FAQs -->
             <section>
-                <h2 class="font-serif text-3xl text-stone-900 mb-10">Frequently Asked Questions</h2>
+                <h2 data-i18n="customer_care.faq.title" class="font-serif text-3xl text-stone-900 mb-10">Frequently Asked Questions</h2>
                 <div class="border-t border-stone-200">
                     
                     <!-- FAQ 1 -->
                     <details class="group border-b border-stone-200 py-6">
                         <summary class="font-sans text-sm font-medium tracking-wide text-stone-900 cursor-pointer flex justify-between items-center">
-                            What are your standard shipping times?
+                            <span data-i18n="customer_care.faq.q1">What are your standard shipping times?</span>
                             <span class="text-stone-400 transition-transform duration-300 group-open:rotate-45">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"></path></svg>
                             </span>
                         </summary>
-                        <p class="font-sans text-sm text-stone-500 mt-6 leading-relaxed">
+                        <p data-i18n="customer_care.faq.a1" class="font-sans text-sm text-stone-500 mt-6 leading-relaxed">
                             Because many of our pieces are crafted to order, standard delivery generally takes between 4 to 6 weeks. In-stock decor items are usually dispatched within 3-5 business days. You will receive a tracking link once your order leaves our facility.
                         </p>
                     </details>
@@ -150,12 +150,12 @@
                     <!-- FAQ 2 -->
                     <details class="group border-b border-stone-200 py-6">
                         <summary class="font-sans text-sm font-medium tracking-wide text-stone-900 cursor-pointer flex justify-between items-center">
-                            Do you offer white-glove delivery and assembly?
+                            <span data-i18n="customer_care.faq.q2">Do you offer white-glove delivery and assembly?</span>
                             <span class="text-stone-400 transition-transform duration-300 group-open:rotate-45">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"></path></svg>
                             </span>
                         </summary>
-                        <p class="font-sans text-sm text-stone-500 mt-6 leading-relaxed">
+                        <p data-i18n="customer_care.faq.a2" class="font-sans text-sm text-stone-500 mt-6 leading-relaxed">
                             Yes, white-glove delivery is available for all large furniture items (tables, seating) at an additional tier during checkout. Our team will deliver the piece to your room of choice, handle all assembly, and remove the packaging materials.
                         </p>
                     </details>
@@ -163,12 +163,12 @@
                     <!-- FAQ 3 -->
                     <details class="group border-b border-stone-200 py-6">
                         <summary class="font-sans text-sm font-medium tracking-wide text-stone-900 cursor-pointer flex justify-between items-center">
-                            Are your materials sustainably sourced?
+                            <span data-i18n="customer_care.faq.q3">Are your materials sustainably sourced?</span>
                             <span class="text-stone-400 transition-transform duration-300 group-open:rotate-45">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"></path></svg>
                             </span>
                         </summary>
-                        <p class="font-sans text-sm text-stone-500 mt-6 leading-relaxed">
+                        <p data-i18n="customer_care.faq.a3" class="font-sans text-sm text-stone-500 mt-6 leading-relaxed">
                             Sustainability is at the core of AURA. We strictly utilize FSC-certified timbers, organic linens, and non-toxic finishes. We partner directly with artisans to ensure a transparent, ethical supply chain.
                         </p>
                     </details>
@@ -179,9 +179,9 @@
 
         <!-- Returns & Exchanges Block -->
         <section class="bg-stone-100 p-10 md:p-16 rounded-sm text-center">
-            <h2 class="font-serif text-2xl text-stone-900 mb-4">Returns & Exchanges</h2>
+            <h2 data-i18n="customer_care.returns.title" class="font-serif text-2xl text-stone-900 mb-4">Returns & Exchanges</h2>
             <div class="w-12 h-px bg-stone-300 mx-auto mb-6"></div>
-            <p class="font-sans text-sm text-stone-500 max-w-2xl mx-auto leading-relaxed">
+            <p data-i18n="customer_care.returns.desc" class="font-sans text-sm text-stone-500 max-w-2xl mx-auto leading-relaxed">
                 We take immense pride in the craftsmanship of our collection. If you are not entirely satisfied with your purchase, AURA accepts returns of unused, undamaged items within <strong>30 days of delivery</strong>. Custom or made-to-order pieces are final sale. To initiate a return, simply fill out the contact form above with your order number.
             </p>
         </section>
