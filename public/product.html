@@ -5,15 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AURA | Product Details</title>
     
-    <!-- Google Fonts: Playfair Display (Serif) & Inter (Sans-Serif) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
     
-    <!-- FontAwesome for Gallery Icons & Review Stars -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -44,21 +41,12 @@
 </head>
 <body class="font-sans text-stone-900 antialiased selection:bg-stone-200 selection:text-stone-900">
 
-    <!-- ========================================== -->
-    <!-- DYNAMIC NAVBAR PLACEHOLDER -->
-    <!-- ========================================== -->
     <div id="navbar-container"></div>
 
-    <!-- ========================================== -->
-    <!-- MAIN PRODUCT CONTAINER (Overwritten by JS) -->
-    <!-- ========================================== -->
     <main id="single-product-container" class="max-w-[1400px] mx-auto px-6 md:px-12 pt-24 pb-12 min-h-[70vh] flex items-center justify-center">
         <div class="text-stone-500 font-sans tracking-widest uppercase text-sm animate-pulse">Loading details...</div>
     </main>
 
-    <!-- ========================================== -->
-    <!-- CUSTOMER REVIEWS SECTION -->
-    <!-- ========================================== -->
     <section id="reviews-section" class="max-w-[1400px] mx-auto px-6 md:px-12 py-24 border-t border-stone-200 hidden">
         <div class="flex items-center justify-between mb-16">
             <h2 class="font-serif text-3xl md:text-4xl text-stone-900">Customer Reviews</h2>
@@ -66,10 +54,8 @@
         
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
             
-            <!-- Left Column: Premium Review Form / Login Prompt -->
             <div class="lg:col-span-5 sticky top-32">
                 
-                <!-- Logged Out State -->
                 <div id="review-logged-out" class="bg-white p-12 rounded-sm text-center border border-stone-100 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.04)] hidden">
                     <h3 class="font-serif text-2xl text-stone-900 mb-4">Share Your Thoughts</h3>
                     <p class="font-sans text-sm text-stone-500 mb-8 leading-relaxed">Join the AURA community to leave a review and help others curate their sanctuary.</p>
@@ -78,7 +64,6 @@
                     </a>
                 </div>
 
-                <!-- Already Reviewed State (Hidden by default) -->
                 <div id="review-already-submitted" class="bg-white p-12 rounded-sm text-center border border-stone-100 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.04)] hidden">
                     <div class="w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-6 text-stone-900">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
@@ -87,7 +72,6 @@
                     <p class="font-sans text-sm text-stone-500 leading-relaxed">You have already shared your experience for this piece. We deeply appreciate your feedback.</p>
                 </div>
 
-                <!-- Logged In State (Premium Form) -->
                 <form id="review-form" class="bg-white p-10 md:p-12 rounded-sm hidden flex-col gap-10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.06)] border border-stone-100">
                     <div class="text-center border-b border-stone-100 pb-8">
                         <h3 class="font-serif text-2xl text-stone-900 mb-3">Share Your Experience</h3>
@@ -116,22 +100,16 @@
                 </form>
             </div>
 
-            <!-- Right Column: Reviews List -->
             <div class="lg:col-span-7 flex flex-col gap-6" id="reviews-list-container">
                 <div class="text-stone-500 font-sans text-sm tracking-widest uppercase animate-pulse">Loading reviews...</div>
             </div>
         </div>
     </section>
 
-    <!-- ========================================== -->
-    <!-- DYNAMIC FOOTER PLACEHOLDER -->
-    <!-- ========================================== -->
     <div id="footer-container"></div>
 
-    <!-- Global Scripts (Cart & Nav logic) -->
     <script type="module" src="./js/global.js"></script>
     
-    <!-- Main Script for this specific page (Firebase & UI Rendering) -->
     <script type="module" src="./js/product.js"></script>
 </body>
 </html>
