@@ -1,5 +1,5 @@
 import { app, db } from './firebase-config.js';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('auth-form');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
+    const forgotPasswordContainer = document.getElementById('forgot-password-container');
+    const forgotPasswordBtn = document.getElementById('forgot-password-btn');
     
     // Registration Fields
     const registerFieldsContainer = document.getElementById('register-fields');
@@ -23,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const postalCodeInput = document.getElementById('postalCode');
     
     // Captcha Elements
-    const captchaCanvas = document.getElementById('captcha-canvas');
+    const captchaTextEl = document.getElementById('captcha-text');
     const captchaInput = document.getElementById('captcha-input');
     const refreshCaptchaBtn = document.getElementById('refresh-captcha-btn');
 
@@ -38,56 +40,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const togglePrefix = document.getElementById('toggle-text-prefix');
     const errorContainer = document.getElementById('auth-error');
 
-    // Captcha Generator Function (Clean UI, High Contrast, No Distortion)
+    // Captcha Generator Function
     function generateCaptcha() {
-        // Excluded ambiguous characters like 0, O, 1, I, l
-        const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+        const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         let captcha = '';
         for (let i = 0; i < 6; i++) {
             captcha += chars[Math.floor(Math.random() * chars.length)];
         }
-        currentCaptcha = captcha;
+        captchaTextEl.textContent = captcha;
         captchaInput.value = '';
-
-        if (captchaCanvas) {
-            const ctx = captchaCanvas.getContext('2d');
-            const width = captchaCanvas.width;
-            const height = captchaCanvas.height;
-
-            // 1. Clean Background (Stone 100)
-            ctx.fillStyle = '#F5F5F4'; 
-            ctx.fillRect(0, 0, width, height);
-
-            // 2. Minimal, elegant noise (subtle dots instead of harsh lines)
-            ctx.fillStyle = '#E7E5E4'; // Stone 200
-            for (let i = 0; i < 40; i++) {
-                ctx.beginPath();
-                ctx.arc(Math.random() * width, Math.random() * height, Math.random() * 1.5, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            // 3. Draw highly readable text
-            ctx.font = 'bold 22px monospace';
-            ctx.fillStyle = '#1C1917'; // Stone 900 (High contrast)
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-
-            // Clear letter spacing and minimal rotation
-            const startX = width / 2 - 60; // Center the 6 characters
-            const spacing = 24;
-            
-            for (let i = 0; i < 6; i++) {
-                ctx.save();
-                ctx.translate(startX + (i * spacing), height / 2);
-                
-                // Very slight rotation (-5 to 5 degrees) for basic security without ruining readability
-                const angle = (Math.random() - 0.5) * 0.1; 
-                ctx.rotate(angle);
-                
-                ctx.fillText(captcha[i], 0, 0);
-                ctx.restore();
-            }
-        }
+        currentCaptcha = captcha;
     }
 
     refreshCaptchaBtn.addEventListener('click', generateCaptcha);
@@ -112,6 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
             registerFieldsContainer.classList.remove('flex');
             allRegisterInputs.forEach(input => input.removeAttribute('required'));
             
+            // Show Forgot Password logic
+            forgotPasswordContainer.classList.remove('hidden');
+            
         } else {
             titleEl.textContent = 'Create Account';
             subtitleEl.textContent = 'Join AURA for a seamless experience.';
@@ -124,8 +89,37 @@ document.addEventListener('DOMContentLoaded', () => {
             registerFieldsContainer.classList.add('flex');
             allRegisterInputs.forEach(input => input.setAttribute('required', 'true'));
             
+            // Hide Forgot Password logic
+            forgotPasswordContainer.classList.add('hidden');
+            
             // Generate initial captcha
             generateCaptcha();
+        }
+    });
+
+    // Forgot Password Logic
+    forgotPasswordBtn.addEventListener('click', async () => {
+        hideError();
+        const email = emailInput.value.trim();
+        
+        if (!email) {
+            showError("Please enter your email address in the field above to reset your password.");
+            return;
+        }
+
+        const originalText = forgotPasswordBtn.textContent;
+        forgotPasswordBtn.textContent = 'Sending...';
+        forgotPasswordBtn.disabled = true;
+
+        try {
+            await sendPasswordResetEmail(auth, email);
+            showSuccess("A password reset link has been sent to your email.");
+        } catch (error) {
+            console.error("Password Reset Error:", error);
+            showError(getFriendlyErrorMessage(error.code));
+        } finally {
+            forgotPasswordBtn.textContent = originalText;
+            forgotPasswordBtn.disabled = false;
         }
     });
 
@@ -158,9 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 showError("Password must be greater than 6 characters.");
                 return;
             }
-            // Captcha Validation (Case-Insensitive for better UX)
-            if (captchaInput.value.trim().toUpperCase() !== currentCaptcha.toUpperCase()) {
-                showError("Security check failed. Please try again.");
+            if (captchaInput.value !== currentCaptcha) {
+                showError("Captcha verification failed. Please try again.");
                 generateCaptcha();
                 return;
             }
@@ -177,20 +170,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isLoginMode) {
                 // LOGIN LOGIC
                 await signInWithEmailAndPassword(auth, email, password);
-                // Redirect immediately for login
-                window.location.href = 'index.html';
             } else {
                 // REGISTRATION LOGIC
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                const fName = firstNameInput.value.trim();
-                const lName = lastNameInput.value.trim();
-
                 // Create the user document in Firestore with strict shipping details
                 await setDoc(doc(db, "users", user.uid), {
-                    firstName: fName,
-                    lastName: lName,
+                    firstName: firstNameInput.value.trim(),
+                    lastName: lastNameInput.value.trim(),
                     phone: phoneInput.value.trim(),
                     address: addressInput.value.trim(),
                     city: cityInput.value.trim(),
@@ -200,40 +188,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     cart: [], // Initialize empty cloud cart
                     createdAt: new Date().toISOString()
                 });
-
-                // Send Automated Welcome Email via EmailJS REST API
-                const payload = {
-                    service_id: "service_c24ml8x",
-                    template_id: "template_y5ko9jj",
-                    user_id: "VjioTcL168a56Y0fO",
-                    template_params: {
-                        user_name: `${fName} ${lName}`.trim(),
-                        user_email: email
-                    }
-                };
-
-                try {
-                    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (response.ok) {
-                        console.log("EMAILJS SUCCESS: Email sent via REST API");
-                    } else {
-                        const errorText = await response.text();
-                        console.error("EMAILJS ERROR:", errorText);
-                    }
-                } catch (emailError) {
-                    console.error("EMAILJS CRITICAL ERROR:", emailError);
-                }
-
-                // Redirect ONLY after email attempt completes (whether success or fail)
-                window.location.href = 'index.html';
             }
+            
+            // On success, redirect to the homepage
+            window.location.href = 'index.html';
 
         } catch (error) {
             console.error("Authentication Error:", error);
@@ -253,13 +211,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper: Display Error
     function showError(message) {
         errorContainer.textContent = message;
+        errorContainer.className = "mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-sans rounded-sm text-center";
+        errorContainer.classList.remove('hidden');
+    }
+
+    // Helper: Display Success
+    function showSuccess(message) {
+        errorContainer.textContent = message;
+        errorContainer.className = "mb-6 p-4 bg-green-50 border border-green-100 text-green-600 text-sm font-sans rounded-sm text-center";
         errorContainer.classList.remove('hidden');
     }
 
     // Helper: Hide Error
     function hideError() {
         errorContainer.textContent = '';
-        errorContainer.classList.add('hidden');
+        errorContainer.className = "hidden mb-6 p-4 text-sm font-sans rounded-sm text-center";
     }
 
     // Helper: Format Firebase Auth Errors
