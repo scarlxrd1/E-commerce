@@ -31,18 +31,21 @@ async function fetchAndRenderProducts() {
             if (!ratingsMap[data.productId]) {
                 ratingsMap[data.productId] = { sum: 0, count: 0 };
             }
-            // CRITICAL FIX: Force Type Casting to Number
             ratingsMap[data.productId].sum += Number(data.rating) || 0;
             ratingsMap[data.productId].count += 1;
         });
 
-        // 2. Fetch Products
+        // 2. Fetch Products (Filter out hidden)
         const querySnapshot = await getDocs(collection(db, "products"));
         querySnapshot.forEach((doc) => {
-            allProducts.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            // ONLY push if the product is active/visible
+            if (data.status !== 'hidden') {
+                allProducts.push({ id: doc.id, ...data });
+            }
         });
 
-        // Initial render: show all products
+        // Initial render: show all active products
         renderGrid(allProducts);
 
     } catch (error) {
@@ -53,7 +56,7 @@ async function fetchAndRenderProducts() {
     }
 }
 
-// Helper to generate Star Rating HTML (FIXED MATH LOGIC)
+// Helper to generate Star Rating HTML
 function generateStarsHTML(ratingObj) {
     if (!ratingObj || ratingObj.count === 0 || isNaN(ratingObj.sum) || isNaN(ratingObj.count)) {
         return `<span class="font-sans text-[10px] tracking-widest uppercase text-stone-400">No reviews yet</span>`;
@@ -87,6 +90,14 @@ function renderGrid(productsToRender) {
         const ratingData = ratingsMap[product.id] || { sum: 0, count: 0 };
         const ratingHTML = generateStarsHTML(ratingData);
         
+        // Stock Status Logic
+        const isOutOfStock = product.stock <= 0;
+        const btnClasses = isOutOfStock
+            ? `grid-add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-300 text-stone-500 font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm z-20 cursor-not-allowed pointer-events-auto`
+            : `grid-add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm z-20 hover:bg-stone-800 pointer-events-auto`;
+        const btnText = isOutOfStock ? `Out of Stock` : `Add to Cart`;
+        const btnDisabled = isOutOfStock ? `disabled` : ``;
+
         htmlString += `
             <a href="product.html?id=${product.id}" class="product-card group flex flex-col gap-5 cursor-pointer transition-all" data-category="${product.categories}">
                 <div class="relative aspect-[4/5] overflow-hidden bg-stone-100 rounded-md">
@@ -95,13 +106,13 @@ function renderGrid(productsToRender) {
                     
                     <div class="absolute inset-0 bg-stone-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none"></div>
                     
-                    <button class="grid-add-to-cart-btn absolute bottom-6 left-6 right-6 bg-stone-900 text-white font-sans text-sm tracking-wide py-3.5 rounded-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-sm z-20 hover:bg-stone-800 pointer-events-auto"
+                    <button class="${btnClasses}" ${btnDisabled}
                         data-id="${product.id}"
                         data-title="${product.title}"
                         data-price="${product.price}"
                         data-image="${product.image}"
                         data-stock="${product.stock || 0}">
-                        Add to Cart
+                        ${btnText}
                     </button>
                 </div>
                 <div class="flex justify-between items-start">
@@ -161,7 +172,7 @@ function initCategoryFilters() {
 }
 
 function initGridAddToCart() {
-    const gridBtns = document.querySelectorAll('.grid-add-to-cart-btn');
+    const gridBtns = document.querySelectorAll('.grid-add-to-cart-btn:not([disabled])');
     
     gridBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
