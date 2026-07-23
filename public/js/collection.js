@@ -33,15 +33,18 @@ async function fetchAndRenderCollection() {
             if (!ratingsMap[data.productId]) {
                 ratingsMap[data.productId] = { sum: 0, count: 0 };
             }
-            // CRITICAL FIX: Force Type Casting to Number
             ratingsMap[data.productId].sum += Number(data.rating) || 0;
             ratingsMap[data.productId].count += 1;
         });
 
-        // 2. Fetch all products once
+        // 2. Fetch all products once (Filter out hidden)
         const querySnapshot = await getDocs(collection(db, "products"));
         querySnapshot.forEach((doc) => {
-            allProducts.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            // ONLY push if the product is active/visible
+            if (data.status !== 'hidden') {
+                allProducts.push({ id: doc.id, ...data });
+            }
         });
 
         // 3. Apply initial filters (incorporates URL search, category, and price)
@@ -97,7 +100,7 @@ function applyFilters() {
     renderGrid(filteredProducts);
 }
 
-// Helper to generate Star Rating HTML (FIXED MATH LOGIC)
+// Helper to generate Star Rating HTML
 function generateStarsHTML(ratingObj) {
     if (!ratingObj || ratingObj.count === 0 || isNaN(ratingObj.sum) || isNaN(ratingObj.count)) {
         return `<span class="font-sans text-[10px] tracking-widest uppercase text-stone-400">No reviews yet</span>`;
@@ -134,6 +137,14 @@ function renderGrid(productsToRender) {
         // Get rating data
         const ratingData = ratingsMap[product.id] || { sum: 0, count: 0 };
         const ratingHTML = generateStarsHTML(ratingData);
+        
+        // Stock Status Logic
+        const isOutOfStock = product.stock <= 0;
+        const btnClasses = isOutOfStock
+            ? `quick-add-btn absolute bottom-0 left-0 w-full bg-stone-300 text-stone-500 font-sans text-xs tracking-widest uppercase py-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-20 cursor-not-allowed`
+            : `quick-add-btn absolute bottom-0 left-0 w-full bg-stone-900 text-white font-sans text-xs tracking-widest uppercase py-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-20 hover:bg-stone-800`;
+        const btnText = isOutOfStock ? `Out of Stock` : `Quick Add`;
+        const btnDisabled = isOutOfStock ? `disabled` : ``;
 
         htmlString += `
             <a href="product.html?id=${product.id}" target="_blank" class="product-card fade-in-up group flex flex-col gap-6 ${mtClass}" data-category="${product.categories}">
@@ -141,13 +152,13 @@ function renderGrid(productsToRender) {
                     <img src="${product.image}" alt="${product.title}" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0 z-10">
                     <img src="${hoverImg}" alt="${product.title} Lifestyle" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100 z-0">
                     
-                    <button class="quick-add-btn absolute bottom-0 left-0 w-full bg-stone-900 text-white font-sans text-xs tracking-widest uppercase py-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-20 hover:bg-stone-800"
+                    <button class="${btnClasses}" ${btnDisabled}
                         data-id="${product.id}"
                         data-title="${product.title}"
                         data-price="${product.price}"
                         data-image="${product.image}"
                         data-stock="${product.stock || 0}">
-                        Quick Add
+                        ${btnText}
                     </button>
                 </div>
                 <div class="flex flex-col items-center text-center">
@@ -229,7 +240,7 @@ function initScrollAnimations() {
 }
 
 function initQuickAdd() {
-    const addBtns = document.querySelectorAll('.quick-add-btn');
+    const addBtns = document.querySelectorAll('.quick-add-btn:not([disabled])');
     addBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
