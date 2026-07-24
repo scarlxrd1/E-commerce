@@ -15,37 +15,38 @@ const navbarHTML = `
             <div class="hidden md:flex items-center gap-10">
                 <a href="collection.html" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors" data-i18n="nav.collection">Collection</a>
             </div>
-            <div class="flex items-center gap-4 sm:gap-6 text-stone-900">
-                
-                <!-- Global Search Form -->
-                <form id="global-search-form" class="flex items-center">
-                    <input type="text" id="global-search-input" data-i18n="nav.search" placeholder="Search..." class="w-20 sm:w-28 md:w-40 bg-transparent border-b border-transparent focus:border-stone-300 py-1 px-2 text-sm font-sans text-stone-900 placeholder-stone-400 focus:outline-none transition-all duration-300 mr-1">
-                    <button type="submit" id="global-search-btn" class="hover:opacity-70 transition-opacity p-1" aria-label="Search">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </button>
-                </form>
-
-                <!-- User Profile Link with Auth Indicator -->
-                <a href="auth.html" id="user-profile-link" class="relative hover:opacity-70 transition-opacity hidden sm:block" aria-label="User Profile">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                    <span id="auth-indicator" class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-stone-900 rounded-full border-2 border-[#FBFBFA] hidden transition-all duration-300"></span>
-                </a>
-
-                <!-- Language Toggle with Flags -->
-                <div class="relative group hidden sm:block">
-                    <button class="font-sans text-xs font-medium tracking-widest text-stone-500 hover:text-stone-900 transition-colors uppercase flex items-center gap-1" id="current-lang-display">
-                        🇬🇷 EL
-                    </button>
-                    <div class="absolute top-full right-0 mt-2 w-24 bg-white border border-stone-200 shadow-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 flex flex-col z-50">
-                        <button onclick="window.changeLanguage('en')" class="text-xs font-sans tracking-widest text-stone-500 hover:text-stone-900 hover:bg-stone-50 py-3 w-full text-center transition-colors">🇬🇧 EN</button>
-                        <button onclick="window.changeLanguage('el')" class="text-xs font-sans tracking-widest text-stone-500 hover:text-stone-900 hover:bg-stone-50 py-3 w-full text-center transition-colors border-t border-stone-100">🇬🇷 EL</button>
-                    </div>
+            
+            <div class="flex items-center">
+                <!-- Minimalist Language Toggle -->
+                <div class="hidden sm:flex items-center gap-2 font-sans text-xs tracking-widest uppercase mr-8">
+                    <button id="lang-el-btn" class="transition-colors" onclick="window.changeLanguage('el')">EL</button>
+                    <span class="text-stone-300">|</span>
+                    <button id="lang-en-btn" class="transition-colors" onclick="window.changeLanguage('en')">EN</button>
                 </div>
 
-                <button id="cart-icon-btn" class="relative hover:opacity-70 transition-opacity" aria-label="Cart">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                    <span id="cart-badge" class="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-stone-900 text-[9px] font-medium text-white opacity-0 transition-opacity duration-300">0</span>
-                </button>
+                <!-- Action Icons Group -->
+                <div class="flex items-center gap-6 text-stone-900">
+                    
+                    <!-- Expandable Search -->
+                    <form id="global-search-form" class="flex items-center relative">
+                        <input type="text" id="global-search-input" data-i18n="nav.search" placeholder="Search..." class="absolute right-full mr-3 w-32 md:w-48 bg-transparent border-b border-stone-300 py-1 px-2 text-sm font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-all duration-300 opacity-0 pointer-events-none translate-x-4">
+                        <button type="button" id="global-search-toggle" class="hover:scale-110 transition-transform p-1 text-xl" aria-label="Toggle Search">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </button>
+                    </form>
+
+                    <!-- User Profile Link with Auth Indicator -->
+                    <a href="auth.html" id="user-profile-link" class="relative hover:scale-110 transition-transform hidden sm:block p-1 text-xl" aria-label="User Profile">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <span id="auth-indicator" class="absolute top-0.5 right-0.5 w-2 h-2 bg-stone-900 rounded-full border-2 border-[#FBFBFA] hidden transition-all duration-300"></span>
+                    </a>
+
+                    <!-- Cart Icon -->
+                    <button id="cart-icon-btn" class="relative hover:scale-110 transition-transform p-1 text-xl" aria-label="Cart">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        <span id="cart-badge" class="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-stone-900 text-[10px] font-medium text-white opacity-0 transition-opacity duration-300 shadow-sm pointer-events-none">0</span>
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
@@ -142,6 +143,20 @@ window.changeLanguage = function(lang) {
     localStorage.setItem('aura_lang', lang);
     document.documentElement.lang = lang;
 
+    // Update active/inactive classes for language toggle buttons
+    const elBtn = document.getElementById('lang-el-btn');
+    const enBtn = document.getElementById('lang-en-btn');
+    
+    if (elBtn && enBtn) {
+        if (lang === 'el') {
+            elBtn.className = 'text-stone-900 font-medium transition-colors';
+            enBtn.className = 'text-stone-400 hover:text-stone-900 cursor-pointer transition-colors';
+        } else {
+            enBtn.className = 'text-stone-900 font-medium transition-colors';
+            elBtn.className = 'text-stone-400 hover:text-stone-900 cursor-pointer transition-colors';
+        }
+    }
+
     const elements = document.querySelectorAll('[data-i18n]');
     elements.forEach(el => {
         const key = el.getAttribute('data-i18n');
@@ -160,11 +175,6 @@ window.changeLanguage = function(lang) {
             }
         }
     });
-
-    const langDisplay = document.getElementById('current-lang-display');
-    if (langDisplay) {
-        langDisplay.textContent = lang === 'el' ? '🇬🇷 EL' : '🇬🇧 EN';
-    }
 
     // Re-render cart to ensure dynamic strings (like Empty Cart) are translated
     renderCart();
@@ -188,17 +198,41 @@ function initGlobalUI() {
     const savedLang = localStorage.getItem('aura_lang') || 'el';
     window.changeLanguage(savedLang);
 
-    // Global Search Logic
+    // Expandable Search Logic
+    const searchToggle = document.getElementById('global-search-toggle');
+    const searchInput = document.getElementById('global-search-input');
     const searchForm = document.getElementById('global-search-form');
-    if (searchForm) {
+    
+    if (searchToggle && searchInput && searchForm) {
+        searchToggle.addEventListener('click', (e) => {
+            // If input is already visible and has value, submit it
+            if (!searchInput.classList.contains('opacity-0') && searchInput.value.trim() !== '') {
+                searchForm.dispatchEvent(new Event('submit'));
+            } else {
+                // Toggle visibility
+                searchInput.classList.toggle('opacity-0');
+                searchInput.classList.toggle('pointer-events-none');
+                searchInput.classList.toggle('translate-x-4');
+                searchInput.classList.toggle('translate-x-0');
+                if (!searchInput.classList.contains('opacity-0')) {
+                    searchInput.focus();
+                }
+            }
+        });
+
         searchForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const input = document.getElementById('global-search-input');
-            if (input) {
-                const query = input.value.trim();
-                if (query) {
-                    window.location.href = `collection.html?search=${encodeURIComponent(query)}`;
-                }
+            const query = searchInput.value.trim();
+            if (query) {
+                window.location.href = `collection.html?search=${encodeURIComponent(query)}`;
+            }
+        });
+        
+        // Close search when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchForm.contains(e.target) && !searchInput.classList.contains('opacity-0')) {
+                searchInput.classList.add('opacity-0', 'pointer-events-none', 'translate-x-4');
+                searchInput.classList.remove('translate-x-0');
             }
         });
     }
