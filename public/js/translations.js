@@ -155,17 +155,6 @@ export const translations = {
                 order_history: "Order History",
                 saved_addresses: "Saved Addresses",
                 logout: "Log Out"
-            "change_email_btn": "Change",
-            "email_modal": {
-                "title": "Update Email Address",
-                "subtitle": "For security, you must enter your current password. A verification link will be sent to your new email.",
-                "new_email": "New Email Address",
-                "current_password": "Current Password",
-                "cancel": "Cancel",
-                "submit": "Send Verification Link",
-                "success": "A verification email has been sent to your new address. Please click the link in that email to finalize the update.",
-                "error_password": "Incorrect current password.",
-                "error_generic": "An error occurred. Please try again."    
             },
             personal_info: {
                 title: "Personal Information",
@@ -206,6 +195,18 @@ export const translations = {
                 add_new: "+ Add New",
                 empty_title: "No alternate addresses saved",
                 empty_desc: "Save your shipping and billing addresses for a faster checkout experience."
+            },
+            change_email_btn: "Change",
+            email_modal: {
+                title: "Update Email Address",
+                subtitle: "For security, you must enter your current password. A verification link will be sent to your new email.",
+                new_email: "New Email Address",
+                current_password: "Current Password",
+                cancel: "Cancel",
+                submit: "Send Verification Link",
+                success: "A verification email has been sent to your new address. Please click the link in that email to finalize the update.",
+                error_password: "Incorrect current password.",
+                error_generic: "An error occurred. Please try again."
             }
         },
         customer_care: {
@@ -425,17 +426,6 @@ export const translations = {
                 order_history: "Ιστορικό Παραγγελιών",
                 saved_addresses: "Αποθηκευμένες Διευθύνσεις",
                 logout: "Αποσύνδεση"
-             "change_email_btn": "Αλλαγή",
-            "email_modal": {
-                "title": "Ενημέρωση Διεύθυνσης Email",
-                "subtitle": "Για λόγους ασφαλείας, πρέπει να εισάγετε τον τρέχοντα κωδικό πρόσβασής σας. Ένας σύνδεσμος επαλήθευσης θα σταλεί στο νέο σας email.",
-                "new_email": "Νέα Διεύθυνση Email",
-                "current_password": "Τρέχων Κωδικός Πρόσβασης",
-                "cancel": "Ακύρωση",
-                "submit": "Αποστολή Συνδέσμου",
-                "success": "Ένα email επαλήθευσης έχει σταλεί στη νέα σας διεύθυνση. Παρακαλώ κάντε κλικ στον σύνδεσμο σε αυτό το email για να ολοκληρώσετε την ενημέρωση.",
-                "error_password": "Λανθασμένος τρέχων κωδικός πρόσβασης.",
-                "error_generic": "Προέκυψε ένα σφάλμα. Παρακαλώ δοκιμάστε ξανά."    
             },
             personal_info: {
                 title: "Προσωπικές Πληροφορίες",
@@ -476,6 +466,18 @@ export const translations = {
                 add_new: "+ Προσθήκη Νέας",
                 empty_title: "Δεν υπάρχουν εναλλακτικές διευθύνσεις",
                 empty_desc: "Αποθηκεύστε τις διευθύνσεις αποστολής και χρέωσης για μια πιο γρήγορη εμπειρία αγοράς."
+            },
+            change_email_btn: "Αλλαγή",
+            email_modal: {
+                title: "Ενημέρωση Διεύθυνσης Email",
+                subtitle: "Για λόγους ασφαλείας, πρέπει να εισάγετε τον τρέχοντα κωδικό πρόσβασής σας. Ένας σύνδεσμος επαλήθευσης θα σταλεί στο νέο σας email.",
+                new_email: "Νέα Διεύθυνση Email",
+                current_password: "Τρέχων Κωδικός Πρόσβασης",
+                cancel: "Ακύρωση",
+                submit: "Αποστολή Συνδέσμου",
+                success: "Ένα email επαλήθευσης έχει σταλεί στη νέα σας διεύθυνση. Παρακαλώ κάντε κλικ στον σύνδεσμο σε αυτό το email για να ολοκληρώσετε την ενημέρωση.",
+                error_password: "Λανθασμένος τρέχων κωδικός πρόσβασης.",
+                error_generic: "Προέκυψε ένα σφάλμα. Παρακαλώ δοκιμάστε ξανά."
             }
         },
         customer_care: {
