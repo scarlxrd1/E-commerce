@@ -1,10 +1,12 @@
 import { app, db } from './firebase-config.js';
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { translations } from './translations.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
     let currentUser = null;
+    let checkoutCart = [];
 
     // DOM Elements
     const autofillContainer = document.getElementById('autofill-container');
@@ -47,8 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Fetch & Render Cart Summary
     async function loadCheckoutCart(user) {
-        let checkoutCart = [];
-        
         if (user) {
             try {
                 const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -65,10 +65,41 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCheckoutSummary(checkoutCart);
     }
 
+    window.updateCheckoutCartQty = async function(index, change) {
+        const item = checkoutCart[index];
+        const newQty = item.quantity + change;
+        
+        if (newQty <= 0) {
+            checkoutCart.splice(index, 1);
+        } else if (newQty <= (item.stock || 0)) {
+            item.quantity = newQty;
+        }
+        
+        // Save
+        if (currentUser) {
+            try {
+                const userRef = doc(db, "users", currentUser.uid);
+                await updateDoc(userRef, { cart: checkoutCart });
+            } catch (error) {
+                console.error("Error updating cart quantity:", error);
+            }
+        } else {
+            localStorage.setItem('aura_cart', JSON.stringify(checkoutCart));
+        }
+        
+        renderCheckoutSummary(checkoutCart);
+        
+        // Sync with global cart state if available
+        if (typeof window.syncGlobalCart === 'function') {
+            window.syncGlobalCart(checkoutCart);
+        }
+    };
+
     function renderCheckoutSummary(cartItems) {
         const container = document.getElementById('checkout-items-container');
         const subtotalEl = document.getElementById('checkout-subtotal');
         const totalEl = document.getElementById('checkout-total');
+        const submitBtn = checkoutForm.querySelector('button[type="submit"]');
         
         if (cartItems.length === 0) {
             container.innerHTML = `
@@ -81,7 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
             totalEl.textContent = '€0';
             
             // Disable form if cart is empty
-            const submitBtn = checkoutForm.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
             submitBtn.textContent = 'Cart is empty';
@@ -91,9 +121,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = '';
         let total = 0;
 
-        cartItems.forEach(item => {
+        cartItems.forEach((item, index) => {
             const itemTotal = item.price * item.quantity;
             total += itemTotal;
+            const disablePlus = item.quantity >= (item.stock || 0);
             
             html += `
                 <div class="flex items-center gap-5">
@@ -101,12 +132,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="w-16 h-20 bg-stone-100 rounded-sm overflow-hidden border border-stone-200">
                             <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
                         </div>
-                        <span class="absolute -top-2 -right-2 bg-stone-900 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm">${item.quantity}</span>
+                        <span class="absolute -top-2 -right-2 w-5 h-5 bg-stone-900 text-white rounded-full flex items-center justify-center text-[10px] font-bold z-10 shadow-sm">${item.quantity}</span>
                     </div>
                     <div class="flex-1 flex justify-between items-center">
                         <div class="flex flex-col">
                             <h4 class="font-serif text-stone-900 text-sm md:text-base">${item.title}</h4>
                             <p class="font-sans text-stone-500 text-xs mt-1">€${item.price.toLocaleString()} each</p>
+                            <div class="flex items-center gap-3 mt-2">
+                                <button onclick="window.updateCheckoutCartQty(${index}, -1)" type="button" class="w-6 h-6 flex items-center justify-center border border-stone-300 text-stone-500 hover:text-stone-900 hover:border-stone-900 rounded-sm transition-colors">-</button>
+                                <span class="font-sans text-sm text-stone-900 w-4 text-center">${item.quantity}</span>
+                                <button onclick="window.updateCheckoutCartQty(${index}, 1)" type="button" class="w-6 h-6 flex items-center justify-center border border-stone-300 text-stone-500 hover:text-stone-900 hover:border-stone-900 rounded-sm transition-colors ${disablePlus ? 'opacity-50 cursor-not-allowed' : ''}" ${disablePlus ? 'disabled' : ''}>+</button>
+                            </div>
                         </div>
                         <div class="font-sans text-stone-900 text-sm font-medium">
                             €${itemTotal.toLocaleString()}
@@ -119,6 +155,12 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = html;
         subtotalEl.textContent = `€${total.toLocaleString()}`;
         totalEl.textContent = `€${total.toLocaleString()}`;
+        
+        // Enable form if items exist
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        const currentLang = localStorage.getItem('aura_lang') || 'el';
+        submitBtn.textContent = translations[currentLang]?.checkout?.complete_order || translations['en'].checkout.complete_order;
     }
 
     // 3. Autofill Logic
