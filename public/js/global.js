@@ -17,40 +17,34 @@ const navbarHTML = `
             </div>
             
             <!-- Right-side controls -->
-            <div class="flex items-center gap-6 md:gap-8">
+            <div class="flex items-center gap-4 md:gap-6 z-10">
                 
                 <!-- Isolated Language Toggle -->
-                <div class="hidden sm:flex items-center gap-2 flex-shrink-0 select-none text-xs font-sans tracking-widest uppercase">
+                <div class="hidden sm:flex flex-shrink-0 flex items-center gap-1.5 font-sans text-[11px] tracking-widest uppercase select-none">
                     <button id="lang-el-btn" class="transition-colors" onclick="window.changeLanguage('el')">EL</button>
                     <span class="text-stone-300">|</span>
                     <button id="lang-en-btn" class="transition-colors" onclick="window.changeLanguage('en')">EN</button>
                 </div>
 
-                <!-- Action Icons Group -->
-                <div class="flex items-center gap-5 flex-shrink-0 text-stone-900">
-                    
-                    <!-- Self-Contained Expandable Search Container -->
-                    <div class="relative flex items-center">
-                        <form id="global-search-form" class="flex items-center">
-                            <input type="text" id="global-search-input" data-i18n="nav.search" placeholder="Search..." class="absolute right-full mr-2 w-36 md:w-48 border-b border-stone-900 bg-transparent py-1 pr-8 text-xs focus:outline-none placeholder-stone-400 transition-all duration-300 opacity-0 pointer-events-none translate-x-4">
-                            <button type="button" id="global-search-toggle" class="hover:scale-110 transition-transform p-1 text-xl" aria-label="Toggle Search">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- User Profile Link with Auth Indicator -->
-                    <a href="auth.html" id="user-profile-link" class="relative hover:scale-110 transition-transform hidden sm:block p-1 text-xl" aria-label="User Profile">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                        <span id="auth-indicator" class="absolute top-0.5 right-0.5 w-2 h-2 bg-stone-900 rounded-full border-2 border-[#FBFBFA] hidden transition-all duration-300"></span>
-                    </a>
-
-                    <!-- Cart Icon -->
-                    <button id="cart-icon-btn" class="relative hover:scale-110 transition-transform p-1 text-xl" aria-label="Cart">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                        <span id="cart-badge" class="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-stone-900 text-[10px] font-medium text-white opacity-0 transition-opacity duration-300 shadow-sm pointer-events-none">0</span>
+                <!-- Self-Contained Expandable Search Container -->
+                <form id="global-search-form" class="flex items-center flex-row-reverse">
+                    <button type="button" id="global-search-toggle" class="hover:scale-110 transition-transform p-1 text-xl flex-shrink-0" aria-label="Toggle Search">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </button>
-                </div>
+                    <input type="text" id="global-search-input" data-i18n="nav.search" placeholder="Search..." class="w-0 opacity-0 px-0 overflow-hidden transition-all duration-300 border-b border-stone-300 bg-transparent text-xs focus:outline-none focus:border-stone-900 placeholder-stone-400">
+                </form>
+
+                <!-- User Profile Link with Auth Indicator -->
+                <a href="auth.html" id="user-profile-link" class="relative hover:scale-110 transition-transform hidden sm:block p-1 text-xl flex-shrink-0" aria-label="User Profile">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    <span id="auth-indicator" class="absolute top-0.5 right-0.5 w-2 h-2 bg-stone-900 rounded-full border-2 border-[#FBFBFA] hidden transition-all duration-300"></span>
+                </a>
+
+                <!-- Cart Icon -->
+                <button id="cart-icon-btn" class="relative hover:scale-110 transition-transform p-1 text-xl flex-shrink-0" aria-label="Cart">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    <span id="cart-badge" class="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-stone-900 text-[10px] font-medium text-white opacity-0 transition-opacity duration-300 shadow-sm pointer-events-none">0</span>
+                </button>
             </div>
         </div>
     </nav>
@@ -210,16 +204,17 @@ function initGlobalUI() {
     if (searchToggle && searchInput && searchForm) {
         searchToggle.addEventListener('click', (e) => {
             // If input is already visible and has value, submit it
-            if (!searchInput.classList.contains('opacity-0') && searchInput.value.trim() !== '') {
+            if (!searchInput.classList.contains('w-0') && searchInput.value.trim() !== '') {
                 searchForm.dispatchEvent(new Event('submit'));
             } else {
                 // Toggle visibility
-                searchInput.classList.toggle('opacity-0');
-                searchInput.classList.toggle('pointer-events-none');
-                searchInput.classList.toggle('translate-x-4');
-                searchInput.classList.toggle('translate-x-0');
-                if (!searchInput.classList.contains('opacity-0')) {
+                if (searchInput.classList.contains('w-0')) {
+                    searchInput.classList.remove('w-0', 'opacity-0', 'px-0');
+                    searchInput.classList.add('w-32', 'md:w-48', 'opacity-100', 'px-2');
                     searchInput.focus();
+                } else {
+                    searchInput.classList.add('w-0', 'opacity-0', 'px-0');
+                    searchInput.classList.remove('w-32', 'md:w-48', 'opacity-100', 'px-2');
                 }
             }
         });
@@ -234,9 +229,9 @@ function initGlobalUI() {
         
         // Close search when clicking outside
         document.addEventListener('click', (e) => {
-            if (!searchForm.contains(e.target) && !searchInput.classList.contains('opacity-0')) {
-                searchInput.classList.add('opacity-0', 'pointer-events-none', 'translate-x-4');
-                searchInput.classList.remove('translate-x-0');
+            if (!searchForm.contains(e.target) && !searchInput.classList.contains('w-0')) {
+                searchInput.classList.add('w-0', 'opacity-0', 'px-0');
+                searchInput.classList.remove('w-32', 'md:w-48', 'opacity-100', 'px-2');
             }
         });
     }
