@@ -1,613 +1,544 @@
-/**
- * AURA Global Engine
- * Handles UI Component Injection (Navbar/Footer/Cart/Mobile Menu), Global Cart State, Hybrid Cloud/Local Sync, Auth State, and i18n Translation.
- */
-
-import { app, db } from './firebase-config.js';
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { translations } from './translations.js';
-
-const navbarHTML = `
-    <nav class="sticky top-0 z-50 bg-cream/90 backdrop-blur-md border-b border-stone-200/50 transition-all">
-        <div class="max-w-[1400px] mx-auto px-6 md:px-12 h-20 flex items-center justify-between relative">
-            
-            <!-- Mobile Left: Hamburger -->
-            <div class="flex md:hidden items-center flex-1">
-                <button id="mobile-menu-open" class="p-1 -ml-1 text-stone-900 hover:scale-110 transition-transform" aria-label="Open Menu">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                </button>
-            </div>
-
-            <!-- Logo (Center on mobile, Left on desktop) -->
-            <div class="flex-shrink-0 flex items-center justify-center md:justify-start">
-                <a href="index.html" class="font-serif text-2xl tracking-wide text-stone-900">AURA.</a>
-            </div>
-
-            <!-- Desktop Center: Links -->
-            <div class="hidden md:flex items-center gap-10 absolute left-1/2 -translate-x-1/2">
-                <a href="collection.html" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors" data-i18n="nav.collection">Collection</a>
-            </div>
-            
-            <!-- Right-side controls -->
-            <div class="flex-1 md:flex-none flex items-center justify-end gap-4 md:gap-6 z-10">
-                
-                <!-- Isolated Language Toggle (Desktop Only) -->
-                <div class="hidden md:flex flex-shrink-0 items-center gap-1.5 font-sans text-[11px] tracking-widest uppercase select-none">
-                    <button id="lang-el-btn" class="transition-colors" onclick="window.changeLanguage('el')">EL</button>
-                    <span class="text-stone-300">|</span>
-                    <button id="lang-en-btn" class="transition-colors" onclick="window.changeLanguage('en')">EN</button>
-                </div>
-
-                <!-- Self-Contained Expandable Search Container -->
-                <form id="global-search-form" class="flex items-center flex-row-reverse">
-                    <button type="button" id="global-search-toggle" class="hover:scale-110 transition-transform p-1 text-xl flex-shrink-0 text-stone-900" aria-label="Toggle Search">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </button>
-                    <input type="text" id="global-search-input" data-i18n="nav.search" placeholder="Search..." class="w-0 opacity-0 px-0 overflow-hidden transition-all duration-300 border-b border-stone-300 bg-transparent text-xs text-stone-900 focus:outline-none focus:border-stone-900 placeholder-stone-400">
-                </form>
-
-                <!-- User Profile Link with Auth Indicator (Desktop Only) -->
-                <a href="auth.html" id="user-profile-link" class="relative hover:scale-110 transition-transform hidden md:block p-1 text-xl flex-shrink-0 text-stone-900" aria-label="User Profile">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                    <span id="auth-indicator" class="absolute top-0.5 right-0.5 w-2 h-2 bg-stone-900 rounded-full border-2 border-[#FBFBFA] hidden transition-all duration-300"></span>
-                </a>
-
-                <!-- Cart Icon -->
-                <button id="cart-icon-btn" class="relative hover:scale-110 transition-transform p-1 text-xl flex-shrink-0 text-stone-900" aria-label="Cart">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                    <span id="cart-badge" class="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-stone-900 text-[10px] font-medium text-white opacity-0 transition-opacity duration-300 shadow-sm pointer-events-none">0</span>
-                </button>
-            </div>
-        </div>
-    </nav>
-`;
-
-const mobileMenuHTML = `
-    <div id="mobile-menu-container" class="fixed inset-0 z-[100] hidden pointer-events-none">
-        <div id="mobile-menu-backdrop" class="absolute inset-0 bg-stone-900/20 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-auto"></div>
-        <div id="mobile-menu-drawer" class="absolute top-0 left-0 h-full w-4/5 max-w-sm bg-[#FAFAFA] shadow-2xl transform -translate-x-full transition-transform duration-300 flex flex-col pointer-events-auto">
-            <div class="flex items-center justify-between px-8 py-6 border-b border-stone-200">
-                <a href="index.html" class="font-serif text-2xl tracking-wide text-stone-900">AURA.</a>
-                <button id="close-mobile-menu-btn" class="p-2 -mr-2 text-stone-500 hover:text-stone-900 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <div class="flex-1 overflow-y-auto px-8 py-8 flex flex-col justify-between">
-                <nav class="flex flex-col gap-6">
-                    <a href="collection.html" class="font-sans text-lg text-stone-900 hover:text-stone-600 transition-colors" data-i18n="nav.collection">Collection</a>
-                </nav>
-                
-                <div class="flex flex-col gap-8 pb-4">
-                    <div class="w-12 h-px bg-stone-200"></div>
-                    
-                    <a href="auth.html" id="mobile-user-profile-link" class="flex items-center gap-3 font-sans text-stone-900 hover:text-stone-600 transition-colors">
-                        <div class="relative">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                            <span id="mobile-auth-indicator" class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-stone-900 rounded-full border-2 border-[#FAFAFA] hidden"></span>
-                        </div>
-                        <span>Account</span>
-                    </a>
-                    
-                    <div class="flex items-center gap-2 font-sans text-xs tracking-widest uppercase select-none">
-                        <button id="lang-el-mobile-btn" class="transition-colors" onclick="window.changeLanguage('el')">EL</button>
-                        <span class="text-stone-300">|</span>
-                        <button id="lang-en-mobile-btn" class="transition-colors" onclick="window.changeLanguage('en')">EN</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-`;
-
-const footerHTML = `
-    <footer class="bg-stone-100 pt-20 pb-10 border-t border-stone-200">
-        <div class="max-w-[1400px] mx-auto px-6 md:px-12">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-                <div class="md:col-span-1">
-                    <a href="index.html" class="font-serif text-2xl tracking-wide text-stone-900 block mb-6">AURA.</a>
-                    <p class="font-sans text-sm text-stone-500 leading-relaxed" data-i18n="footer.desc">Defining the modern sanctuary through minimalist, sustainable, and timeless interior design.</p>
-                </div>
-                <div>
-                    <a href="customer-care.html" class="block group mb-6">
-                        <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 group-hover:text-stone-500 transition-colors" data-i18n="footer.customer_care">Customer Care</h4>
-                    </a>
-                    <ul class="space-y-4 font-sans text-sm text-stone-500">
-                        <li class="leading-relaxed" data-i18n="footer.address">123 Aura Boulevard, Suite 400<br>New York, NY 10012</li>
-                        <li>+1 800 555 0199</li>
-                        <li><a href="mailto:hello@aurafurniture.com" class="hover:text-stone-900 transition-colors">hello@aurafurniture.com</a></li>
-                        <li class="pt-2"><a href="customer-care.html" class="hover:text-stone-900 transition-colors underline underline-offset-4 decoration-stone-300" data-i18n="footer.faq">FAQs & Returns</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <a href="details.html" class="block group mb-6">
-                        <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 group-hover:text-stone-500 transition-colors" data-i18n="footer.details">Details</h4>
-                    </a>
-                    <ul class="space-y-4 font-sans text-sm text-stone-500">
-                        <li><a href="details.html#shipping" class="hover:text-stone-900 transition-colors" data-i18n="footer.shipping">Shipping Information</a></li>
-                        <li><a href="details.html#sustainability" class="hover:text-stone-900 transition-colors" data-i18n="footer.sustainability">Sustainability</a></li>
-                        <li><a href="details.html#terms" class="hover:text-stone-900 transition-colors" data-i18n="footer.terms">Terms of Service</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-sans text-sm font-semibold tracking-widest uppercase text-stone-900 mb-6" data-i18n="footer.newsletter">Newsletter</h4>
-                    <p class="font-sans text-sm text-stone-500 mb-4" data-i18n="footer.newsletter_desc">Subscribe to receive updates, access to exclusive deals, and more.</p>
-                    <form class="flex items-end group" onsubmit="event.preventDefault();">
-                        <input type="email" data-i18n="footer.newsletter_placeholder" placeholder="Enter your email address" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
-                        <button type="submit" class="pb-2 pl-2 text-stone-400 group-hover:text-stone-900 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-                        </button>
-                    </form>
-                </div>
-            </div>
-            <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-stone-200">
-                <p class="font-sans text-xs text-stone-400" data-i18n="footer.rights">&copy; 2024 AURA Interior Design. All rights reserved.</p>
-                <div class="flex gap-6 mt-4 md:mt-0">
-                    <a href="#" class="text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium">IG</a>
-                    <a href="#" class="text-stone-400 hover:text-stone-900 transition-colors text-sm font-medium">PT</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-`;
-
-const cartDrawerHTML = `
-    <div id="cart-drawer-container" class="fixed inset-0 z-[100] hidden pointer-events-none">
-        <div id="cart-backdrop" class="absolute inset-0 bg-stone-900/20 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-auto"></div>
-        <div id="cart-drawer" class="absolute top-0 right-0 h-full w-full max-w-md bg-[#FAFAFA] shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col pointer-events-auto">
-            <div class="flex items-center justify-between px-8 py-6 border-b border-stone-200">
-                <h2 class="font-serif text-2xl text-stone-900" data-i18n="cart.title">Your Cart</h2>
-                <button id="close-cart-btn" class="p-2 -mr-2 text-stone-500 hover:text-stone-900 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <div id="cart-items-container" class="flex-1 overflow-y-auto px-8 py-6 space-y-6 no-scrollbar">
-                <!-- Items injected here -->
-            </div>
-            <div class="px-8 py-6 border-t border-stone-200 bg-stone-50/50">
-                <div class="flex justify-between items-center mb-6">
-                    <span class="font-sans text-stone-500 uppercase tracking-widest text-xs font-semibold" data-i18n="cart.subtotal">Subtotal</span>
-                    <span id="cart-total" class="font-serif text-2xl text-stone-900">€0</span>
-                </div>
-                <p class="font-sans text-xs text-stone-400 mb-6" data-i18n="cart.shipping_note">Shipping and taxes calculated at checkout.</p>
-                <button onclick="window.checkout()" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-4 rounded-md hover:bg-stone-800 transition-colors shadow-sm" data-i18n="cart.checkout">
-                    Secure Checkout
-                </button>
-            </div>
-        </div>
-    </div>
-`;
-
-// ==========================================
-// 1. STATE MANAGEMENT
-// ==========================================
-let cart = [];
-let currentUser = null;
-
-// ==========================================
-// 2. I18N TRANSLATION ENGINE
-// ==========================================
-window.changeLanguage = function(lang) {
-    localStorage.setItem('aura_lang', lang);
-    document.documentElement.lang = lang;
-
-    // Helper to update active/inactive classes for language toggle buttons
-    const updateLangBtns = (elId, enId) => {
-        const elBtn = document.getElementById(elId);
-        const enBtn = document.getElementById(enId);
-        if (elBtn && enBtn) {
-            if (lang === 'el') {
-                elBtn.className = 'text-stone-900 font-semibold transition-colors';
-                enBtn.className = 'text-stone-400 hover:text-stone-900 cursor-pointer transition-colors';
-            } else {
-                enBtn.className = 'text-stone-900 font-semibold transition-colors';
-                elBtn.className = 'text-stone-400 hover:text-stone-900 cursor-pointer transition-colors';
+export const translations = {
+    en: {
+        nav: {
+            collection: "Collection",
+            search: "Search..."
+        },
+        footer: {
+            desc: "Defining the modern sanctuary through minimalist, sustainable, and timeless interior design.",
+            customer_care: "Customer Care",
+            address: "123 Aura Boulevard, Suite 400<br>New York, NY 10012",
+            faq: "FAQs & Returns",
+            details: "Details",
+            shipping: "Shipping Information",
+            sustainability: "Sustainability",
+            terms: "Terms of Service",
+            newsletter: "Newsletter",
+            newsletter_desc: "Subscribe to receive updates, access to exclusive deals, and more.",
+            newsletter_placeholder: "Enter your email address",
+            rights: "&copy; 2024 AURA Interior Design. All rights reserved."
+        },
+        cart: {
+            title: "Your Cart",
+            empty: "Your cart is currently empty.",
+            subtotal: "Subtotal",
+            shipping_note: "Shipping and taxes calculated at checkout.",
+            checkout: "Secure Checkout",
+            qty: "Qty"
+        },
+        actions: {
+            quick_add: "Quick Add",
+            add_to_cart: "Add to Cart",
+            out_of_stock: "Out of Stock",
+            added: "Added",
+            max_limit: "Max Limit Reached"
+        },
+        home: {
+            new_collection: "New Collection",
+            hero_title: "Elevate Your <br/><span class='italic text-stone-600'>Space.</span>",
+            hero_subtitle: "Discover our curated collection of minimalist furniture. Crafted with sustainable materials and designed for the modern sanctuary.",
+            explore: "Explore Collection",
+            curated_pieces: "Curated Pieces",
+            filters: {
+                all: "All",
+                seating: "Seating",
+                tables: "Tables",
+                decor: "Decor"
+            },
+            view_full: "View Full Collection"
+        },
+        collection: {
+            title: "The Collection",
+            loading: "Loading collection...",
+            filters: {
+                all: "All",
+                seating: "Seating",
+                tables: "Tables",
+                lighting: "Lighting",
+                decor: "Decor"
+            },
+            price_range: "Price Range",
+            min_price: "Min €",
+            max_price: "Max €",
+            apply: "Apply"
+        },
+        product: {
+            loading: "Loading details...",
+            reviews: {
+                title: "Customer Reviews",
+                share_thoughts: "Share Your Thoughts",
+                join_community: "Join the AURA community to leave a review and help others curate their sanctuary.",
+                sign_in: "Sign In to Review",
+                thank_you: "Thank You",
+                already_shared: "You have already shared your experience for this piece. We deeply appreciate your feedback.",
+                share_experience: "Share Your Experience",
+                feedback_shapes: "Your feedback shapes our collection",
+                overall_rating: "Overall Rating",
+                your_review: "Your Review",
+                review_placeholder: "What do you love about this piece?",
+                post_review: "Post Review",
+                loading_reviews: "Loading reviews..."
+            }
+        },
+        auth: {
+            sign_in_title: "Sign In",
+            sign_in_subtitle: "Access your AURA account.",
+            labels: {
+                first_name: "First Name",
+                last_name: "Last Name",
+                phone: "Phone Number",
+                address: "Home Address",
+                city: "City",
+                country: "Country",
+                postal_code: "Postal Code (ZIP)",
+                security_check: "Security Check",
+                email: "Email Address",
+                password: "Password"
+            },
+            countries: {
+                select: "Select Country",
+                greece: "Greece",
+                cyprus: "Cyprus"
+            },
+            placeholders: {
+                captcha: "Enter the 6-character code"
+            },
+            forgot_password: "Forgot your password?",
+            sign_in_btn: "Sign In",
+            no_account: "Don't have an account?",
+            create_one: "Create one",
+            error_phone_exists: "This phone number is already registered."
+        },
+        checkout: {
+            title: "Secure Checkout",
+            subtitle: "Complete your purchase to elevate your space.",
+            shipping_details: "Shipping Details",
+            use_account_info: "Use Account Info",
+            labels: {
+                first_name: "First Name",
+                last_name: "Last Name",
+                email: "Email Address",
+                address: "Street Address",
+                city: "City",
+                country: "Country",
+                postal_code: "Postal Code (ZIP)",
+                phone: "Phone Number",
+                card_number: "Card Number",
+                expiry_date: "Expiry Date",
+                cvc: "CVC"
+            },
+            countries: {
+                select: "Select Country",
+                greece: "Greece",
+                cyprus: "Cyprus"
+            },
+            payment_method: "Payment Method",
+            credit_card: "Credit / Debit Card",
+            paypal: "PayPal",
+            cod: "Cash on Delivery",
+            complete_order: "Complete Order",
+            order_summary: "Order Summary",
+            loading_cart: "Loading cart...",
+            subtotal: "Subtotal",
+            shipping: "Shipping",
+            complimentary: "Complimentary",
+            taxes: "Taxes",
+            included: "Included",
+            total: "Total"
+        },
+        profile: {
+            title: "My Account",
+            welcome: "Welcome back, ",
+            loading: "Loading...",
+            sidebar: {
+                personal_info: "Personal Info",
+                order_history: "Order History",
+                saved_addresses: "Saved Addresses",
+                logout: "Log Out"
+            },
+            personal_info: {
+                title: "Personal Information",
+                edit_btn: "Edit Profile",
+                full_name: "Full Name",
+                email: "Email Address",
+                phone: "Phone Number",
+                address: "Shipping Address"
+            },
+            edit_form: {
+                labels: {
+                    first_name: "First Name",
+                    last_name: "Last Name",
+                    phone: "Phone Number",
+                    address: "Street Address",
+                    city: "City",
+                    country: "Country",
+                    postal_code: "Postal Code (ZIP)",
+                    account_security: "Account Security",
+                    change_email: "Change Email"
+                },
+                countries: {
+                    select: "Select Country",
+                    greece: "Greece",
+                    cyprus: "Cyprus"
+                },
+                cancel: "Cancel",
+                save: "Save Changes"
+            },
+            orders: {
+                title: "Order History",
+                empty_title: "No orders yet",
+                empty_desc: "When you place an order, it will appear here. Discover our latest minimalist pieces to elevate your space.",
+                explore_btn: "Explore Collection"
+            },
+            addresses: {
+                title: "Saved Addresses",
+                add_new: "+ Add New",
+                empty_title: "No alternate addresses saved",
+                empty_desc: "Save your shipping and billing addresses for a faster checkout experience."
+            },
+            change_email_btn: "Change",
+            email_modal: {
+                title: "Update Email Address",
+                subtitle: "For security, you must enter your current password. A verification link will be sent to your new email.",
+                new_email: "New Email Address",
+                current_password: "Current Password",
+                cancel: "Cancel",
+                submit: "Send Verification Link",
+                success: "A verification email has been sent to your new address. Please click the link in that email to finalize the update.",
+                error_password: "Incorrect current password.",
+                error_generic: "An error occurred. Please try again."
+            }
+        },
+        customer_care: {
+            title: "Customer Care",
+            subtitle: "We are dedicated to providing a seamless experience. Whether you have a question about a piece, shipping, or need assistance with an existing order, we are here to help.",
+            form: {
+                title: "Get in Touch",
+                tooltip: "If you are logged into your account, your registration details are securely and automatically attached to this request.<div class='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-900'></div>",
+                labels: {
+                    name: "Full Name",
+                    email: "Email Address",
+                    phone: "Telephone Number",
+                    issue_type: "Issue Type",
+                    message: "How can we help you?",
+                    security_check: "Security Check"
+                },
+                issues: {
+                    select: "Select an option",
+                    general: "General Inquiry",
+                    order: "Order/Product Issue",
+                    technical: "Technical Problem"
+                },
+                captcha_placeholder: "Enter the 6-character code",
+                submit: "Submit Inquiry"
+            },
+            faq: {
+                title: "Frequently Asked Questions",
+                q1: "What are your standard shipping times?",
+                a1: "Because many of our pieces are crafted to order, standard delivery generally takes between 4 to 6 weeks. In-stock decor items are usually dispatched within 3-5 business days. You will receive a tracking link once your order leaves our facility.",
+                q2: "Do you offer white-glove delivery and assembly?",
+                a2: "Yes, white-glove delivery is available for all large furniture items (tables, seating) at an additional tier during checkout. Our team will deliver the piece to your room of choice, handle all assembly, and remove the packaging materials.",
+                q3: "Are your materials sustainably sourced?",
+                a3: "Sustainability is at the core of AURA. We strictly utilize FSC-certified timbers, organic linens, and non-toxic finishes. We partner directly with artisans to ensure a transparent, ethical supply chain."
+            },
+            returns: {
+                title: "Returns & Exchanges",
+                desc: "We take immense pride in the craftsmanship of our collection. If you are not entirely satisfied with your purchase, AURA accepts returns of unused, undamaged items within <strong>30 days of delivery</strong>. Custom or made-to-order pieces are final sale. To initiate a return, simply fill out the contact form above with your order number."
+            }
+        },
+        details: {
+            title: "Company Details",
+            subtitle: "Everything you need to know about our shipping practices, our commitment to the earth, and our terms of service.",
+            shipping: {
+                title: "Shipping Information",
+                p1: "At AURA, we believe the delivery of your new piece should be as seamless and refined as the design itself. We offer complimentary standard shipping on all decor items within the contiguous United States and Europe. For our larger furniture pieces—including tables, seating, and heavy lighting fixtures—we utilize a specialized freight network.",
+                p2: "<strong>Premium White-Glove Delivery:</strong> For an unparalleled experience, select our White-Glove service at checkout. Our dedicated logistics team will deliver the item to your room of choice, professionally assemble it, and carefully remove all packaging materials, leaving your sanctuary pristine.",
+                p3: "<strong>International Shipping & Tracking:</strong> We ship globally. International transit times vary between 2 to 4 weeks depending on the destination and customs processing. Once your order has been dispatched from our workshop, you will receive a curated email containing your tracking itinerary."
+            },
+            sustainability: {
+                title: "Sustainability",
+                p1: "Our commitment to minimalist design extends beyond aesthetics; it is a philosophy of consuming less, but better. We are deeply committed to minimizing our environmental footprint and ensuring that our creations respect the natural world from which their materials are derived.",
+                p2: "<strong>Ethically Sourced Materials:</strong> Every piece of timber used in our collection is strictly FSC-certified, ensuring it is harvested from responsibly managed forests. Our textiles are woven from organic, unbleached linens and our finishes are non-toxic, low-VOC oils that protect both your home's air quality and the environment.",
+                p3: "<strong>Carbon-Neutral Operations:</strong> We have partnered with global environmental initiatives to offset 100% of the carbon emissions generated by our shipping and logistics network. We design for longevity, creating heirloom-quality pieces intended to be passed down through generations, fundamentally opposing the culture of disposable furniture."
+            },
+            terms: {
+                title: "Terms of Service",
+                p1: "<strong class='text-stone-900 font-medium'>1. User Agreement:</strong> By accessing and using the AURA website, you agree to be bound by these Terms of Service. If you do not agree to all the terms and conditions of this agreement, then you may not access the website or use any services. We reserve the right to update, change or replace any part of these Terms by posting updates to our website.",
+                p2: "<strong class='text-stone-900 font-medium'>2. Intellectual Property:</strong> All content included on this site, such as text, graphics, logos, images, audio clips, digital downloads, and software, is the property of AURA or its content suppliers and protected by international copyright laws. The compilation of all content on this site is the exclusive property of AURA.",
+                p3: "<strong class='text-stone-900 font-medium'>3. Products and Pricing:</strong> We have made every effort to display as accurately as possible the colors and images of our products that appear at the store. We cannot guarantee that your computer monitor's display of any color will be accurate. Prices for our products are subject to change without notice. We reserve the right at any time to modify or discontinue the Service without notice at any time.",
+                p4: "<strong class='text-stone-900 font-medium'>4. Limitation of Liability:</strong> In no case shall AURA, our directors, officers, employees, affiliates, agents, contractors, or licensors be liable for any injury, loss, claim, or any direct, indirect, incidental, punitive, special, or consequential damages of any kind, including, without limitation lost profits, lost revenue, lost savings, loss of data, replacement costs, or any similar damages, whether based in contract, tort (including negligence), strict liability or otherwise, arising from your use of any of the service or any products procured using the service."
             }
         }
-    };
-
-    // Update both Desktop and Mobile toggles
-    updateLangBtns('lang-el-btn', 'lang-en-btn');
-    updateLangBtns('lang-el-mobile-btn', 'lang-en-mobile-btn');
-
-    const elements = document.querySelectorAll('[data-i18n]');
-    elements.forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        const keys = key.split('.');
-        let value = translations[lang];
-        
-        for (const k of keys) {
-            if (value) value = value[k];
-        }
-
-        if (value) {
-            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                el.placeholder = value;
-            } else {
-                el.innerHTML = value; 
+    },
+    el: {
+        nav: {
+            collection: "Συλλογή",
+            search: "Αναζήτηση..."
+        },
+        footer: {
+            desc: "Ορίζοντας το σύγχρονο καταφύγιο μέσα από τον μινιμαλιστικό, βιώσιμο και διαχρονικό εσωτερικό σχεδιασμό.",
+            customer_care: "Εξυπηρέτηση Πελατών",
+            address: "Λεωφόρος Aura 123, Γραφείο 400<br>Νέα Υόρκη, NY 10012",
+            faq: "Συχνές Ερωτήσεις & Επιστροφές",
+            details: "Λεπτομέρειες",
+            shipping: "Πληροφορίες Αποστολής",
+            sustainability: "Βιωσιμότητα",
+            terms: "Όροι Χρήσης",
+            newsletter: "Ενημερωτικό Δελτίο",
+            newsletter_desc: "Εγγραφείτε για να λαμβάνετε ενημερώσεις, πρόσβαση σε αποκλειστικές προσφορές και άλλα.",
+            newsletter_placeholder: "Εισάγετε το email σας",
+            rights: "&copy; 2024 AURA Interior Design. Με την επιφύλαξη παντός δικαιώματος."
+        },
+        cart: {
+            title: "Το Καλάθι σας",
+            empty: "Το καλάθι σας είναι αυτή τη στιγμή άδειο.",
+            subtotal: "Υποσύνολο",
+            shipping_note: "Τα έξοδα αποστολής και οι φόροι υπολογίζονται στο ταμείο.",
+            checkout: "Ασφαλής Ολοκλήρωση",
+            qty: "Τεμ"
+        },
+        actions: {
+            quick_add: "Γρηγορη Προσθηκη",
+            add_to_cart: "Προσθηκη στο Καλαθι",
+            out_of_stock: "Εξαντληθηκε",
+            added: "Προστεθηκε",
+            max_limit: "Οριο Αποθεματος"
+        },
+        home: {
+            new_collection: "Νέα Συλλογή",
+            hero_title: "Αναβαθμίστε τον <br/><span class='italic text-stone-600'>Χώρο σας.</span>",
+            hero_subtitle: "Ανακαλύψτε την επιλεγμένη συλλογή μας από μινιμαλιστικά έπιπλα. Κατασκευασμένα με βιώσιμα υλικά και σχεδιασμένα για το σύγχρονο καταφύγιο.",
+            explore: "Εξερευνήστε τη Συλλογή",
+            curated_pieces: "Επιλεγμένα Κομμάτια",
+            filters: {
+                all: "Όλα",
+                seating: "Καθίσματα",
+                tables: "Τραπέζια",
+                decor: "Διακόσμηση"
+            },
+            view_full: "Δείτε Όλη τη Συλλογή"
+        },
+        collection: {
+            title: "Η Συλλογή",
+            loading: "Φόρτωση συλλογής...",
+            filters: {
+                all: "Όλα",
+                seating: "Καθίσματα",
+                tables: "Τραπέζια",
+                lighting: "Φωτισμός",
+                decor: "Διακόσμηση"
+            },
+            price_range: "Εύρος Τιμής",
+            min_price: "Ελάχ. €",
+            max_price: "Μέγ. €",
+            apply: "Εφαρμογή"
+        },
+        product: {
+            loading: "Φόρτωση λεπτομερειών...",
+            reviews: {
+                title: "Κριτικές Πελατών",
+                share_thoughts: "Μοιραστείτε τις Σκέψεις σας",
+                join_community: "Γίνετε μέλος της κοινότητας AURA για να αφήσετε μια κριτική και να βοηθήσετε άλλους να επιμεληθούν το καταφύγιό τους.",
+                sign_in: "Συνδεθείτε για Κριτική",
+                thank_you: "Ευχαριστούμε",
+                already_shared: "Έχετε ήδη μοιραστεί την εμπειρία σας για αυτό το κομμάτι. Εκτιμούμε βαθύτατα τα σχόλιά σας.",
+                share_experience: "Μοιραστείτε την Εμπειρία σας",
+                feedback_shapes: "Τα σχόλιά σας διαμορφώνουν τη συλλογή μας",
+                overall_rating: "Συνολική Βαθμολογία",
+                your_review: "Η Κριτική σας",
+                review_placeholder: "Τι σας αρέσει σε αυτό το κομμάτι;",
+                post_review: "Δημοσίευση Κριτικής",
+                loading_reviews: "Φόρτωση κριτικών..."
+            }
+        },
+        auth: {
+            sign_in_title: "Σύνδεση",
+            sign_in_subtitle: "Αποκτήστε πρόσβαση στον λογαριασμό σας AURA.",
+            labels: {
+                first_name: "Όνομα",
+                last_name: "Επώνυμο",
+                phone: "Αριθμός Τηλεφώνου",
+                address: "Διεύθυνση Κατοικίας",
+                city: "Πόλη",
+                country: "Χώρα",
+                postal_code: "Ταχυδρομικός Κώδικας (Τ.Κ.)",
+                security_check: "Έλεγχος Ασφαλείας",
+                email: "Διεύθυνση Email",
+                password: "Κωδικός Πρόσβασης"
+            },
+            countries: {
+                select: "Επιλέξτε Χώρα",
+                greece: "Ελλάδα",
+                cyprus: "Κύπρος"
+            },
+            placeholders: {
+                captcha: "Εισάγετε τον 6-ψήφιο κωδικό"
+            },
+            forgot_password: "Ξεχάσατε τον κωδικό σας;",
+            sign_in_btn: "Σύνδεση",
+            no_account: "Δεν έχετε λογαριασμό;",
+            create_one: "Δημιουργήστε έναν",
+            error_phone_exists: "Αυτός ο αριθμός τηλεφώνου είναι ήδη εγγεγραμμένος."
+        },
+        checkout: {
+            title: "Ασφαλής Ολοκλήρωση",
+            subtitle: "Ολοκληρώστε την αγορά σας για να αναβαθμίσετε τον χώρο σας.",
+            shipping_details: "Λεπτομέρειες Αποστολής",
+            use_account_info: "Χρήση Πληροφοριών Λογαριασμού",
+            labels: {
+                first_name: "Όνομα",
+                last_name: "Επώνυμο",
+                email: "Διεύθυνση Email",
+                address: "Οδός & Αριθμός",
+                city: "Πόλη",
+                country: "Χώρα",
+                postal_code: "Ταχυδρομικός Κώδικας (Τ.Κ.)",
+                phone: "Αριθμός Τηλεφώνου",
+                card_number: "Αριθμός Κάρτας",
+                expiry_date: "Ημερομηνία Λήξης",
+                cvc: "CVC"
+            },
+            countries: {
+                select: "Επιλέξτε Χώρα",
+                greece: "Ελλάδα",
+                cyprus: "Κύπρος"
+            },
+            payment_method: "Μέθοδος Πληρωμής",
+            credit_card: "Πιστωτική / Χρεωστική Κάρτα",
+            paypal: "PayPal",
+            cod: "Αντικαταβολή",
+            complete_order: "Ολοκλήρωση Παραγγελίας",
+            order_summary: "Σύνοψη Παραγγελίας",
+            loading_cart: "Φόρτωση καλαθιού...",
+            subtotal: "Υποσύνολο",
+            shipping: "Αποστολή",
+            complimentary: "Δωρεάν",
+            taxes: "Φόροι",
+            included: "Συμπεριλαμβάνονται",
+            total: "Σύνολο"
+        },
+        profile: {
+            title: "Ο Λογαριασμός μου",
+            welcome: "Καλώς ήρθατε, ",
+            loading: "Φόρτωση...",
+            sidebar: {
+                personal_info: "Προσωπικές Πληροφορίες",
+                order_history: "Ιστορικό Παραγγελιών",
+                saved_addresses: "Αποθηκευμένες Διευθύνσεις",
+                logout: "Αποσύνδεση"
+            },
+            personal_info: {
+                title: "Προσωπικές Πληροφορίες",
+                edit_btn: "Επεξεργασία Προφίλ",
+                full_name: "Ονοματεπώνυμο",
+                email: "Διεύθυνση Email",
+                phone: "Αριθμός Τηλεφώνου",
+                address: "Διεύθυνση Αποστολής"
+            },
+            edit_form: {
+                labels: {
+                    first_name: "Όνομα",
+                    last_name: "Επώνυμο",
+                    phone: "Αριθμός Τηλεφώνου",
+                    address: "Οδός & Αριθμός",
+                    city: "Πόλη",
+                    country: "Χώρα",
+                    postal_code: "Ταχυδρομικός Κώδικας (Τ.Κ.)",
+                    account_security: "Ασφάλεια Λογαριασμού",
+                    change_email: "Αλλαγή Email"
+                },
+                countries: {
+                    select: "Επιλέξτε Χώρα",
+                    greece: "Ελλάδα",
+                    cyprus: "Κύπρος"
+                },
+                cancel: "Ακύρωση",
+                save: "Αποθήκευση Αλλαγών"
+            },
+            orders: {
+                title: "Ιστορικό Παραγγελιών",
+                empty_title: "Δεν υπάρχουν παραγγελίες",
+                empty_desc: "Όταν κάνετε μια παραγγελία, θα εμφανιστεί εδώ. Ανακαλύψτε τα νεότερα μινιμαλιστικά κομμάτια μας για να αναβαθμίσετε τον χώρο σας.",
+                explore_btn: "Εξερευνήστε τη Συλλογή"
+            },
+            addresses: {
+                title: "Αποθηκευμένες Διευθύνσεις",
+                add_new: "+ Προσθήκη Νέας",
+                empty_title: "Δεν υπάρχουν εναλλακτικές διευθύνσεις",
+                empty_desc: "Αποθηκεύστε τις διευθύνσεις αποστολής και χρέωσης για μια πιο γρήγορη εμπειρία αγοράς."
+            },
+            change_email_btn: "Αλλαγή",
+            email_modal: {
+                title: "Ενημέρωση Διεύθυνσης Email",
+                subtitle: "Για λόγους ασφαλείας, πρέπει να εισάγετε τον τρέχοντα κωδικό πρόσβασής σας. Ένας σύνδεσμος επαλήθευσης θα σταλεί στο νέο σας email.",
+                new_email: "Νέα Διεύθυνση Email",
+                current_password: "Τρέχων Κωδικός Πρόσβασης",
+                cancel: "Ακύρωση",
+                submit: "Αποστολή Συνδέσμου",
+                success: "Ένα email επαλήθευσης έχει σταλεί στη νέα σας διεύθυνση. Παρακαλώ κάντε κλικ στον σύνδεσμο σε αυτό το email για να ολοκληρώσετε την ενημέρωση.",
+                error_password: "Λανθασμένος τρέχων κωδικός πρόσβασης.",
+                error_generic: "Προέκυψε ένα σφάλμα. Παρακαλώ δοκιμάστε ξανά."
+            }
+        },
+        customer_care: {
+            title: "Εξυπηρέτηση Πελατών",
+            subtitle: "Είμαστε αφοσιωμένοι στο να παρέχουμε μια απρόσκοπτη εμπειρία. Είτε έχετε μια ερώτηση για ένα κομμάτι, την αποστολή, είτε χρειάζεστε βοήθεια με μια υπάρχουσα παραγγελία, είμαστε εδώ για να βοηθήσουμε.",
+            form: {
+                title: "Επικοινωνήστε μαζί μας",
+                tooltip: "Εάν είστε συνδεδεμένοι στον λογαριασμό σας, τα στοιχεία εγγραφής σας επισυνάπτονται αυτόματα και με ασφάλεια σε αυτό το αίτημα.<div class='absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-900'></div>",
+                labels: {
+                    name: "Ονοματεπώνυμο",
+                    email: "Διεύθυνση Email",
+                    phone: "Αριθμός Τηλεφώνου",
+                    issue_type: "Τύπος Προβλήματος",
+                    message: "Πώς μπορούμε να σας βοηθήσουμε;",
+                    security_check: "Έλεγχος Ασφαλείας"
+                },
+                issues: {
+                    select: "Επιλέξτε μια επιλογή",
+                    general: "Γενική Ερώτηση",
+                    order: "Πρόβλημα Παραγγελίας/Προϊόντος",
+                    technical: "Τεχνικό Πρόβλημα"
+                },
+                captcha_placeholder: "Εισάγετε τον 6-ψήφιο κωδικό",
+                submit: "Υποβολή Αιτήματος"
+            },
+            faq: {
+                title: "Συχνές Ερωτήσεις",
+                q1: "Ποιοι είναι οι τυπικοί χρόνοι αποστολής;",
+                a1: "Επειδή πολλά από τα κομμάτια μας κατασκευάζονται κατά παραγγελία, η τυπική παράδοση διαρκεί συνήθως 4 έως 6 εβδομάδες. Τα διαθέσιμα είδη διακόσμησης αποστέλλονται συνήθως εντός 3-5 εργάσιμων ημερών. Θα λάβετε έναν σύνδεσμο παρακολούθησης μόλις η παραγγελία σας αναχωρήσει από τις εγκαταστάσεις μας.",
+                q2: "Προσφέρετε υπηρεσία παράδοσης white-glove και συναρμολόγησης;",
+                a2: "Ναι, η υπηρεσία παράδοσης white-glove είναι διαθέσιμη για όλα τα μεγάλα έπιπλα (τραπέζια, καθίσματα) με επιπλέον χρέωση κατά την ολοκλήρωση της παραγγελίας. Η ομάδα μας θα παραδώσει το κομμάτι στο δωμάτιο της επιλογής σας, θα αναλάβει την πλήρη συναρμολόγηση και θα απομακρύνει τα υλικά συσκευασίας.",
+                q3: "Είναι τα υλικά σας βιώσιμα;",
+                a3: "Η βιωσιμότητα βρίσκεται στον πυρήνα της AURA. Χρησιμοποιούμε αυστηρά ξυλεία με πιστοποίηση FSC, οργανικά λινά και μη τοξικά φινιρίσματα. Συνεργαζόμαστε άμεσα με τεχνίτες για να διασφαλίσουμε μια διαφανή, ηθική αλυσίδα εφοδιασμού."
+            },
+            returns: {
+                title: "Επιστροφές & Αλλαγές",
+                desc: "Είμαστε εξαιρετικά περήφανοι για την ποιότητα κατασκευής της συλλογής μας. Εάν δεν είστε απόλυτα ικανοποιημένοι με την αγορά σας, η AURA δέχεται επιστροφές αχρησιμοποίητων, άθικτων αντικειμένων εντός <strong>30 ημερών από την παράδοση</strong>. Τα προσαρμοσμένα ή custom κομμάτια δεν επιστρέφονται. Για να ξεκινήσετε μια επιστροφή, απλώς συμπληρώστε την παραπάνω φόρμα επικοινωνίας με τον αριθμό παραγγελίας σας."
+            }
+        },
+        details: {
+            title: "Στοιχεία Εταιρείας",
+            subtitle: "Όλα όσα πρέπει να γνωρίζετε για τις πρακτικές αποστολής μας, τη δέσμευσή μας προς τον πλανήτη και τους όρους χρήσης μας.",
+            shipping: {
+                title: "Πληροφορίες Αποστολής",
+                p1: "Στην AURA, πιστεύουμε ότι η παράδοση του νέου σας κομματιού πρέπει να είναι τόσο απρόσκοπτη και εκλεπτυσμένη όσο και ο ίδιος ο σχεδιασμός. Προσφέρουμε δωρεάν τυπική αποστολή σε όλα τα είδη διακόσμησης εντός των ηπειρωτικών Ηνωμένων Πολιτειών και της Ευρώπης. Για τα μεγαλύτερα έπιπλά μας — συμπεριλαμβανομένων των τραπεζιών, των καθισμάτων και των βαριών φωτιστικών — χρησιμοποιούμε ένα εξειδικευμένο δίκτυο μεταφορών.",
+                p2: "<strong>Υπηρεσία Παράδοσης White-Glove:</strong> Για μια απαράμιλλη εμπειρία, επιλέξτε την υπηρεσία White-Glove κατά την ολοκλήρωση της παραγγελίας. Η εξειδικευμένη ομάδα logistics μας θα παραδώσει το αντικείμενο στο δωμάτιο της επιλογής σας, θα το συναρμολογήσει επαγγελματικά και θα αφαιρέσει προσεκτικά όλα τα υλικά συσκευασίας, αφήνοντας το καταφύγιό σας άψογο.",
+                p3: "<strong>Διεθνής Αποστολή & Παρακολούθηση:</strong> Αποστέλλουμε παγκοσμίως. Οι διεθνείς χρόνοι μεταφοράς ποικίλλουν μεταξύ 2 έως 4 εβδομάδων ανάλογα με τον προορισμό και την επεξεργασία του τελωνείου. Μόλις η παραγγελία σας αποσταλεί από το εργαστήριό μας, θα λάβετε ένα επιμελημένο email που θα περιέχει το δρομολόγιο παρακολούθησής σας."
+            },
+            sustainability: {
+                title: "Βιωσιμότητα",
+                p1: "Η δέσμευσή μας στον μινιμαλιστικό σχεδιασμό εκτείνεται πέρα από την αισθητική· είναι μια φιλοσοφία του να καταναλώνουμε λιγότερο, αλλά καλύτερα. Είμαστε βαθιά δεσμευμένοι στην ελαχιστοποίηση του περιβαλλοντικού μας αποτυπώματος και στη διασφάλιση ότι οι δημιουργίες μας σέβονται τον φυσικό κόσμο από τον οποίο προέρχονται τα υλικά τους.",
+                p2: "<strong>Ηθικά Προερχόμενα Υλικά:</strong> Κάθε κομμάτι ξυλείας που χρησιμοποιείται στη συλλογή μας είναι αυστηρά πιστοποιημένο κατά FSC, διασφαλίζοντας ότι συλλέγεται από υπεύθυνα διαχειριζόμενα δάση. Τα υφάσματά μας είναι υφασμένα από οργανικά, αλεύκαντα λινά και τα φινιρίσματά μας είναι μη τοξικά έλαια χαμηλών ΠΟΕ που προστατεύουν τόσο την ποιότητα του αέρα του σπιτιού σας όσο και το περιβάλλον.",
+                p3: "<strong>Λειτουργίες Ουδέτερου Ισοζυγίου Άνθρακα:</strong> Έχουμε συνεργαστεί με παγκόσμιες περιβαλλοντικές πρωτοβουλίες για να αντισταθμίσουμε το 100% των εκπομπών άνθρακα που παράγονται από το δίκτυο αποστολής και logistics μας. Σχεδιάζουμε με γνώμονα τη μακροζωία, δημιουργώντας κομμάτια ποιότητας κειμηλίου που προορίζονται να περάσουν από γενιά σε γενιά, αντιτιθέμενοι θεμελιωδώς στην κουλτούρα των επίπλων μιας χρήσης."
+            },
+            terms: {
+                title: "Όροι Χρήσης",
+                p1: "<strong class='text-stone-900 font-medium'>1. Συμφωνία Χρήστη:</strong> Με την πρόσβαση και τη χρήση του ιστότοπου της AURA, συμφωνείτε να δεσμεύεστε από αυτούς τους Όρους Χρήσης. Εάν δεν συμφωνείτε με όλους τους όρους και τις προϋποθέσεις αυτής της συμφωνίας, τότε δεν μπορείτε να έχετε πρόσβαση στον ιστότοπο ή να χρησιμοποιήσετε οποιεσδήποτε υπηρεσίες. Διατηρούμε το δικαίωμα να ενημερώσουμε, να αλλάξουμε ή να αντικαταστήσουμε οποιοδήποτε μέρος αυτών των Όρων δημοσιεύοντας ενημερώσεις στον ιστότοπό μας.",
+                p2: "<strong class='text-stone-900 font-medium'>2. Πνευματική Ιδιοκτησία:</strong> Όλο το περιεχόμενο που περιλαμβάνεται σε αυτόν τον ιστότοπο, όπως κείμενο, γραφικά, λογότυπα, εικόνες, ηχητικά κλιπ, ψηφιακές λήψεις και λογισμικό, αποτελεί ιδιοκτησία της AURA ή των προμηθευτών περιεχομένου της και προστατεύεται από τους διεθνείς νόμους περί πνευματικών δικαιωμάτων. Η συλλογή όλου του περιεχομένου σε αυτόν τον ιστότοπο αποτελεί αποκλειστική ιδιοκτησία της AURA.",
+                p3: "<strong class='text-stone-900 font-medium'>3. Προϊόντα και Τιμολόγηση:</strong> Έχουμε καταβάλει κάθε δυνατή προσπάθεια για να εμφανίσουμε όσο το δυνατόν ακριβέστερα τα χρώματα και τις εικόνες των προϊόντων μας που εμφανίζονται στο κατάστημα. Δεν μπορούμε να εγγυηθούμε ότι η εμφάνιση οποιουδήποτε χρώματος στην οθόνη του υπολογιστή σας θα είναι ακριβής. Οι τιμές των προϊόντων μας υπόκεινται σε αλλαγές χωρίς προειδοποίηση. Διατηρούμε το δικαίωμα ανά πάσα στιγμή να τροποποιήσουμε ή να διακόψουμε την Υπηρεσία χωρίς προειδοποίηση ανά πάσα στιγμή.",
+                p4: "<strong class='text-stone-900 font-medium'>4. Περιορισμός Ευθύνης:</strong> Σε καμία περίπτωση η AURA, οι διευθυντές, οι αξιωματούχοι, οι υπάλληλοι, οι θυγατρικές, οι πράκτορες, οι εργολάβοι ή οι δικαιοπάροχοί μας δεν ευθύνονται για οποιονδήποτε τραυματισμό, απώλεια, αξίωση ή οποιαδήποτε άμεση, έμμεση, τυχαία, τιμωρητική, ειδική ή παρεπόμενη ζημία οποιουδήποτε είδους, συμπεριλαμβανομένων, ενδεικτικά, διαφυγόντων κερδών, διαφυγόντων εσόδων, απώλειας αποταμιεύσεων, απώλειας δεδομένων, κόστους αντικατάστασης ή οποιωνδήποτε παρόμοιων ζημιών, είτε βασίζονται σε σύμβαση, αδικοπραξία (συμπεριλαμβανομένης της αμέλειας), αυστηρή ευθύνη ή άλλως, που προκύπτουν από τη χρήση οποιασδήποτε υπηρεσίας ή οποιωνδήποτε προϊόντων που προμηθευτήκατε χρησιμοποιώντας την υπηρεσία."
             }
         }
-    });
-
-    // Re-render cart to ensure dynamic strings (like Empty Cart) are translated
-    renderCart();
+    }
 };
-
-// ==========================================
-// 3. INJECT UI & INITIALIZE
-// ==========================================
-function initGlobalUI() {
-    const navContainer = document.getElementById('navbar-container');
-    if (navContainer) {
-        navContainer.innerHTML = navbarHTML;
-        document.body.insertAdjacentHTML('beforeend', mobileMenuHTML);
-    }
-
-    const footerContainer = document.getElementById('footer-container');
-    if (footerContainer) footerContainer.innerHTML = footerHTML;
-
-    if (!document.getElementById('cart-drawer-container')) {
-        document.body.insertAdjacentHTML('beforeend', cartDrawerHTML);
-    }
-
-    // Initialize Language (Default to Greek if not set)
-    const savedLang = localStorage.getItem('aura_lang') || 'el';
-    window.changeLanguage(savedLang);
-
-    // Expandable Search Logic
-    const searchToggle = document.getElementById('global-search-toggle');
-    const searchInput = document.getElementById('global-search-input');
-    const searchForm = document.getElementById('global-search-form');
-    
-    if (searchToggle && searchInput && searchForm) {
-        searchToggle.addEventListener('click', (e) => {
-            // If input is already visible and has value, submit it
-            if (!searchInput.classList.contains('w-0') && searchInput.value.trim() !== '') {
-                searchForm.dispatchEvent(new Event('submit'));
-            } else {
-                // Toggle visibility
-                if (searchInput.classList.contains('w-0')) {
-                    searchInput.classList.remove('w-0', 'opacity-0', 'px-0');
-                    searchInput.classList.add('w-32', 'md:w-48', 'opacity-100', 'px-2');
-                    searchInput.focus();
-                } else {
-                    searchInput.classList.add('w-0', 'opacity-0', 'px-0');
-                    searchInput.classList.remove('w-32', 'md:w-48', 'opacity-100', 'px-2');
-                }
-            }
-        });
-
-        searchForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const query = searchInput.value.trim();
-            if (query) {
-                window.location.href = `collection.html?search=${encodeURIComponent(query)}`;
-            }
-        });
-        
-        // Close search when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!searchForm.contains(e.target) && !searchInput.classList.contains('w-0')) {
-                searchInput.classList.add('w-0', 'opacity-0', 'px-0');
-                searchInput.classList.remove('w-32', 'md:w-48', 'opacity-100', 'px-2');
-            }
-        });
-    }
-
-    // Mobile Menu Logic
-    const mobileMenuOpenBtn = document.getElementById('mobile-menu-open');
-    const mobileMenuCloseBtn = document.getElementById('close-mobile-menu-btn');
-    const mobileMenuContainer = document.getElementById('mobile-menu-container');
-    const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
-    const mobileMenuDrawer = document.getElementById('mobile-menu-drawer');
-
-    window.openMobileMenu = function() {
-        if(!mobileMenuContainer) return;
-        mobileMenuContainer.classList.remove('hidden');
-        setTimeout(() => {
-            mobileMenuBackdrop.classList.remove('opacity-0');
-            mobileMenuBackdrop.classList.add('opacity-100');
-            mobileMenuDrawer.classList.remove('-translate-x-full');
-            mobileMenuDrawer.classList.add('translate-x-0');
-        }, 10);
-        document.body.style.overflow = 'hidden';
-    };
-
-    window.closeMobileMenu = function() {
-        if(!mobileMenuContainer) return;
-        mobileMenuBackdrop.classList.remove('opacity-100');
-        mobileMenuBackdrop.classList.add('opacity-0');
-        mobileMenuDrawer.classList.remove('translate-x-0');
-        mobileMenuDrawer.classList.add('-translate-x-full');
-        setTimeout(() => {
-            mobileMenuContainer.classList.add('hidden');
-            document.body.style.overflow = '';
-        }, 300);
-    };
-
-    if (mobileMenuOpenBtn) mobileMenuOpenBtn.addEventListener('click', window.openMobileMenu);
-    if (mobileMenuCloseBtn) mobileMenuCloseBtn.addEventListener('click', window.closeMobileMenu);
-    if (mobileMenuBackdrop) mobileMenuBackdrop.addEventListener('click', window.closeMobileMenu);
-
-    // Auth State Listener (Smart Routing & Hybrid Cart Sync)
-    const auth = getAuth(app);
-    onAuthStateChanged(auth, async (user) => {
-        const indicator = document.getElementById('auth-indicator');
-        const profileLink = document.getElementById('user-profile-link');
-        const mobileIndicator = document.getElementById('mobile-auth-indicator');
-        const mobileProfileLink = document.getElementById('mobile-user-profile-link');
-        
-        if (user) {
-            // Logged in
-            currentUser = user;
-            if (indicator) indicator.classList.remove('hidden');
-            if (profileLink) profileLink.href = 'profile.html';
-            if (mobileIndicator) mobileIndicator.classList.remove('hidden');
-            if (mobileProfileLink) mobileProfileLink.href = 'profile.html';
-            
-            // Sync cart from Firestore and merge local storage if needed
-            await syncCartOnLogin(user);
-        } else {
-            // Logged out
-            currentUser = null;
-            if (indicator) indicator.classList.add('hidden');
-            if (profileLink) profileLink.href = 'auth.html';
-            if (mobileIndicator) mobileIndicator.classList.add('hidden');
-            if (mobileProfileLink) mobileProfileLink.href = 'auth.html';
-            
-            // Load local cart
-            cart = JSON.parse(localStorage.getItem('aura_cart')) || [];
-            renderCart();
-        }
-    });
-}
-
-// ==========================================
-// 4. HYBRID CART LOGIC
-// ==========================================
-async function syncCartOnLogin(user) {
-    const userRef = doc(db, "users", user.uid);
-    let firestoreCart = [];
-    
-    try {
-        const docSnap = await getDoc(userRef);
-        if (docSnap.exists()) {
-            firestoreCart = docSnap.data().cart || [];
-        } else {
-            // Create user doc if it doesn't exist (failsafe)
-            await setDoc(userRef, { email: user.email, cart: [] }, { merge: true });
-        }
-
-        // Merge logic: Check if guest cart exists in localStorage
-        const localCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
-        
-        if (localCart.length > 0) {
-            localCart.forEach(localItem => {
-                const existing = firestoreCart.find(item => item.id === localItem.id);
-                if (existing) {
-                    existing.quantity += localItem.quantity;
-                    // Cap at stock limit
-                    if (existing.stock && existing.quantity > existing.stock) {
-                        existing.quantity = existing.stock;
-                    }
-                } else {
-                    firestoreCart.push(localItem);
-                }
-            });
-            
-            // Update Firestore with merged cart
-            await updateDoc(userRef, { cart: firestoreCart });
-            
-            // Clear local cache since it's now synced to the cloud
-            localStorage.removeItem('aura_cart');
-        }
-
-        cart = firestoreCart;
-        renderCart();
-
-    } catch (error) {
-        console.error("Error syncing cart on login:", error);
-        cart = [];
-        renderCart();
-    }
-}
-
-async function saveCart() {
-    if (currentUser) {
-        // Save to Firestore
-        try {
-            const userRef = doc(db, "users", currentUser.uid);
-            await updateDoc(userRef, { cart: cart });
-        } catch (error) {
-            console.error("Error saving cart to cloud:", error);
-        }
-    } else {
-        // Save to LocalStorage
-        localStorage.setItem('aura_cart', JSON.stringify(cart));
-    }
-    renderCart();
-}
-
-function renderCart() {
-    const badge = document.getElementById('cart-badge');
-    const container = document.getElementById('cart-items-container');
-    const totalEl = document.getElementById('cart-total');
-    
-    let total = 0;
-    let count = 0;
-    let html = '';
-
-    const currentLang = localStorage.getItem('aura_lang') || 'el';
-    const emptyMsg = translations[currentLang]?.cart?.empty || translations['en'].cart.empty;
-
-    if (cart.length === 0) {
-        html = `
-            <div id="empty-cart-msg" class="h-full flex flex-col items-center justify-center text-center text-stone-400 space-y-4">
-                <svg class="w-12 h-12 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                <p class="font-sans text-sm" data-i18n="cart.empty">${emptyMsg}</p>
-            </div>
-        `;
-    } else {
-        cart.forEach((item, index) => {
-            total += item.price * item.quantity;
-            count += item.quantity;
-            const disablePlus = item.quantity >= (item.stock || 0);
-
-            html += `
-                <div class="flex items-center gap-4 group">
-                    <div class="w-20 h-20 bg-stone-100 rounded-md overflow-hidden flex-shrink-0 relative">
-                        <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex justify-between items-start">
-                            <h4 class="font-serif text-stone-900 text-sm md:text-base">${item.title}</h4>
-                            <button onclick="window.removeFromCart(${index})" class="text-stone-400 hover:text-stone-900 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </button>
-                        </div>
-                        <p class="font-sans text-stone-500 text-sm mt-1 mb-2">€${item.price.toLocaleString()}</p>
-                        
-                        <div class="flex items-center gap-3 mt-1">
-                            <button onclick="window.updateCartQty(${index}, -1)" class="w-6 h-6 flex items-center justify-center border border-stone-300 text-stone-500 hover:text-stone-900 hover:border-stone-900 rounded-sm transition-colors">-</button>
-                            <span class="font-sans text-sm text-stone-900 w-4 text-center">${item.quantity}</span>
-                            <button onclick="window.updateCartQty(${index}, 1)" class="w-6 h-6 flex items-center justify-center border border-stone-300 text-stone-500 hover:text-stone-900 hover:border-stone-900 rounded-sm transition-colors ${disablePlus ? 'opacity-50 cursor-not-allowed' : ''}" ${disablePlus ? 'disabled' : ''}>+</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-    }
-
-    if (badge) {
-        badge.textContent = count;
-        if (count > 0) {
-            badge.classList.remove('opacity-0');
-            badge.classList.add('opacity-100');
-        } else {
-            badge.classList.add('opacity-0');
-            badge.classList.remove('opacity-100');
-        }
-    }
-
-    if (container) container.innerHTML = html;
-    if (totalEl) totalEl.textContent = `€${total.toLocaleString()}`;
-}
-
-window.addToCart = function(product) {
-    const existing = cart.find(item => item.id === product.id);
-    const currentQty = existing ? existing.quantity : 0;
-    const maxStock = product.stock || 0;
-
-    if (currentQty >= maxStock) {
-        return false; 
-    }
-
-    if (existing) {
-        existing.quantity += 1;
-    } else {
-        cart.push({ ...product, quantity: 1 });
-    }
-    
-    // Asynchronous save, UI updates immediately inside saveCart
-    saveCart();
-    window.openCart();
-    return true; 
-};
-
-window.removeFromCart = function(index) {
-    cart.splice(index, 1);
-    saveCart();
-};
-
-window.updateCartQty = function(index, change) {
-    const item = cart[index];
-    const newQty = item.quantity + change;
-    
-    if (newQty <= 0) {
-        cart.splice(index, 1);
-    } else if (newQty <= (item.stock || 0)) {
-        item.quantity = newQty;
-    }
-    
-    saveCart();
-};
-
-window.syncGlobalCart = function(newCart) {
-    cart = newCart;
-    renderCart();
-};
-
-window.openCart = function() {
-    const drawerContainer = document.getElementById('cart-drawer-container');
-    const backdrop = document.getElementById('cart-backdrop');
-    const drawer = document.getElementById('cart-drawer');
-    if(!drawerContainer) return;
-
-    drawerContainer.classList.remove('hidden');
-    setTimeout(() => {
-        backdrop.classList.remove('opacity-0');
-        backdrop.classList.add('opacity-100');
-        drawer.classList.remove('translate-x-full');
-        drawer.classList.add('translate-x-0');
-    }, 10);
-    document.body.style.overflow = 'hidden';
-};
-
-window.closeCart = function() {
-    const drawerContainer = document.getElementById('cart-drawer-container');
-    const backdrop = document.getElementById('cart-backdrop');
-    const drawer = document.getElementById('cart-drawer');
-    if(!drawerContainer) return;
-
-    backdrop.classList.remove('opacity-100');
-    backdrop.classList.add('opacity-0');
-    drawer.classList.remove('translate-x-0');
-    drawer.classList.add('translate-x-full');
-    
-    setTimeout(() => {
-        drawerContainer.classList.add('hidden');
-        document.body.style.overflow = '';
-    }, 300);
-};
-
-// Redirect to the new Checkout Page
-window.checkout = async function() {
-    if (cart.length === 0) return alert("Your cart is empty.");
-    
-    const checkoutBtn = document.querySelector('#cart-drawer button[onclick="window.checkout()"]');
-    const originalText = checkoutBtn.textContent;
-    checkoutBtn.textContent = "Redirecting...";
-    checkoutBtn.classList.add('opacity-70', 'cursor-not-allowed');
-    
-    setTimeout(() => {
-        window.location.href = 'checkout.html';
-    }, 300);
-};
-
-// ==========================================
-// 5. EVENT LISTENERS & TAB SYNC
-// ==========================================
-document.addEventListener('click', (e) => {
-    const cartOpenBtn = e.target.closest('[aria-label="Cart"], #cart-icon-btn');
-    if (cartOpenBtn) {
-        e.preventDefault();
-        window.openCart();
-    }
-
-    const cartCloseBtn = e.target.closest('#close-cart-btn, #cart-backdrop');
-    if (cartCloseBtn) {
-        e.preventDefault();
-        window.closeCart();
-    }
-});
-
-// Sync local storage cart updates across tabs (only for guests)
-window.addEventListener('storage', (e) => {
-    if (!currentUser && e.key === 'aura_cart') {
-        cart = JSON.parse(e.newValue) || [];
-        renderCart();
-    }
-});
-
-// Run Init
-initGlobalUI();
