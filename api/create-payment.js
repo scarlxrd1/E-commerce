@@ -1,10 +1,10 @@
 export default async function handler(req, res) {
-    // Restrict to POST requests
-    if (req.method !== 'POST') {
-        return res.status(405).json({ success: false, message: 'Method Not Allowed' });
-    }
-
     try {
+        // Restrict to POST requests
+        if (req.method !== 'POST') {
+            throw new Error('Method Not Allowed. Expected POST.');
+        }
+
         const { amount, customerEmail, customerName, customerPhone } = req.body;
 
         // Securely access environment variables
@@ -12,12 +12,17 @@ export default async function handler(req, res) {
         const apiKey = process.env.VIVA_API_KEY;
         const sourceCode = process.env.VIVA_SOURCE_CODE;
 
+        // Strict environment variable check
         if (!merchantId || !apiKey || !sourceCode) {
-            throw new Error("Missing Viva Wallet credentials in environment variables.");
+            throw new Error("Missing Environment Variables");
         }
 
-        // Convert amount to integer cents (e.g., €15.50 -> 1550)
-        const amountInCents = Math.round(amount * 100);
+        // Safe amount calculation: parse to float and convert to integer cents
+        const amountInCents = Math.round(parseFloat(amount) * 100);
+
+        if (isNaN(amountInCents) || amountInCents <= 0) {
+            throw new Error("Invalid amount provided.");
+        }
 
         // Generate Basic Auth credentials via Base64
         const credentials = Buffer.from(`${merchantId}:${apiKey}`).toString('base64');
@@ -41,28 +46,28 @@ export default async function handler(req, res) {
             })
         });
 
-        const data = await response.json();
+        // Read the raw text BEFORE attempting to parse JSON to catch Viva HTML/Empty errors
+        const responseText = await response.text();
 
+        // Catch non-2xx responses and throw with exact status and raw text
         if (!response.ok) {
-            console.error("Viva API Error:", data);
-            return res.status(response.status).json({ 
-                success: false, 
-                message: 'Payment initiation failed', 
-                error: data 
-            });
+            throw new Error(`Viva API Error ${response.status}: ${responseText}`);
         }
 
-        // On success, return the orderCode to the frontend
+        // Safely parse the valid JSON response
+        const data = JSON.parse(responseText);
+
+        // Return the successfully generated orderCode to the frontend
         return res.status(200).json({ 
             success: true, 
             orderCode: data.orderCode 
         });
 
     } catch (error) {
-        console.error("Create Payment Error:", error);
-        return res.status(500).json({ 
-            success: false, 
-            message: error.message 
+        console.error("Create Payment Error:", error.message);
+        // Extreme error handling: return 400 with the exact error message
+        return res.status(400).json({ 
+            error: error.message 
         });
     }
 }
