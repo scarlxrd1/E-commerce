@@ -16,24 +16,28 @@ const navbarHTML = `
                 <a href="collection.html" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors" data-i18n="nav.collection">Collection</a>
             </div>
             
-            <div class="flex items-center">
-                <!-- Minimalist Language Toggle -->
-                <div class="hidden sm:flex items-center gap-2 font-sans text-xs tracking-widest uppercase mr-8">
+            <!-- Right-side controls -->
+            <div class="flex items-center gap-6 md:gap-8">
+                
+                <!-- Isolated Language Toggle -->
+                <div class="hidden sm:flex items-center gap-2 flex-shrink-0 select-none text-xs font-sans tracking-widest uppercase">
                     <button id="lang-el-btn" class="transition-colors" onclick="window.changeLanguage('el')">EL</button>
                     <span class="text-stone-300">|</span>
                     <button id="lang-en-btn" class="transition-colors" onclick="window.changeLanguage('en')">EN</button>
                 </div>
 
                 <!-- Action Icons Group -->
-                <div class="flex items-center gap-6 text-stone-900">
+                <div class="flex items-center gap-5 flex-shrink-0 text-stone-900">
                     
-                    <!-- Expandable Search -->
-                    <form id="global-search-form" class="flex items-center relative">
-                        <input type="text" id="global-search-input" data-i18n="nav.search" placeholder="Search..." class="absolute right-full mr-3 w-32 md:w-48 bg-transparent border-b border-stone-300 py-1 px-2 text-sm font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-all duration-300 opacity-0 pointer-events-none translate-x-4">
-                        <button type="button" id="global-search-toggle" class="hover:scale-110 transition-transform p-1 text-xl" aria-label="Toggle Search">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        </button>
-                    </form>
+                    <!-- Self-Contained Expandable Search Container -->
+                    <div class="relative flex items-center">
+                        <form id="global-search-form" class="flex items-center">
+                            <input type="text" id="global-search-input" data-i18n="nav.search" placeholder="Search..." class="absolute right-full mr-2 w-36 md:w-48 border-b border-stone-900 bg-transparent py-1 pr-8 text-xs focus:outline-none placeholder-stone-400 transition-all duration-300 opacity-0 pointer-events-none translate-x-4">
+                            <button type="button" id="global-search-toggle" class="hover:scale-110 transition-transform p-1 text-xl" aria-label="Toggle Search">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </button>
+                        </form>
+                    </div>
 
                     <!-- User Profile Link with Auth Indicator -->
                     <a href="auth.html" id="user-profile-link" class="relative hover:scale-110 transition-transform hidden sm:block p-1 text-xl" aria-label="User Profile">
@@ -149,10 +153,10 @@ window.changeLanguage = function(lang) {
     
     if (elBtn && enBtn) {
         if (lang === 'el') {
-            elBtn.className = 'text-stone-900 font-medium transition-colors';
+            elBtn.className = 'text-stone-900 font-semibold transition-colors';
             enBtn.className = 'text-stone-400 hover:text-stone-900 cursor-pointer transition-colors';
         } else {
-            enBtn.className = 'text-stone-900 font-medium transition-colors';
+            enBtn.className = 'text-stone-900 font-semibold transition-colors';
             elBtn.className = 'text-stone-400 hover:text-stone-900 cursor-pointer transition-colors';
         }
     }
