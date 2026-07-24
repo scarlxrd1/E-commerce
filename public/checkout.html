@@ -120,59 +120,20 @@
                         </div>
                     </section>
 
-                    <!-- Payment Section -->
+                    <!-- Secure Payment Info Section -->
                     <section>
-                        <h2 data-i18n="checkout.payment_method" class="font-serif text-2xl text-stone-900 mb-8">Payment Method</h2>
-                        
-                        <div class="flex flex-col gap-4">
-                            <!-- Credit Card Option -->
-                            <label class="flex items-center justify-between p-5 border border-stone-200 rounded-sm cursor-pointer hover:border-stone-400 transition-colors bg-white">
-                                <div class="flex items-center gap-4">
-                                    <input type="radio" name="payment-method" value="credit-card" checked class="w-4 h-4 text-stone-900 bg-stone-100 border-stone-300 focus:ring-stone-900 focus:ring-2">
-                                    <span data-i18n="checkout.credit_card" class="font-sans text-sm font-medium text-stone-900">Credit / Debit Card</span>
-                                </div>
-                                <div class="flex gap-2">
-                                    <svg class="w-8 h-auto opacity-60" viewBox="0 0 38 24" fill="none"><rect width="38" height="24" rx="2" fill="#222222"/><path d="M12.9375 16.5H10.125V7.5H12.9375C15.225 7.5 16.875 8.85 16.875 12C16.875 15.15 15.225 16.5 12.9375 16.5ZM12.5625 9.375H11.625V14.625H12.5625C13.875 14.625 14.8125 13.875 14.8125 12C14.8125 10.125 13.875 9.375 12.5625 9.375Z" fill="white"/><path d="M21.75 16.5H19.5L23.4375 7.5H25.6875L21.75 16.5Z" fill="white"/><path d="M30 16.5H27.75V7.5H30V16.5Z" fill="white"/></svg>
-                                </div>
-                            </label>
-
-                            <!-- Credit Card Details Placeholder (Revealed if CC selected) -->
-                            <div id="cc-details" class="bg-stone-50 border border-stone-200 p-6 rounded-sm grid grid-cols-2 gap-6 transition-all duration-300">
-                                <div class="col-span-2">
-                                    <label data-i18n="checkout.labels.card_number" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Card Number</label>
-                                    <input type="text" placeholder="0000 0000 0000 0000" class="w-full bg-white border border-stone-300 py-3 px-4 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors rounded-sm shadow-inner">
-                                </div>
-                                <div>
-                                    <label data-i18n="checkout.labels.expiry_date" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Expiry Date</label>
-                                    <input type="text" placeholder="MM / YY" class="w-full bg-white border border-stone-300 py-3 px-4 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors rounded-sm shadow-inner">
-                                </div>
-                                <div>
-                                    <label data-i18n="checkout.labels.cvc" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">CVC</label>
-                                    <input type="text" placeholder="123" class="w-full bg-white border border-stone-300 py-3 px-4 font-sans text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors rounded-sm shadow-inner">
-                                </div>
-                            </div>
-
-                            <!-- PayPal Option -->
-                            <label class="flex items-center justify-between p-5 border border-stone-200 rounded-sm cursor-pointer hover:border-stone-400 transition-colors bg-white">
-                                <div class="flex items-center gap-4">
-                                    <input type="radio" name="payment-method" value="paypal" class="w-4 h-4 text-stone-900 bg-stone-100 border-stone-300 focus:ring-stone-900 focus:ring-2">
-                                    <span data-i18n="checkout.paypal" class="font-sans text-sm font-medium text-stone-900">PayPal</span>
-                                </div>
-                            </label>
-
-                            <!-- COD Option -->
-                            <label class="flex items-center justify-between p-5 border border-stone-200 rounded-sm cursor-pointer hover:border-stone-400 transition-colors bg-white">
-                                <div class="flex items-center gap-4">
-                                    <input type="radio" name="payment-method" value="cod" class="w-4 h-4 text-stone-900 bg-stone-100 border-stone-300 focus:ring-stone-900 focus:ring-2">
-                                    <span data-i18n="checkout.cod" class="font-sans text-sm font-medium text-stone-900">Cash on Delivery</span>
-                                </div>
-                            </label>
+                        <h2 data-i18n="checkout.secure_payment_title" class="font-serif text-2xl text-stone-900 mb-6">Secure Payment via Viva Wallet</h2>
+                        <div class="bg-stone-50 border border-stone-200 p-6 md:p-8 rounded-sm flex flex-col items-center text-center gap-4">
+                            <svg class="w-8 h-8 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            <p data-i18n="checkout.secure_payment_desc" class="font-sans text-sm text-stone-500 leading-relaxed max-w-md">
+                                You will be redirected to Viva Wallet's secure environment to complete your payment using Credit/Debit Card, Apple Pay, Google Pay, or IRIS.
+                            </p>
                         </div>
                     </section>
 
                     <!-- Submit Button -->
-                    <button data-i18n="checkout.complete_order" type="submit" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-6 rounded-sm hover:bg-stone-800 transition-colors shadow-lg mt-4">
-                        Complete Order
+                    <button data-i18n="checkout.proceed_payment_btn" type="submit" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-6 rounded-sm hover:bg-stone-800 transition-colors shadow-lg mt-4">
+                        Proceed to Secure Payment
                     </button>
                 </form>
             </div>
