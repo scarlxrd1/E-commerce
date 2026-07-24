@@ -1,6 +1,7 @@
 import { app, db } from './firebase-config.js';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { translations } from './translations.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
@@ -63,11 +64,13 @@ document.addEventListener('DOMContentLoaded', () => {
         hideError();
 
         if (isLoginMode) {
-            titleEl.textContent = 'Sign In';
-            subtitleEl.textContent = 'Access your AURA account.';
-            submitBtn.textContent = 'Sign In';
-            togglePrefix.textContent = "Don't have an account?";
-            toggleBtn.textContent = "Create one";
+            // Re-apply translations for Login Mode
+            const currentLang = localStorage.getItem('aura_lang') || 'en';
+            titleEl.textContent = translations[currentLang]?.auth?.sign_in_title || translations['en'].auth.sign_in_title;
+            subtitleEl.textContent = translations[currentLang]?.auth?.sign_in_subtitle || translations['en'].auth.sign_in_subtitle;
+            submitBtn.textContent = translations[currentLang]?.auth?.sign_in_btn || translations['en'].auth.sign_in_btn;
+            togglePrefix.textContent = translations[currentLang]?.auth?.no_account || translations['en'].auth.no_account;
+            toggleBtn.textContent = translations[currentLang]?.auth?.create_one || translations['en'].auth.create_one;
             
             // Hide extra fields and remove 'required' so form can submit
             registerFieldsContainer.classList.add('hidden');
@@ -78,11 +81,13 @@ document.addEventListener('DOMContentLoaded', () => {
             forgotPasswordContainer.classList.remove('hidden');
             
         } else {
-            titleEl.textContent = 'Create Account';
-            subtitleEl.textContent = 'Join AURA for a seamless experience.';
-            submitBtn.textContent = 'Create Account';
-            togglePrefix.textContent = "Already have an account?";
-            toggleBtn.textContent = "Sign in";
+            // Apply translations for Registration Mode
+            const currentLang = localStorage.getItem('aura_lang') || 'en';
+            titleEl.textContent = currentLang === 'el' ? 'Δημιουργία Λογαριασμού' : 'Create Account';
+            subtitleEl.textContent = currentLang === 'el' ? 'Γίνετε μέλος της AURA για μια απρόσκοπτη εμπειρία.' : 'Join AURA for a seamless experience.';
+            submitBtn.textContent = currentLang === 'el' ? 'Δημιουργία Λογαριασμού' : 'Create Account';
+            togglePrefix.textContent = currentLang === 'el' ? 'Έχετε ήδη λογαριασμό;' : 'Already have an account?';
+            toggleBtn.textContent = currentLang === 'el' ? 'Σύνδεση' : 'Sign in';
             
             // Show extra fields and make them required
             registerFieldsContainer.classList.remove('hidden');
@@ -101,19 +106,26 @@ document.addEventListener('DOMContentLoaded', () => {
     forgotPasswordBtn.addEventListener('click', async () => {
         hideError();
         const email = emailInput.value.trim();
+        const currentLang = localStorage.getItem('aura_lang') || 'en';
         
         if (!email) {
-            showError("Please enter your email address in the field above to reset your password.");
+            const emptyEmailMsg = currentLang === 'el' 
+                ? "Παρακαλούμε εισάγετε τη διεύθυνση email σας στο παραπάνω πεδίο για να επαναφέρετε τον κωδικό σας." 
+                : "Please enter your email address in the field above to reset your password.";
+            showError(emptyEmailMsg);
             return;
         }
 
         const originalText = forgotPasswordBtn.textContent;
-        forgotPasswordBtn.textContent = 'Sending...';
+        forgotPasswordBtn.textContent = currentLang === 'el' ? 'Αποστολή...' : 'Sending...';
         forgotPasswordBtn.disabled = true;
 
         try {
             await sendPasswordResetEmail(auth, email);
-            showSuccess("A password reset link has been sent to your email.");
+            const successMsg = currentLang === 'el' 
+                ? "Ένας σύνδεσμος επαναφοράς κωδικού έχει σταλεί στο email σας." 
+                : "A password reset link has been sent to your email.";
+            showSuccess(successMsg);
         } catch (error) {
             console.error("Password Reset Error:", error);
             showError(getFriendlyErrorMessage(error.code));
@@ -130,6 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const email = emailInput.value.trim();
         const password = passwordInput.value;
+        const currentLang = localStorage.getItem('aura_lang') || 'en';
 
         // Strict Validations for Registration Mode
         if (!isLoginMode) {
@@ -137,23 +150,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const phoneRegex = /^\+?\d+$/;
 
             if (!nameRegex.test(firstNameInput.value.trim())) {
-                showError("First name can only contain letters.");
+                showError(currentLang === 'el' ? "Το όνομα μπορεί να περιέχει μόνο γράμματα." : "First name can only contain letters.");
                 return;
             }
             if (!nameRegex.test(lastNameInput.value.trim())) {
-                showError("Last name can only contain letters.");
+                showError(currentLang === 'el' ? "Το επώνυμο μπορεί να περιέχει μόνο γράμματα." : "Last name can only contain letters.");
                 return;
             }
             if (!phoneRegex.test(phoneInput.value.trim())) {
-                showError("Phone number can only contain numbers and an optional leading '+'.");
+                showError(currentLang === 'el' ? "Ο αριθμός τηλεφώνου μπορεί να περιέχει μόνο αριθμούς και προαιρετικά το σύμβολο '+' στην αρχή." : "Phone number can only contain numbers and an optional leading '+'.");
                 return;
             }
             if (password.length <= 6) {
-                showError("Password must be greater than 6 characters.");
+                showError(currentLang === 'el' ? "Ο κωδικός πρόσβασης πρέπει να είναι μεγαλύτερος από 6 χαρακτήρες." : "Password must be greater than 6 characters.");
                 return;
             }
             if (captchaInput.value !== currentCaptcha) {
-                showError("Captcha verification failed. Please try again.");
+                showError(currentLang === 'el' ? "Η επαλήθευση ασφαλείας απέτυχε. Παρακαλώ δοκιμάστε ξανά." : "Captcha verification failed. Please try again.");
                 generateCaptcha();
                 return;
             }
@@ -162,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const originalBtnText = submitBtn.textContent;
 
         // UI Loading State
-        submitBtn.textContent = 'Processing...';
+        submitBtn.textContent = currentLang === 'el' ? 'Επεξεργασία...' : 'Processing...';
         submitBtn.disabled = true;
         submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
@@ -172,6 +185,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 await signInWithEmailAndPassword(auth, email, password);
             } else {
                 // REGISTRATION LOGIC
+
+                // 1. Check Unique Phone Number in Firestore
+                const phoneVal = phoneInput.value.trim();
+                const q = query(collection(db, "users"), where("phone", "==", phoneVal));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    // Phone number already exists
+                    const errorMsg = translations[currentLang]?.auth?.error_phone_exists || translations['en'].auth.error_phone_exists;
+                    showError(errorMsg);
+                    
+                    // Revert UI Loading State
+                    submitBtn.textContent = originalBtnText;
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    generateCaptcha();
+                    return;
+                }
+
+                // 2. Proceed with user creation
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
@@ -179,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await setDoc(doc(db, "users", user.uid), {
                     firstName: firstNameInput.value.trim(),
                     lastName: lastNameInput.value.trim(),
-                    phone: phoneInput.value.trim(),
+                    phone: phoneVal,
                     address: addressInput.value.trim(),
                     city: cityInput.value.trim(),
                     country: countryInput.value,
@@ -230,27 +263,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helper: Format Firebase Auth Errors
     function getFriendlyErrorMessage(errorCode) {
+        const currentLang = localStorage.getItem('aura_lang') || 'en';
+        const isEl = currentLang === 'el';
+
         switch (errorCode) {
             case 'auth/invalid-email': 
-                return 'Please enter a valid email address.';
+                return isEl ? 'Παρακαλώ εισάγετε μια έγκυρη διεύθυνση email.' : 'Please enter a valid email address.';
             case 'auth/user-disabled': 
-                return 'This account has been disabled by an administrator.';
+                return isEl ? 'Αυτός ο λογαριασμός έχει απενεργοποιηθεί από τον διαχειριστή.' : 'This account has been disabled by an administrator.';
             case 'auth/user-not-found': 
-                return 'We could not find an account with that email.';
+                return isEl ? 'Δεν μπορέσαμε να βρούμε λογαριασμό με αυτό το email.' : 'We could not find an account with that email.';
             case 'auth/wrong-password': 
-                return 'The password you entered is incorrect.';
+                return isEl ? 'Ο κωδικός πρόσβασης που εισαγάγατε είναι λανθασμένος.' : 'The password you entered is incorrect.';
             case 'auth/invalid-credential':
-                return 'Invalid email or password. Please try again.';
+                return isEl ? 'Μη έγκυρο email ή κωδικός πρόσβασης. Παρακαλώ δοκιμάστε ξανά.' : 'Invalid email or password. Please try again.';
             case 'auth/email-already-in-use': 
-                return 'An account already exists with this email address.';
+                return isEl ? 'Υπάρχει ήδη λογαριασμός με αυτήν τη διεύθυνση email.' : 'An account already exists with this email address.';
             case 'auth/weak-password': 
-                return 'Your password must be at least 6 characters long.';
+                return isEl ? 'Ο κωδικός πρόσβασής σας πρέπει να έχει μήκος τουλάχιστον 6 χαρακτήρες.' : 'Your password must be at least 6 characters long.';
             case 'auth/missing-password':
-                return 'Please enter your password.';
+                return isEl ? 'Παρακαλώ εισάγετε τον κωδικό πρόσβασής σας.' : 'Please enter your password.';
             case 'auth/network-request-failed':
-                return 'Network error. Please check your connection and try again.';
+                return isEl ? 'Σφάλμα δικτύου. Παρακαλώ ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.' : 'Network error. Please check your connection and try again.';
             default: 
-                return 'An unexpected error occurred. Please try again later.';
+                return isEl ? 'Προέκυψε ένα απροσδόκητο σφάλμα. Παρακαλώ δοκιμάστε ξανά αργότερα.' : 'An unexpected error occurred. Please try again later.';
         }
     }
 });
