@@ -219,8 +219,8 @@ document.addEventListener('DOMContentLoaded', () => {
         errorContainer.classList.add('hidden');
     }
 
-    // 5. Form Submission & Validation
-    checkoutForm.addEventListener('submit', (e) => {
+    // 5. Form Submission & Validation with Viva Wallet Integration
+    checkoutForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
 
@@ -241,20 +241,54 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Proceed with simulated checkout
+        // Calculate total amount
+        const totalAmount = checkoutCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        if (totalAmount <= 0) {
+            showError("Your cart is empty or the total is invalid.");
+            return;
+        }
+
+        // Proceed with checkout
         const submitBtn = checkoutForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
         
-        submitBtn.textContent = 'Processing Securely...';
+        submitBtn.textContent = 'Redirecting to Secure Payment...';
         submitBtn.disabled = true;
         submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
-        // Simulate API Processing Delay
-        setTimeout(() => {
-            alert("This is a frontend demo. Backend integration (e.g., Stripe) is required to process real payments.");
+        try {
+            // Call Vercel Serverless Function to create Viva Wallet Order
+            const response = await fetch('/api/create-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    amount: totalAmount,
+                    customerEmail: emailInput.value.trim(),
+                    customerName: `${fnInput.value.trim()} ${lnInput.value.trim()}`,
+                    customerPhone: phoneInput.value.trim()
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.orderCode) {
+                // Instantly redirect customer to Viva Smart Checkout URL
+                window.location.href = `https://demo.vivapayments.com/web/checkout?ref=${data.orderCode}`;
+            } else {
+                throw new Error(data.message || "Failed to generate payment order.");
+            }
+            
+        } catch (error) {
+            console.error("Payment Error:", error);
+            showError("Could not initiate payment. Please try again later.");
+            
+            // Revert button state on error
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
             submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-        }, 1500);
+        }
     });
 });
