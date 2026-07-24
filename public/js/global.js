@@ -31,14 +31,14 @@ const navbarHTML = `
                     <span id="auth-indicator" class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-stone-900 rounded-full border-2 border-[#FBFBFA] hidden transition-all duration-300"></span>
                 </a>
 
-                <!-- Language Toggle -->
+                <!-- Language Toggle with Flags -->
                 <div class="relative group hidden sm:block">
                     <button class="font-sans text-xs font-medium tracking-widest text-stone-500 hover:text-stone-900 transition-colors uppercase flex items-center gap-1" id="current-lang-display">
-                        EN
+                        🇬🇷 EL
                     </button>
-                    <div class="absolute top-full right-0 mt-2 w-16 bg-white border border-stone-200 shadow-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 flex flex-col z-50">
-                        <button onclick="window.changeLanguage('en')" class="text-xs font-sans tracking-widest text-stone-500 hover:text-stone-900 hover:bg-stone-50 py-3 w-full text-center transition-colors">EN</button>
-                        <button onclick="window.changeLanguage('el')" class="text-xs font-sans tracking-widest text-stone-500 hover:text-stone-900 hover:bg-stone-50 py-3 w-full text-center transition-colors border-t border-stone-100">EL</button>
+                    <div class="absolute top-full right-0 mt-2 w-24 bg-white border border-stone-200 shadow-sm opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 flex flex-col z-50">
+                        <button onclick="window.changeLanguage('en')" class="text-xs font-sans tracking-widest text-stone-500 hover:text-stone-900 hover:bg-stone-50 py-3 w-full text-center transition-colors">🇬🇧 EN</button>
+                        <button onclick="window.changeLanguage('el')" class="text-xs font-sans tracking-widest text-stone-500 hover:text-stone-900 hover:bg-stone-50 py-3 w-full text-center transition-colors border-t border-stone-100">🇬🇷 EL</button>
                     </div>
                 </div>
 
@@ -163,7 +163,7 @@ window.changeLanguage = function(lang) {
 
     const langDisplay = document.getElementById('current-lang-display');
     if (langDisplay) {
-        langDisplay.textContent = lang.toUpperCase();
+        langDisplay.textContent = lang === 'el' ? '🇬🇷 EL' : '🇬🇧 EN';
     }
 
     // Re-render cart to ensure dynamic strings (like Empty Cart) are translated
@@ -184,8 +184,8 @@ function initGlobalUI() {
         document.body.insertAdjacentHTML('beforeend', cartDrawerHTML);
     }
 
-    // Initialize Language
-    const savedLang = localStorage.getItem('aura_lang') || 'en';
+    // Initialize Language (Default to Greek if not set)
+    const savedLang = localStorage.getItem('aura_lang') || 'el';
     window.changeLanguage(savedLang);
 
     // Global Search Logic
@@ -305,9 +305,8 @@ function renderCart() {
     let count = 0;
     let html = '';
 
-    const currentLang = localStorage.getItem('aura_lang') || 'en';
+    const currentLang = localStorage.getItem('aura_lang') || 'el';
     const emptyMsg = translations[currentLang]?.cart?.empty || translations['en'].cart.empty;
-    const qtyLabel = translations[currentLang]?.cart?.qty || translations['en'].cart.qty;
 
     if (cart.length === 0) {
         html = `
@@ -320,9 +319,11 @@ function renderCart() {
         cart.forEach((item, index) => {
             total += item.price * item.quantity;
             count += item.quantity;
+            const disablePlus = item.quantity >= (item.stock || 0);
+
             html += `
                 <div class="flex items-center gap-4 group">
-                    <div class="w-20 h-20 bg-stone-100 rounded-md overflow-hidden flex-shrink-0">
+                    <div class="w-20 h-20 bg-stone-100 rounded-md overflow-hidden flex-shrink-0 relative">
                         <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
                     </div>
                     <div class="flex-1">
@@ -332,7 +333,13 @@ function renderCart() {
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                             </button>
                         </div>
-                        <p class="font-sans text-stone-500 text-sm mt-1">€${item.price.toLocaleString()} <span class="text-xs text-stone-400 ml-2"><span data-i18n="cart.qty">${qtyLabel}</span>: ${item.quantity}</span></p>
+                        <p class="font-sans text-stone-500 text-sm mt-1 mb-2">€${item.price.toLocaleString()}</p>
+                        
+                        <div class="flex items-center gap-3 mt-1">
+                            <button onclick="window.updateCartQty(${index}, -1)" class="w-6 h-6 flex items-center justify-center border border-stone-300 text-stone-500 hover:text-stone-900 hover:border-stone-900 rounded-sm transition-colors">-</button>
+                            <span class="font-sans text-sm text-stone-900 w-4 text-center">${item.quantity}</span>
+                            <button onclick="window.updateCartQty(${index}, 1)" class="w-6 h-6 flex items-center justify-center border border-stone-300 text-stone-500 hover:text-stone-900 hover:border-stone-900 rounded-sm transition-colors ${disablePlus ? 'opacity-50 cursor-not-allowed' : ''}" ${disablePlus ? 'disabled' : ''}>+</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -378,6 +385,24 @@ window.addToCart = function(product) {
 window.removeFromCart = function(index) {
     cart.splice(index, 1);
     saveCart();
+};
+
+window.updateCartQty = function(index, change) {
+    const item = cart[index];
+    const newQty = item.quantity + change;
+    
+    if (newQty <= 0) {
+        cart.splice(index, 1);
+    } else if (newQty <= (item.stock || 0)) {
+        item.quantity = newQty;
+    }
+    
+    saveCart();
+};
+
+window.syncGlobalCart = function(newCart) {
+    cart = newCart;
+    renderCart();
 };
 
 window.openCart = function() {
