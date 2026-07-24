@@ -152,10 +152,12 @@
                             <h3 data-i18n="profile.edit_form.labels.account_security" class="font-serif text-xl text-stone-900 mb-2">Account Security</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div>
-                                    <label data-i18n="profile.edit_form.labels.change_email" for="edit-email" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Change Email</label>
-                                    <input type="email" id="edit-email" required class="w-full bg-transparent border-b border-stone-300 py-2 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                                    <label data-i18n="profile.edit_form.labels.change_email" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Account Email</label>
+                                    <div class="flex items-center justify-between bg-stone-50 border border-stone-200 py-3 px-4 rounded-sm">
+                                        <span id="current-email-display" class="font-sans text-sm text-stone-500"></span>
+                                        <button type="button" id="open-email-modal-btn" data-i18n="profile.change_email_btn" class="font-sans text-xs tracking-widest uppercase text-stone-900 hover:text-stone-600 transition-colors font-semibold">Change</button>
+                                    </div>
                                 </div>
-                                <!-- Password change removed per requirements -->
                             </div>
                             
                             <div class="flex justify-end gap-4 mt-6">
@@ -203,6 +205,34 @@
         </div>
 
     </main>
+
+    <!-- ========================================== -->
+    <!-- CHANGE EMAIL MODAL -->
+    <!-- ========================================== -->
+    <div id="change-email-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div id="change-email-backdrop" class="absolute inset-0 bg-stone-900/40 backdrop-blur-sm cursor-pointer"></div>
+        <div class="relative w-full max-w-md bg-white p-8 md:p-10 rounded-sm shadow-2xl z-10">
+            <h3 data-i18n="profile.email_modal.title" class="font-serif text-2xl text-stone-900 mb-2">Update Email Address</h3>
+            <p data-i18n="profile.email_modal.subtitle" class="font-sans text-sm text-stone-500 mb-6 leading-relaxed">For security, you must enter your current password. A verification link will be sent to your new email.</p>
+            
+            <div id="email-modal-alert" class="hidden mb-6 p-4 text-sm font-sans rounded-sm text-center"></div>
+
+            <form id="change-email-form" class="flex flex-col gap-6">
+                <div>
+                    <label data-i18n="profile.email_modal.new_email" for="new-email-input" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">New Email Address</label>
+                    <input type="email" id="new-email-input" required class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 transition-colors">
+                </div>
+                <div>
+                    <label data-i18n="profile.email_modal.current_password" for="confirm-password-input" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Current Password</label>
+                    <input type="password" id="confirm-password-input" required class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 transition-colors">
+                </div>
+                <div class="flex justify-end gap-4 mt-2">
+                    <button data-i18n="profile.email_modal.cancel" type="button" id="close-email-modal-btn" class="font-sans text-xs tracking-widest uppercase border border-stone-300 text-stone-600 px-6 py-3 hover:bg-stone-50 transition-colors rounded-sm">Cancel</button>
+                    <button data-i18n="profile.email_modal.submit" type="submit" id="submit-email-modal-btn" class="font-sans text-xs tracking-widest uppercase bg-stone-900 text-white px-6 py-3 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">Send Verification Link</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- ========================================== -->
     <!-- DYNAMIC FOOTER PLACEHOLDER -->
