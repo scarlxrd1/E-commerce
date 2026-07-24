@@ -1,6 +1,7 @@
 import { app, db } from './firebase-config.js';
-import { getAuth, onAuthStateChanged, signOut, updateEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, verifyBeforeUpdateEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { translations } from './translations.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
@@ -29,8 +30,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const editCountryInput = document.getElementById('edit-country');
     const editZipInput = document.getElementById('edit-zip');
     
-    // Auth Edit Fields
-    const editEmailInput = document.getElementById('edit-email');
+    const currentEmailDisplay = document.getElementById('current-email-display');
+
+    // Email Modal Elements
+    const emailModal = document.getElementById('change-email-modal');
+    const emailModalBackdrop = document.getElementById('change-email-backdrop');
+    const openEmailModalBtn = document.getElementById('open-email-modal-btn');
+    const closeEmailModalBtn = document.getElementById('close-email-modal-btn');
+    const emailForm = document.getElementById('change-email-form');
+    const newEmailInput = document.getElementById('new-email-input');
+    const confirmPasswordInput = document.getElementById('confirm-password-input');
+    const emailModalAlert = document.getElementById('email-modal-alert');
+    const submitEmailModalBtn = document.getElementById('submit-email-modal-btn');
 
     // 1. Route Protection & Fetching User Data
     onAuthStateChanged(auth, async (user) => {
@@ -84,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 editCityInput.value = cityStr;
                 editCountryInput.value = countryStr;
                 editZipInput.value = postalCodeStr;
-                editEmailInput.value = currentUser.email;
+                currentEmailDisplay.textContent = currentUser.email;
 
             } else {
                 userNameHeaderEl.textContent = currentUser.email;
@@ -93,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 profileEmailEl.textContent = currentUser.email;
                 profilePhoneEl.textContent = 'Not provided';
                 profileAddressEl.textContent = 'Not provided';
+                currentEmailDisplay.textContent = currentUser.email;
             }
         } catch (error) {
             console.error("Error fetching user profile data:", error);
@@ -117,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadProfileData(); 
     });
 
-    // 3. Handle Profile & Auth Save
+    // 3. Handle Main Profile Save (No Auth changes here anymore)
     editModeContainer.addEventListener('submit', async (e) => {
         e.preventDefault();
         const originalBtnText = saveEditBtn.textContent;
@@ -128,20 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveEditBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
         try {
-            // A. Prepare Auth Updates (Email)
-            let authUpdates = [];
-            const newEmail = editEmailInput.value.trim();
-
-            if (newEmail && newEmail !== currentUser.email) {
-                authUpdates.push(updateEmail(currentUser, newEmail));
-            }
-
-            // Execute Auth Updates first (as they are more sensitive to recent login requirements)
-            if (authUpdates.length > 0) {
-                await Promise.all(authUpdates);
-            }
-
-            // B. Update Firestore Profile Data
+            // Update Firestore Profile Data
             const userRef = doc(db, "users", currentUser.uid);
             await updateDoc(userRef, {
                 firstName: editFirstNameInput.value.trim(),
@@ -150,29 +149,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 address: editAddressInput.value.trim(),
                 city: editCityInput.value.trim(),
                 country: editCountryInput.value,
-                postalCode: editZipInput.value.trim(),
-                email: newEmail || currentUser.email // keep synced with auth
+                postalCode: editZipInput.value.trim()
             });
 
             // Reload data and switch back to view mode
             await loadProfileData();
-            cancelEditBtn.click(); // Triggers the UI toggle back to view mode
+            cancelEditBtn.click(); 
 
         } catch (error) {
             console.error("Error updating profile:", error);
-            
-            if (error.code === 'auth/requires-recent-login') {
-                const msg = currentLang === 'el' 
-                    ? "Για λόγους ασφαλείας, παρακαλώ αποσυνδεθείτε και συνδεθείτε ξανά πριν αλλάξετε το email σας."
-                    : "For security reasons, please log out and log back in before changing your email.";
-                alert(msg);
-            } else if (error.message !== "Validation Failed") {
-                const msg = currentLang === 'el' 
-                    ? "Προέκυψε σφάλμα κατά την αποθήκευση του προφίλ σας: " 
-                    : "An error occurred while saving your profile: ";
-                alert(msg + error.message);
-            }
-            
+            const msg = currentLang === 'el' 
+                ? "Προέκυψε σφάλμα κατά την αποθήκευση του προφίλ σας: " 
+                : "An error occurred while saving your profile: ";
+            alert(msg + error.message);
         } finally {
             saveEditBtn.textContent = originalBtnText;
             saveEditBtn.disabled = false;
@@ -180,7 +169,81 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 4. Handle Logout
+    // 4. Handle Email Update Modal & Re-authentication
+    function closeEmailModal() {
+        emailModal.classList.add('hidden');
+        emailForm.reset();
+        emailModalAlert.classList.add('hidden');
+        emailModalAlert.textContent = '';
+    }
+
+    openEmailModalBtn.addEventListener('click', () => {
+        emailModal.classList.remove('hidden');
+    });
+
+    closeEmailModalBtn.addEventListener('click', closeEmailModal);
+    emailModalBackdrop.addEventListener('click', closeEmailModal);
+
+    emailForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currentLang = localStorage.getItem('aura_lang') || 'en';
+        
+        const newEmail = newEmailInput.value.trim();
+        const password = confirmPasswordInput.value;
+
+        if (!newEmail || !password) return;
+
+        const originalText = submitEmailModalBtn.textContent;
+        submitEmailModalBtn.textContent = currentLang === 'el' ? 'Επεξεργασία...' : 'Processing...';
+        submitEmailModalBtn.disabled = true;
+        submitEmailModalBtn.classList.add('opacity-70', 'cursor-not-allowed');
+        
+        emailModalAlert.classList.add('hidden');
+
+        try {
+            // 1. Re-authenticate user
+            const credential = EmailAuthProvider.credential(currentUser.email, password);
+            await reauthenticateWithCredential(currentUser, credential);
+
+            // 2. Trigger verification email to the new address
+            await verifyBeforeUpdateEmail(currentUser, newEmail);
+
+            // 3. Update Firestore to reflect the pending/new email
+            await updateDoc(doc(db, "users", currentUser.uid), {
+                email: newEmail
+            });
+
+            // 4. Show success
+            const successMsg = translations[currentLang]?.profile?.email_modal?.success || translations['en'].profile.email_modal.success;
+            emailModalAlert.textContent = successMsg;
+            emailModalAlert.className = "mb-6 p-4 bg-green-50 border border-green-100 text-green-600 text-sm font-sans rounded-sm text-center";
+            emailModalAlert.classList.remove('hidden');
+
+            // 5. Cleanup
+            setTimeout(() => {
+                closeEmailModal();
+                loadProfileData(); // refresh UI
+            }, 3000);
+
+        } catch (error) {
+            console.error("Email Update Error:", error);
+            let errorMsg = translations[currentLang]?.profile?.email_modal?.error_generic || translations['en'].profile.email_modal.error_generic;
+            
+            if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                errorMsg = translations[currentLang]?.profile?.email_modal?.error_password || translations['en'].profile.email_modal.error_password;
+            }
+
+            emailModalAlert.textContent = errorMsg;
+            emailModalAlert.className = "mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-sans rounded-sm text-center";
+            emailModalAlert.classList.remove('hidden');
+        } finally {
+            submitEmailModalBtn.textContent = originalText;
+            submitEmailModalBtn.disabled = false;
+            submitEmailModalBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+        }
+    });
+
+    // 5. Handle Logout
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             try {
