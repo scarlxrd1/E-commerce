@@ -106,7 +106,8 @@ export const translations = {
             forgot_password: "Forgot your password?",
             sign_in_btn: "Sign In",
             no_account: "Don't have an account?",
-            create_one: "Create one"
+            create_one: "Create one",
+            error_phone_exists: "This phone number is already registered."
         },
         checkout: {
             title: "Secure Checkout",
@@ -173,16 +174,12 @@ export const translations = {
                     country: "Country",
                     postal_code: "Postal Code (ZIP)",
                     account_security: "Account Security",
-                    change_email: "Change Email",
-                    change_password: "Change Password"
+                    change_email: "Change Email"
                 },
                 countries: {
                     select: "Select Country",
                     greece: "Greece",
                     cyprus: "Cyprus"
-                },
-                placeholders: {
-                    password: "Leave blank to keep current"
                 },
                 cancel: "Cancel",
                 save: "Save Changes"
@@ -368,7 +365,8 @@ export const translations = {
             forgot_password: "Ξεχάσατε τον κωδικό σας;",
             sign_in_btn: "Σύνδεση",
             no_account: "Δεν έχετε λογαριασμό;",
-            create_one: "Δημιουργήστε έναν"
+            create_one: "Δημιουργήστε έναν",
+            error_phone_exists: "Αυτός ο αριθμός τηλεφώνου είναι ήδη εγγεγραμμένος."
         },
         checkout: {
             title: "Ασφαλής Ολοκλήρωση",
@@ -435,16 +433,12 @@ export const translations = {
                     country: "Χώρα",
                     postal_code: "Ταχυδρομικός Κώδικας (Τ.Κ.)",
                     account_security: "Ασφάλεια Λογαριασμού",
-                    change_email: "Αλλαγή Email",
-                    change_password: "Αλλαγή Κωδικού"
+                    change_email: "Αλλαγή Email"
                 },
                 countries: {
                     select: "Επιλέξτε Χώρα",
                     greece: "Ελλάδα",
                     cyprus: "Κύπρος"
-                },
-                placeholders: {
-                    password: "Αφήστε κενό για διατήρηση"
                 },
                 cancel: "Ακύρωση",
                 save: "Αποθήκευση Αλλαγών"
