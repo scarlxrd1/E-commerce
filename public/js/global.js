@@ -1,6 +1,6 @@
 /**
  * AURA Global Engine
- * Handles UI Component Injection (Navbar/Footer/Cart), Global Cart State, Hybrid Cloud/Local Sync, Auth State, and i18n Translation.
+ * Handles UI Component Injection (Navbar/Footer/Cart/Mobile Menu), Global Cart State, Hybrid Cloud/Local Sync, Auth State, and i18n Translation.
  */
 
 import { app, db } from './firebase-config.js';
@@ -10,17 +10,30 @@ import { translations } from './translations.js';
 
 const navbarHTML = `
     <nav class="sticky top-0 z-50 bg-cream/90 backdrop-blur-md border-b border-stone-200/50 transition-all">
-        <div class="max-w-[1400px] mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
-            <a href="index.html" class="font-serif text-2xl tracking-wide text-stone-900">AURA.</a>
-            <div class="hidden md:flex items-center gap-10">
+        <div class="max-w-[1400px] mx-auto px-6 md:px-12 h-20 flex items-center justify-between relative">
+            
+            <!-- Mobile Left: Hamburger -->
+            <div class="flex md:hidden items-center flex-1">
+                <button id="mobile-menu-open" class="p-1 -ml-1 text-stone-900 hover:scale-110 transition-transform" aria-label="Open Menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+
+            <!-- Logo (Center on mobile, Left on desktop) -->
+            <div class="flex-shrink-0 flex items-center justify-center md:justify-start">
+                <a href="index.html" class="font-serif text-2xl tracking-wide text-stone-900">AURA.</a>
+            </div>
+
+            <!-- Desktop Center: Links -->
+            <div class="hidden md:flex items-center gap-10 absolute left-1/2 -translate-x-1/2">
                 <a href="collection.html" class="font-sans text-sm text-stone-500 hover:text-stone-900 transition-colors" data-i18n="nav.collection">Collection</a>
             </div>
             
             <!-- Right-side controls -->
-            <div class="flex items-center gap-4 md:gap-6 z-10">
+            <div class="flex-1 md:flex-none flex items-center justify-end gap-4 md:gap-6 z-10">
                 
-                <!-- Isolated Language Toggle -->
-                <div class="hidden sm:flex flex-shrink-0 flex items-center gap-1.5 font-sans text-[11px] tracking-widest uppercase select-none">
+                <!-- Isolated Language Toggle (Desktop Only) -->
+                <div class="hidden md:flex flex-shrink-0 items-center gap-1.5 font-sans text-[11px] tracking-widest uppercase select-none">
                     <button id="lang-el-btn" class="transition-colors" onclick="window.changeLanguage('el')">EL</button>
                     <span class="text-stone-300">|</span>
                     <button id="lang-en-btn" class="transition-colors" onclick="window.changeLanguage('en')">EN</button>
@@ -28,26 +41,63 @@ const navbarHTML = `
 
                 <!-- Self-Contained Expandable Search Container -->
                 <form id="global-search-form" class="flex items-center flex-row-reverse">
-                    <button type="button" id="global-search-toggle" class="hover:scale-110 transition-transform p-1 text-xl flex-shrink-0" aria-label="Toggle Search">
+                    <button type="button" id="global-search-toggle" class="hover:scale-110 transition-transform p-1 text-xl flex-shrink-0 text-stone-900" aria-label="Toggle Search">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </button>
-                    <input type="text" id="global-search-input" data-i18n="nav.search" placeholder="Search..." class="w-0 opacity-0 px-0 overflow-hidden transition-all duration-300 border-b border-stone-300 bg-transparent text-xs focus:outline-none focus:border-stone-900 placeholder-stone-400">
+                    <input type="text" id="global-search-input" data-i18n="nav.search" placeholder="Search..." class="w-0 opacity-0 px-0 overflow-hidden transition-all duration-300 border-b border-stone-300 bg-transparent text-xs text-stone-900 focus:outline-none focus:border-stone-900 placeholder-stone-400">
                 </form>
 
-                <!-- User Profile Link with Auth Indicator -->
-                <a href="auth.html" id="user-profile-link" class="relative hover:scale-110 transition-transform hidden sm:block p-1 text-xl flex-shrink-0" aria-label="User Profile">
+                <!-- User Profile Link with Auth Indicator (Desktop Only) -->
+                <a href="auth.html" id="user-profile-link" class="relative hover:scale-110 transition-transform hidden md:block p-1 text-xl flex-shrink-0 text-stone-900" aria-label="User Profile">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     <span id="auth-indicator" class="absolute top-0.5 right-0.5 w-2 h-2 bg-stone-900 rounded-full border-2 border-[#FBFBFA] hidden transition-all duration-300"></span>
                 </a>
 
                 <!-- Cart Icon -->
-                <button id="cart-icon-btn" class="relative hover:scale-110 transition-transform p-1 text-xl flex-shrink-0" aria-label="Cart">
+                <button id="cart-icon-btn" class="relative hover:scale-110 transition-transform p-1 text-xl flex-shrink-0 text-stone-900" aria-label="Cart">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                     <span id="cart-badge" class="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-stone-900 text-[10px] font-medium text-white opacity-0 transition-opacity duration-300 shadow-sm pointer-events-none">0</span>
                 </button>
             </div>
         </div>
     </nav>
+`;
+
+const mobileMenuHTML = `
+    <div id="mobile-menu-container" class="fixed inset-0 z-[100] hidden pointer-events-none">
+        <div id="mobile-menu-backdrop" class="absolute inset-0 bg-stone-900/20 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-auto"></div>
+        <div id="mobile-menu-drawer" class="absolute top-0 left-0 h-full w-4/5 max-w-sm bg-[#FAFAFA] shadow-2xl transform -translate-x-full transition-transform duration-300 flex flex-col pointer-events-auto">
+            <div class="flex items-center justify-between px-8 py-6 border-b border-stone-200">
+                <a href="index.html" class="font-serif text-2xl tracking-wide text-stone-900">AURA.</a>
+                <button id="close-mobile-menu-btn" class="p-2 -mr-2 text-stone-500 hover:text-stone-900 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto px-8 py-8 flex flex-col justify-between">
+                <nav class="flex flex-col gap-6">
+                    <a href="collection.html" class="font-sans text-lg text-stone-900 hover:text-stone-600 transition-colors" data-i18n="nav.collection">Collection</a>
+                </nav>
+                
+                <div class="flex flex-col gap-8 pb-4">
+                    <div class="w-12 h-px bg-stone-200"></div>
+                    
+                    <a href="auth.html" id="mobile-user-profile-link" class="flex items-center gap-3 font-sans text-stone-900 hover:text-stone-600 transition-colors">
+                        <div class="relative">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            <span id="mobile-auth-indicator" class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-stone-900 rounded-full border-2 border-[#FAFAFA] hidden"></span>
+                        </div>
+                        <span>Account</span>
+                    </a>
+                    
+                    <div class="flex items-center gap-2 font-sans text-xs tracking-widest uppercase select-none">
+                        <button id="lang-el-mobile-btn" class="transition-colors" onclick="window.changeLanguage('el')">EL</button>
+                        <span class="text-stone-300">|</span>
+                        <button id="lang-en-mobile-btn" class="transition-colors" onclick="window.changeLanguage('en')">EN</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 `;
 
 const footerHTML = `
@@ -141,19 +191,24 @@ window.changeLanguage = function(lang) {
     localStorage.setItem('aura_lang', lang);
     document.documentElement.lang = lang;
 
-    // Update active/inactive classes for language toggle buttons
-    const elBtn = document.getElementById('lang-el-btn');
-    const enBtn = document.getElementById('lang-en-btn');
-    
-    if (elBtn && enBtn) {
-        if (lang === 'el') {
-            elBtn.className = 'text-stone-900 font-semibold transition-colors';
-            enBtn.className = 'text-stone-400 hover:text-stone-900 cursor-pointer transition-colors';
-        } else {
-            enBtn.className = 'text-stone-900 font-semibold transition-colors';
-            elBtn.className = 'text-stone-400 hover:text-stone-900 cursor-pointer transition-colors';
+    // Helper to update active/inactive classes for language toggle buttons
+    const updateLangBtns = (elId, enId) => {
+        const elBtn = document.getElementById(elId);
+        const enBtn = document.getElementById(enId);
+        if (elBtn && enBtn) {
+            if (lang === 'el') {
+                elBtn.className = 'text-stone-900 font-semibold transition-colors';
+                enBtn.className = 'text-stone-400 hover:text-stone-900 cursor-pointer transition-colors';
+            } else {
+                enBtn.className = 'text-stone-900 font-semibold transition-colors';
+                elBtn.className = 'text-stone-400 hover:text-stone-900 cursor-pointer transition-colors';
+            }
         }
-    }
+    };
+
+    // Update both Desktop and Mobile toggles
+    updateLangBtns('lang-el-btn', 'lang-en-btn');
+    updateLangBtns('lang-el-mobile-btn', 'lang-en-mobile-btn');
 
     const elements = document.querySelectorAll('[data-i18n]');
     elements.forEach(el => {
@@ -183,7 +238,10 @@ window.changeLanguage = function(lang) {
 // ==========================================
 function initGlobalUI() {
     const navContainer = document.getElementById('navbar-container');
-    if (navContainer) navContainer.innerHTML = navbarHTML;
+    if (navContainer) {
+        navContainer.innerHTML = navbarHTML;
+        document.body.insertAdjacentHTML('beforeend', mobileMenuHTML);
+    }
 
     const footerContainer = document.getElementById('footer-container');
     if (footerContainer) footerContainer.innerHTML = footerHTML;
@@ -236,17 +294,56 @@ function initGlobalUI() {
         });
     }
 
+    // Mobile Menu Logic
+    const mobileMenuOpenBtn = document.getElementById('mobile-menu-open');
+    const mobileMenuCloseBtn = document.getElementById('close-mobile-menu-btn');
+    const mobileMenuContainer = document.getElementById('mobile-menu-container');
+    const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+    const mobileMenuDrawer = document.getElementById('mobile-menu-drawer');
+
+    window.openMobileMenu = function() {
+        if(!mobileMenuContainer) return;
+        mobileMenuContainer.classList.remove('hidden');
+        setTimeout(() => {
+            mobileMenuBackdrop.classList.remove('opacity-0');
+            mobileMenuBackdrop.classList.add('opacity-100');
+            mobileMenuDrawer.classList.remove('-translate-x-full');
+            mobileMenuDrawer.classList.add('translate-x-0');
+        }, 10);
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeMobileMenu = function() {
+        if(!mobileMenuContainer) return;
+        mobileMenuBackdrop.classList.remove('opacity-100');
+        mobileMenuBackdrop.classList.add('opacity-0');
+        mobileMenuDrawer.classList.remove('translate-x-0');
+        mobileMenuDrawer.classList.add('-translate-x-full');
+        setTimeout(() => {
+            mobileMenuContainer.classList.add('hidden');
+            document.body.style.overflow = '';
+        }, 300);
+    };
+
+    if (mobileMenuOpenBtn) mobileMenuOpenBtn.addEventListener('click', window.openMobileMenu);
+    if (mobileMenuCloseBtn) mobileMenuCloseBtn.addEventListener('click', window.closeMobileMenu);
+    if (mobileMenuBackdrop) mobileMenuBackdrop.addEventListener('click', window.closeMobileMenu);
+
     // Auth State Listener (Smart Routing & Hybrid Cart Sync)
     const auth = getAuth(app);
     onAuthStateChanged(auth, async (user) => {
         const indicator = document.getElementById('auth-indicator');
         const profileLink = document.getElementById('user-profile-link');
+        const mobileIndicator = document.getElementById('mobile-auth-indicator');
+        const mobileProfileLink = document.getElementById('mobile-user-profile-link');
         
         if (user) {
             // Logged in
             currentUser = user;
             if (indicator) indicator.classList.remove('hidden');
             if (profileLink) profileLink.href = 'profile.html';
+            if (mobileIndicator) mobileIndicator.classList.remove('hidden');
+            if (mobileProfileLink) mobileProfileLink.href = 'profile.html';
             
             // Sync cart from Firestore and merge local storage if needed
             await syncCartOnLogin(user);
@@ -255,6 +352,8 @@ function initGlobalUI() {
             currentUser = null;
             if (indicator) indicator.classList.add('hidden');
             if (profileLink) profileLink.href = 'auth.html';
+            if (mobileIndicator) mobileIndicator.classList.add('hidden');
+            if (mobileProfileLink) mobileProfileLink.href = 'auth.html';
             
             // Load local cart
             cart = JSON.parse(localStorage.getItem('aura_cart')) || [];
