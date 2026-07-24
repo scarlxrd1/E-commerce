@@ -1,5 +1,5 @@
 import { app, db } from './firebase-config.js';
-import { getAuth, onAuthStateChanged, signOut, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut, updateEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -31,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Auth Edit Fields
     const editEmailInput = document.getElementById('edit-email');
-    const editPasswordInput = document.getElementById('edit-password');
 
     // 1. Route Protection & Fetching User Data
     onAuthStateChanged(auth, async (user) => {
@@ -115,8 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
         editModeContainer.classList.remove('flex');
         viewModeContainer.classList.remove('hidden');
         editProfileBtn.classList.remove('hidden');
-        // Reset inputs to original state and clear password
-        editPasswordInput.value = '';
         loadProfileData(); 
     });
 
@@ -124,24 +121,19 @@ document.addEventListener('DOMContentLoaded', () => {
     editModeContainer.addEventListener('submit', async (e) => {
         e.preventDefault();
         const originalBtnText = saveEditBtn.textContent;
-        saveEditBtn.textContent = 'Saving...';
+        
+        const currentLang = localStorage.getItem('aura_lang') || 'en';
+        saveEditBtn.textContent = currentLang === 'el' ? 'Αποθήκευση...' : 'Saving...';
         saveEditBtn.disabled = true;
         saveEditBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
         try {
-            // A. Prepare Auth Updates (Email & Password)
+            // A. Prepare Auth Updates (Email)
             let authUpdates = [];
             const newEmail = editEmailInput.value.trim();
-            const newPassword = editPasswordInput.value;
 
             if (newEmail && newEmail !== currentUser.email) {
                 authUpdates.push(updateEmail(currentUser, newEmail));
-            }
-            if (newPassword && newPassword.length > 6) {
-                authUpdates.push(updatePassword(currentUser, newPassword));
-            } else if (newPassword && newPassword.length <= 6) {
-                alert("Password must be greater than 6 characters.");
-                throw new Error("Validation Failed");
             }
 
             // Execute Auth Updates first (as they are more sensitive to recent login requirements)
@@ -163,7 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Reload data and switch back to view mode
-            editPasswordInput.value = '';
             await loadProfileData();
             cancelEditBtn.click(); // Triggers the UI toggle back to view mode
 
@@ -171,9 +162,15 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Error updating profile:", error);
             
             if (error.code === 'auth/requires-recent-login') {
-                alert("For security reasons, please log out and log back in before changing your email or password.");
+                const msg = currentLang === 'el' 
+                    ? "Για λόγους ασφαλείας, παρακαλώ αποσυνδεθείτε και συνδεθείτε ξανά πριν αλλάξετε το email σας."
+                    : "For security reasons, please log out and log back in before changing your email.";
+                alert(msg);
             } else if (error.message !== "Validation Failed") {
-                alert("An error occurred while saving your profile: " + error.message);
+                const msg = currentLang === 'el' 
+                    ? "Προέκυψε σφάλμα κατά την αποθήκευση του προφίλ σας: " 
+                    : "An error occurred while saving your profile: ";
+                alert(msg + error.message);
             }
             
         } finally {
@@ -188,12 +185,16 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutBtn.addEventListener('click', async () => {
             try {
                 const originalText = logoutBtn.textContent;
-                logoutBtn.textContent = 'Logging out...';
+                const currentLang = localStorage.getItem('aura_lang') || 'en';
+                logoutBtn.textContent = currentLang === 'el' ? 'Αποσύνδεση...' : 'Logging out...';
                 await signOut(auth);
                 window.location.href = 'index.html';
             } catch (error) {
                 console.error('Error signing out:', error);
-                alert('An error occurred while logging out. Please try again.');
+                const msg = localStorage.getItem('aura_lang') === 'el' 
+                    ? "Προέκυψε σφάλμα κατά την αποσύνδεση. Παρακαλώ δοκιμάστε ξανά."
+                    : "An error occurred while logging out. Please try again.";
+                alert(msg);
                 logoutBtn.textContent = originalText;
             }
         });
