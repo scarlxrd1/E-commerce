@@ -128,11 +128,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             html += `
                 <div class="flex items-center gap-5">
-                    <div class="relative flex-shrink-0">
+                    <div class="relative flex-shrink-0 overflow-visible">
                         <div class="w-16 h-20 bg-stone-100 rounded-sm overflow-hidden border border-stone-200">
                             <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
                         </div>
-                        <span class="absolute -top-2 -right-2 w-5 h-5 bg-stone-900 text-white rounded-full flex items-center justify-center text-[10px] font-bold z-10 shadow-sm">${item.quantity}</span>
+                        <span class="absolute -top-2 -right-2 w-5 h-5 bg-stone-900 text-white text-[11px] font-medium rounded-full flex items-center justify-center z-20 shadow-sm pointer-events-none">${item.quantity}</span>
                     </div>
                     <div class="flex-1 flex justify-between items-center">
                         <div class="flex flex-col">
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <button onclick="window.updateCheckoutCartQty(${index}, 1)" type="button" class="w-6 h-6 flex items-center justify-center border border-stone-300 text-stone-500 hover:text-stone-900 hover:border-stone-900 rounded-sm transition-colors ${disablePlus ? 'opacity-50 cursor-not-allowed' : ''}" ${disablePlus ? 'disabled' : ''}>+</button>
                             </div>
                         </div>
-                        <div class="font-sans text-stone-900 text-sm font-medium">
+                        <div class="font-sans text-stone-900 text-sm font-medium ml-4">
                             €${itemTotal.toLocaleString()}
                         </div>
                     </div>
