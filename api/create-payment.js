@@ -1,66 +1,69 @@
 export default async function handler(req, res) {
     try {
         if (req.method !== 'POST') {
-            throw new Error('Method Not Allowed. Expected POST.');
+            throw new Error('Method Not Allowed');
         }
 
         const { amount, customerEmail, customerName, customerPhone } = req.body;
 
-        // Παίρνουμε τα κλειδιά σου (ΕΙΝΑΙ ΣΩΣΤΑ!)
-        const merchantId = process.env.VIVA_MERCHANT_ID;
-        const apiKey = process.env.VIVA_API_KEY;
+        // Παίρνουμε τα ολοκαίνουργια κλειδιά από το Vercel
+        const clientId = process.env.VIVA_CLIENT_ID;
+        const clientSecret = process.env.VIVA_CLIENT_SECRET;
         const sourceCode = process.env.VIVA_SOURCE_CODE;
 
-        if (!merchantId || !apiKey || !sourceCode) {
-            throw new Error("Missing Environment Variables");
+        if (!clientId || !clientSecret || !sourceCode) {
+            throw new Error("Λείπουν τα νέα VIVA_CLIENT_ID ή VIVA_CLIENT_SECRET από το Vercel.");
         }
 
         const amountInCents = Math.round(parseFloat(amount) * 100);
 
-        if (isNaN(amountInCents) || amountInCents <= 0) {
-            throw new Error("Invalid amount provided.");
+        // 1. Ζητάμε το Token Ασφαλείας (OAuth2)
+        const tokenCredentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+        const tokenResponse = await fetch('https://demo-accounts.vivapayments.com/connect/token', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Basic ${tokenCredentials}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'grant_type=client_credentials'
+        });
+
+        const tokenData = await tokenResponse.json();
+        if (!tokenResponse.ok || !tokenData.access_token) {
+            throw new Error(`Viva Auth Error: ${JSON.stringify(tokenData)}`);
         }
 
-        // Φτιάχνουμε τον κωδικό απευθείας (Basic Auth) χωρίς Bearer Tokens!
-        const credentials = Buffer.from(`${merchantId}:${apiKey}`).toString('base64');
-
-        // Στέλνουμε την παραγγελία ΑΠΕΥΘΕΙΑΣ στη Viva
+        // 2. Στέλνουμε την παραγγελία στο Smart Checkout με το Token
         const orderResponse = await fetch('https://demo-api.vivapayments.com/checkout/v2/orders', {
             method: 'POST',
             headers: {
-                'Authorization': `Basic ${credentials}`,
+                'Authorization': `Bearer ${tokenData.access_token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 amount: amountInCents,
                 customerTrns: "AURA Order",
                 customer: {
-                    email: customerEmail,
-                    fullName: customerName,
-                    phone: customerPhone
+                    email: customerEmail || 'test@aura.gr',
+                    fullName: customerName || 'AURA Customer',
+                    phone: customerPhone || '+306900000000'
                 },
                 sourceCode: sourceCode
             })
         });
 
         const orderText = await orderResponse.text();
-
         if (!orderResponse.ok) {
-            throw new Error(`Viva API Error ${orderResponse.status}: ${orderText}`);
+            throw new Error(`Viva Order API Error ${orderResponse.status}: ${orderText}`);
         }
 
         const orderData = JSON.parse(orderText);
-
-        // Γυρνάμε τον κωδικό της παραγγελίας στο Frontend σου
-        return res.status(200).json({ 
-            success: true, 
-            orderCode: orderData.orderCode 
-        });
+        
+        // Επιτυχία! Στέλνουμε τον κωδικό της παραγγελίας πίσω στο site σου
+        return res.status(200).json({ success: true, orderCode: orderData.orderCode });
 
     } catch (error) {
-        console.error("Create Payment Error:", error.message);
-        return res.status(400).json({ 
-            error: error.message 
-        });
+        console.error("Backend Error:", error.message);
+        return res.status(400).json({ error: error.message });
     }
 }
