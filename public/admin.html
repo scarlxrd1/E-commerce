@@ -127,9 +127,13 @@
                 <div id="add-product-container" class="hidden bg-white p-8 border border-gray-200 rounded-sm mb-10 shadow-sm">
                     <h3 class="font-sans text-sm tracking-widest uppercase text-neutral-900 mb-6">Δημιουργία Νέου Προϊόντος</h3>
                     <form id="add-product-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="md:col-span-2">
+                        <div>
                             <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Τίτλος</label>
                             <input type="text" id="add-title" required class="w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900">
+                        </div>
+                        <div>
+                            <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">SKU</label>
+                            <input type="text" id="add-sku" required class="w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900">
                         </div>
                         <div>
                             <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Τιμή (€)</label>
@@ -195,6 +199,7 @@
                         <thead>
                             <tr class="bg-neutral-50 border-b border-gray-200 font-sans text-xs tracking-widest uppercase text-neutral-500">
                                 <th class="p-4 font-medium">Προϊόν</th>
+                                <th class="p-4 font-medium">SKU</th>
                                 <th class="p-4 font-medium">Κατηγορία</th>
                                 <th class="p-4 font-medium">Τιμή</th>
                                 <th class="p-4 font-medium">Απόθεμα</th>
@@ -203,7 +208,7 @@
                             </tr>
                         </thead>
                         <tbody id="products-table-body" class="divide-y divide-gray-100 font-sans text-sm text-neutral-900">
-                            <tr><td colspan="6" class="p-8 text-center text-neutral-400">Φόρτωση προϊόντων...</td></tr>
+                            <tr><td colspan="7" class="p-8 text-center text-neutral-400">Φόρτωση προϊόντων...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -260,9 +265,15 @@
             <h3 class="font-serif text-2xl text-neutral-900 mb-6">Επεξεργασία Προϊόντος</h3>
             <form id="edit-product-form" class="flex flex-col gap-6">
                 <input type="hidden" id="edit-id">
-                <div>
-                    <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Τίτλος</label>
-                    <input type="text" id="edit-title" required class="w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Τίτλος</label>
+                        <input type="text" id="edit-title" required class="w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900">
+                    </div>
+                    <div>
+                        <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">SKU</label>
+                        <input type="text" id="edit-sku" required class="w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900">
+                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-6">
                     <div>
