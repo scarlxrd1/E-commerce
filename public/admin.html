@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="el">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AURA | Admin Control</title>
+    <title>AURA | Διαχείριση</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,83 +40,109 @@
         }
     </style>
 </head>
-<body class="font-sans text-stone-900 antialiased selection:bg-stone-200 selection:text-stone-900">
+<body class="font-sans text-neutral-900 antialiased selection:bg-neutral-200 selection:text-neutral-900">
 
-    <div id="login-view" class="min-h-screen flex items-center justify-center px-6">
-        <div class="w-full max-w-md bg-white p-10 md:p-14 shadow-sm border border-stone-100 rounded-sm">
+    <div id="login-view" class="min-h-screen flex items-center justify-center px-6 bg-white">
+        <div class="w-full max-w-md bg-white p-10 md:p-14 shadow-sm border border-gray-100 rounded-sm">
             <div class="text-center mb-10">
-                <h1 class="font-serif text-3xl text-stone-900 mb-2">AURA Admin</h1>
-                <p class="font-sans text-sm text-stone-500">Secure access required.</p>
+                <h1 class="font-serif text-3xl text-neutral-900 mb-2">AURA Διαχείριση</h1>
+                <p class="font-sans text-sm text-neutral-500">Απαιτείται ασφαλής πρόσβαση.</p>
             </div>
 
             <div id="login-error" class="hidden mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-sans rounded-sm text-center"></div>
 
             <form id="admin-login-form" class="flex flex-col gap-6">
                 <div>
-                    <label for="admin-email" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Email Address</label>
-                    <input type="email" id="admin-email" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                    <label for="admin-email" class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Διεύθυνση Email</label>
+                    <input type="email" id="admin-email" required class="w-full bg-transparent border-b border-gray-300 py-3 font-sans text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-900 transition-colors">
                 </div>
                 <div>
-                    <label for="admin-password" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Password</label>
-                    <input type="password" id="admin-password" required class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                    <label for="admin-password" class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Κωδικός Πρόσβασης</label>
+                    <input type="password" id="admin-password" required class="w-full bg-transparent border-b border-gray-300 py-3 font-sans text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-900 transition-colors">
                 </div>
                 
-                <button type="submit" id="login-submit-btn" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-4 mt-4 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">
-                    Authenticate
+                <button type="submit" id="login-submit-btn" class="w-full bg-neutral-900 text-white font-sans text-sm tracking-widest uppercase py-4 mt-4 hover:bg-neutral-800 transition-colors rounded-sm shadow-sm">
+                    Σύνδεση
                 </button>
             </form>
         </div>
     </div>
 
-    <div id="dashboard-view" class="hidden min-h-screen bg-stone-50 flex-col md:flex-row">
+    <div id="dashboard-view" class="hidden min-h-screen bg-neutral-50 flex-col md:flex-row">
         
-        <aside class="w-full md:w-64 bg-white border-r border-stone-200 flex flex-col justify-between sticky top-0 md:h-screen z-20">
+        <aside class="w-full md:w-64 bg-white border-r border-gray-200 flex flex-col justify-between sticky top-0 md:h-screen z-20">
             <div class="p-8">
-                <h2 class="font-serif text-2xl text-stone-900 mb-12">AURA. <span class="font-sans text-xs tracking-widest uppercase text-stone-400 block mt-2">Workspace</span></h2>
+                <h2 class="font-serif text-2xl text-neutral-900 mb-12">AURA. <span class="font-sans text-xs tracking-widest uppercase text-neutral-400 block mt-2">Χώρος Εργασίας</span></h2>
                 
                 <nav class="flex flex-col gap-6 font-sans text-sm tracking-widest uppercase">
-                    <button id="nav-products" class="text-left text-stone-900 font-semibold border-l-2 border-stone-900 pl-4 py-1 transition-colors">Products</button>
-                    <button id="nav-customers" class="text-left text-stone-400 hover:text-stone-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Customers</button>
-                    <button id="nav-support" class="text-left text-stone-400 hover:text-stone-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Customer Care Support</button>
+                    <button id="nav-orders" class="text-left text-neutral-900 font-semibold border-l-2 border-neutral-900 pl-4 py-1 transition-colors">Παραγγελίες</button>
+                    <button id="nav-products" class="text-left text-neutral-400 hover:text-neutral-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Προϊόντα</button>
+                    <button id="nav-customers" class="text-left text-neutral-400 hover:text-neutral-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Πελάτες</button>
+                    <button id="nav-support" class="text-left text-neutral-400 hover:text-neutral-900 border-l-2 border-transparent pl-4 py-1 transition-colors">Υποστήριξη Πελατών</button>
                 </nav>
             </div>
             
-            <div class="p-8 border-t border-stone-100">
-                <button id="logout-btn" class="font-sans text-sm tracking-widest uppercase text-stone-400 hover:text-red-700 transition-colors">
-                    Log Out
+            <div class="p-8 border-t border-gray-100">
+                <button id="logout-btn" class="font-sans text-sm tracking-widest uppercase text-neutral-400 hover:text-red-700 transition-colors">
+                    Αποσύνδεση
                 </button>
             </div>
         </aside>
 
         <main class="flex-1 p-8 md:p-12 overflow-y-auto">
-            
-            <section id="products-section" class="block">
+
+            <section id="orders-section" class="block">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-                    <h1 class="font-serif text-3xl text-stone-900">Products Management</h1>
-                    <button id="toggle-add-product-btn" class="bg-stone-900 text-white font-sans text-xs tracking-widest uppercase px-6 py-3 rounded-sm hover:bg-stone-800 transition-colors shadow-sm">
-                        + Add New Product
+                    <h1 class="font-serif text-3xl text-neutral-900">Διαχείριση Παραγγελιών</h1>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-sm shadow-sm overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[900px]">
+                        <thead>
+                            <tr class="bg-neutral-50 border-b border-gray-200 font-sans text-xs tracking-widest uppercase text-neutral-500">
+                                <th class="p-4 font-medium">ID</th>
+                                <th class="p-4 font-medium">Ημερομηνία</th>
+                                <th class="p-4 font-medium">Πελάτης</th>
+                                <th class="p-4 font-medium">Προϊόντα</th>
+                                <th class="p-4 font-medium">Σύνολο</th>
+                                <th class="p-4 font-medium">Κατάσταση</th>
+                                <th class="p-4 font-medium text-right">Ενέργειες</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body" class="divide-y divide-gray-100 font-sans text-sm text-neutral-900">
+                            <tr><td colspan="7" class="p-8 text-center text-neutral-400">Φόρτωση παραγγελιών...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <section id="products-section" class="hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+                    <h1 class="font-serif text-3xl text-neutral-900">Διαχείριση Προϊόντων</h1>
+                    <button id="toggle-add-product-btn" class="bg-neutral-900 text-white font-sans text-xs tracking-widest uppercase px-6 py-3 rounded-sm hover:bg-neutral-800 transition-colors shadow-sm">
+                        + Νέο Προϊόν
                     </button>
                 </div>
 
-                <div id="add-product-container" class="hidden bg-white p-8 border border-stone-200 rounded-sm mb-10 shadow-sm">
-                    <h3 class="font-sans text-sm tracking-widest uppercase text-stone-900 mb-6">Create New Piece</h3>
+                <div id="add-product-container" class="hidden bg-white p-8 border border-gray-200 rounded-sm mb-10 shadow-sm">
+                    <h3 class="font-sans text-sm tracking-widest uppercase text-neutral-900 mb-6">Δημιουργία Νέου Προϊόντος</h3>
                     <form id="add-product-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="md:col-span-2">
-                            <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Title</label>
-                            <input type="text" id="add-title" required class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
+                            <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Τίτλος</label>
+                            <input type="text" id="add-title" required class="w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900">
                         </div>
                         <div>
-                            <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Price (€)</label>
-                            <input type="number" id="add-price" required min="0" class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
+                            <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Τιμή (€)</label>
+                            <input type="number" id="add-price" required min="0" class="w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900">
                         </div>
                         <div>
-                            <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Stock Quantity</label>
-                            <input type="number" id="add-stock" required min="0" class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
+                            <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Απόθεμα</label>
+                            <input type="number" id="add-stock" required min="0" class="w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900">
                         </div>
                         <div>
-                            <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Category</label>
-                            <select id="add-category" required class="custom-select w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 appearance-none cursor-pointer">
-                                <option value="" disabled selected>Select Category</option>
+                            <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Κατηγορία</label>
+                            <select id="add-category" required class="custom-select w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900 appearance-none cursor-pointer">
+                                <option value="" disabled selected>Επιλέξτε Κατηγορία</option>
                                 <option value="seating">Seating</option>
                                 <option value="tables">Tables</option>
                                 <option value="decor">Decor</option>
@@ -125,9 +151,9 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Estimated Dispatch</label>
-                            <select id="add-dispatch" required class="custom-select w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 appearance-none cursor-pointer">
-                                <option value="" disabled selected>Select Dispatch Time</option>
+                            <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Εκτιμώμενος Χρόνος Αποστολής</label>
+                            <select id="add-dispatch" required class="custom-select w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900 appearance-none cursor-pointer">
+                                <option value="" disabled selected>Επιλέξτε Χρόνο</option>
                                 <option value="2-3 estimated days">2-3 estimated days</option>
                                 <option value="5-12 estimated days">5-12 estimated days</option>
                                 <option value="2-3 weeks">2-3 weeks</option>
@@ -135,90 +161,90 @@
                             </select>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Product Status / Visibility</label>
-                            <select id="add-status" required class="custom-select w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 appearance-none cursor-pointer">
-                                <option value="active" selected>Active / Visible</option>
-                                <option value="hidden">Disabled / Hidden</option>
+                            <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Κατάσταση / Ορατότητα</label>
+                            <select id="add-status" required class="custom-select w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900 appearance-none cursor-pointer">
+                                <option value="active" selected>Ενεργό / Ορατό</option>
+                                <option value="hidden">Ανενεργό / Κρυφό</option>
                             </select>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Description</label>
-                            <textarea id="add-description" rows="4" class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 resize-none placeholder-stone-400" placeholder="Enter product description..."></textarea>
+                            <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Περιγραφή</label>
+                            <textarea id="add-description" rows="4" class="w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900 resize-none placeholder-neutral-400" placeholder="Εισάγετε περιγραφή..."></textarea>
                         </div>
                         <div class="md:col-span-2">
                             <div class="flex items-center justify-between mb-2">
-                                <label class="block font-sans text-xs tracking-widest uppercase text-stone-500">Product Images</label>
-                                <button type="button" id="add-image-btn" class="text-stone-900 hover:text-stone-600 font-bold text-lg leading-none" title="Add another image">+</button>
+                                <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500">Εικόνες Προϊόντος</label>
+                                <button type="button" id="add-image-btn" class="text-neutral-900 hover:text-neutral-600 font-bold text-lg leading-none" title="Προσθήκη εικόνας">+</button>
                             </div>
                             <div id="add-image-inputs" class="space-y-4">
                                 <div class="flex gap-2 items-center">
-                                    <input type="url" required class="add-image-input w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900" placeholder="Primary Image URL">
+                                    <input type="url" required class="add-image-input w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900" placeholder="URL Κύριας Εικόνας">
                                 </div>
                             </div>
-                            <p class="font-sans text-xs text-stone-400 mt-2">The first image will be the primary image. The second will be the hover image. You can add up to 10 images.</p>
+                            <p class="font-sans text-xs text-neutral-400 mt-2">Η πρώτη εικόνα είναι η κύρια. Η δεύτερη εμφανίζεται στο hover. Έως 10 εικόνες.</p>
                         </div>
                         <div class="md:col-span-2 flex justify-end gap-4 mt-4">
-                            <button type="button" id="cancel-add-btn" class="font-sans text-xs tracking-widest uppercase border border-stone-300 text-stone-600 px-6 py-2 hover:bg-stone-50 transition-colors rounded-sm">Cancel</button>
-                            <button type="submit" id="submit-add-btn" class="font-sans text-xs tracking-widest uppercase bg-stone-900 text-white px-6 py-2 hover:bg-stone-800 transition-colors rounded-sm">Save Product</button>
+                            <button type="button" id="cancel-add-btn" class="font-sans text-xs tracking-widest uppercase border border-gray-300 text-neutral-600 px-6 py-2 hover:bg-neutral-50 transition-colors rounded-sm">Ακύρωση</button>
+                            <button type="submit" id="submit-add-btn" class="font-sans text-xs tracking-widest uppercase bg-neutral-900 text-white px-6 py-2 hover:bg-neutral-800 transition-colors rounded-sm">Αποθήκευση Προϊόντος</button>
                         </div>
                     </form>
                 </div>
 
-                <div class="bg-white border border-stone-200 rounded-sm shadow-sm overflow-x-auto">
+                <div class="bg-white border border-gray-200 rounded-sm shadow-sm overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-stone-50 border-b border-stone-200 font-sans text-xs tracking-widest uppercase text-stone-500">
-                                <th class="p-4 font-medium">Item</th>
-                                <th class="p-4 font-medium">Category</th>
-                                <th class="p-4 font-medium">Price</th>
-                                <th class="p-4 font-medium">Stock</th>
-                                <th class="p-4 font-medium">Status</th>
-                                <th class="p-4 font-medium text-right">Actions</th>
+                            <tr class="bg-neutral-50 border-b border-gray-200 font-sans text-xs tracking-widest uppercase text-neutral-500">
+                                <th class="p-4 font-medium">Προϊόν</th>
+                                <th class="p-4 font-medium">Κατηγορία</th>
+                                <th class="p-4 font-medium">Τιμή</th>
+                                <th class="p-4 font-medium">Απόθεμα</th>
+                                <th class="p-4 font-medium">Κατάσταση</th>
+                                <th class="p-4 font-medium text-right">Ενέργειες</th>
                             </tr>
                         </thead>
-                        <tbody id="products-table-body" class="divide-y divide-stone-100 font-sans text-sm text-stone-900">
-                            <tr><td colspan="6" class="p-8 text-center text-stone-400">Loading products...</td></tr>
+                        <tbody id="products-table-body" class="divide-y divide-gray-100 font-sans text-sm text-neutral-900">
+                            <tr><td colspan="6" class="p-8 text-center text-neutral-400">Φόρτωση προϊόντων...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
             <section id="customers-section" class="hidden">
-                <h1 class="font-serif text-3xl text-stone-900 mb-10">Customers Directory</h1>
+                <h1 class="font-serif text-3xl text-neutral-900 mb-10">Πελάτες</h1>
                 
-                <div class="bg-white border border-stone-200 rounded-sm shadow-sm overflow-x-auto">
+                <div class="bg-white border border-gray-200 rounded-sm shadow-sm overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-stone-50 border-b border-stone-200 font-sans text-xs tracking-widest uppercase text-stone-500">
-                                <th class="p-4 font-medium">Full Name</th>
-                                <th class="p-4 font-medium">Email Address</th>
-                                <th class="p-4 font-medium">Phone Number</th>
-                                <th class="p-4 font-medium">Shipping Address</th>
+                            <tr class="bg-neutral-50 border-b border-gray-200 font-sans text-xs tracking-widest uppercase text-neutral-500">
+                                <th class="p-4 font-medium">Ονοματεπώνυμο</th>
+                                <th class="p-4 font-medium">Διεύθυνση Email</th>
+                                <th class="p-4 font-medium">Τηλέφωνο</th>
+                                <th class="p-4 font-medium">Διεύθυνση Αποστολής</th>
                             </tr>
                         </thead>
-                        <tbody id="customers-table-body" class="divide-y divide-stone-100 font-sans text-sm text-stone-900">
-                            <tr><td colspan="4" class="p-8 text-center text-stone-400">Loading customers...</td></tr>
+                        <tbody id="customers-table-body" class="divide-y divide-gray-100 font-sans text-sm text-neutral-900">
+                            <tr><td colspan="4" class="p-8 text-center text-neutral-400">Φόρτωση πελατών...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
             <section id="support-section" class="hidden">
-                <h1 class="font-serif text-3xl text-stone-900 mb-10">Customer Care Tickets</h1>
+                <h1 class="font-serif text-3xl text-neutral-900 mb-10">Υποστήριξη Πελατών</h1>
                 
-                <div class="bg-white border border-stone-200 rounded-sm shadow-sm overflow-x-auto">
+                <div class="bg-white border border-gray-200 rounded-sm shadow-sm overflow-x-auto">
                     <table class="w-full text-left border-collapse min-w-[800px]">
                         <thead>
-                            <tr class="bg-stone-50 border-b border-stone-200 font-sans text-xs tracking-widest uppercase text-stone-500">
-                                <th class="p-4 font-medium">Sender Info</th>
-                                <th class="p-4 font-medium">Issue Type</th>
-                                <th class="p-4 font-medium">Message</th>
-                                <th class="p-4 font-medium">Status</th>
-                                <th class="p-4 font-medium text-right">Action</th>
+                            <tr class="bg-neutral-50 border-b border-gray-200 font-sans text-xs tracking-widest uppercase text-neutral-500">
+                                <th class="p-4 font-medium">Στοιχεία Αποστολέα</th>
+                                <th class="p-4 font-medium">Τύπος</th>
+                                <th class="p-4 font-medium">Μήνυμα</th>
+                                <th class="p-4 font-medium">Κατάσταση</th>
+                                <th class="p-4 font-medium text-right">Ενέργειες</th>
                             </tr>
                         </thead>
-                        <tbody id="support-table-body" class="divide-y divide-stone-100 font-sans text-sm text-stone-900">
-                            <tr><td colspan="5" class="p-8 text-center text-stone-400">Loading tickets...</td></tr>
+                        <tbody id="support-table-body" class="divide-y divide-gray-100 font-sans text-sm text-neutral-900">
+                            <tr><td colspan="5" class="p-8 text-center text-neutral-400">Φόρτωση αιτημάτων...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -228,29 +254,29 @@
     </div>
 
     <div id="edit-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <div id="edit-modal-backdrop" class="absolute inset-0 bg-stone-900/40 backdrop-blur-sm"></div>
+        <div id="edit-modal-backdrop" class="absolute inset-0 bg-neutral-900/40 backdrop-blur-sm"></div>
         
         <div class="relative w-full max-w-lg bg-white p-8 md:p-10 rounded-sm shadow-2xl z-10 max-h-[90vh] overflow-y-auto no-scrollbar">
-            <h3 class="font-serif text-2xl text-stone-900 mb-6">Edit Product</h3>
+            <h3 class="font-serif text-2xl text-neutral-900 mb-6">Επεξεργασία Προϊόντος</h3>
             <form id="edit-product-form" class="flex flex-col gap-6">
                 <input type="hidden" id="edit-id">
                 <div>
-                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Title</label>
-                    <input type="text" id="edit-title" required class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
+                    <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Τίτλος</label>
+                    <input type="text" id="edit-title" required class="w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900">
                 </div>
                 <div class="grid grid-cols-2 gap-6">
                     <div>
-                        <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Price (€)</label>
-                        <input type="number" id="edit-price" required min="0" class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
+                        <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Τιμή (€)</label>
+                        <input type="number" id="edit-price" required min="0" class="w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900">
                     </div>
                     <div>
-                        <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Stock</label>
-                        <input type="number" id="edit-stock" required min="0" class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900">
+                        <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Απόθεμα</label>
+                        <input type="number" id="edit-stock" required min="0" class="w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900">
                     </div>
                 </div>
                 <div>
-                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Category</label>
-                    <select id="edit-category" required class="custom-select w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 appearance-none cursor-pointer">
+                    <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Κατηγορία</label>
+                    <select id="edit-category" required class="custom-select w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900 appearance-none cursor-pointer">
                         <option value="seating">Seating</option>
                         <option value="tables">Tables</option>
                         <option value="decor">Decor</option>
@@ -259,8 +285,8 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Estimated Dispatch</label>
-                    <select id="edit-dispatch" required class="custom-select w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 appearance-none cursor-pointer">
+                    <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Εκτιμώμενος Χρόνος Αποστολής</label>
+                    <select id="edit-dispatch" required class="custom-select w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900 appearance-none cursor-pointer">
                         <option value="2-3 estimated days">2-3 estimated days</option>
                         <option value="5-12 estimated days">5-12 estimated days</option>
                         <option value="2-3 weeks">2-3 weeks</option>
@@ -268,29 +294,29 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Product Status / Visibility</label>
-                    <select id="edit-status" required class="custom-select w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 appearance-none cursor-pointer">
-                        <option value="active">Active / Visible</option>
-                        <option value="hidden">Disabled / Hidden</option>
+                    <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Κατάσταση / Ορατότητα</label>
+                    <select id="edit-status" required class="custom-select w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900 appearance-none cursor-pointer">
+                        <option value="active">Ενεργό / Ορατό</option>
+                        <option value="hidden">Ανενεργό / Κρυφό</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Description</label>
-                    <textarea id="edit-description" rows="4" class="w-full bg-transparent border-b border-stone-300 py-2 focus:outline-none focus:border-stone-900 resize-none placeholder-stone-400" placeholder="Enter product description..."></textarea>
+                    <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Περιγραφή</label>
+                    <textarea id="edit-description" rows="4" class="w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900 resize-none placeholder-neutral-400" placeholder="Εισάγετε περιγραφή..."></textarea>
                 </div>
                 <div>
                     <div class="flex items-center justify-between mb-2">
-                        <label class="block font-sans text-xs tracking-widest uppercase text-stone-500">Product Images</label>
-                        <button type="button" id="edit-add-image-btn" class="text-stone-900 hover:text-stone-600 font-bold text-lg leading-none" title="Add another image">+</button>
+                        <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500">Εικόνες Προϊόντος</label>
+                        <button type="button" id="edit-add-image-btn" class="text-neutral-900 hover:text-neutral-600 font-bold text-lg leading-none" title="Προσθήκη εικόνας">+</button>
                     </div>
                     <div id="edit-image-inputs" class="space-y-4 max-h-48 overflow-y-auto pr-2 no-scrollbar">
                         </div>
-                    <p class="font-sans text-xs text-stone-400 mt-2">The first image is primary, the second is hover. Up to 10 images.</p>
+                    <p class="font-sans text-xs text-neutral-400 mt-2">Η πρώτη εικόνα είναι η κύρια. Η δεύτερη εμφανίζεται στο hover. Έως 10 εικόνες.</p>
                 </div>
                 
                 <div class="flex justify-end gap-4 mt-6">
-                    <button type="button" id="close-modal-btn" class="font-sans text-xs tracking-widest uppercase border border-stone-300 text-stone-600 px-6 py-3 hover:bg-stone-50 transition-colors rounded-sm">Cancel</button>
-                    <button type="submit" id="save-modal-btn" class="font-sans text-xs tracking-widest uppercase bg-stone-900 text-white px-6 py-3 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">Save Changes</button>
+                    <button type="button" id="close-modal-btn" class="font-sans text-xs tracking-widest uppercase border border-gray-300 text-neutral-600 px-6 py-3 hover:bg-neutral-50 transition-colors rounded-sm">Ακύρωση</button>
+                    <button type="submit" id="save-modal-btn" class="font-sans text-xs tracking-widest uppercase bg-neutral-900 text-white px-6 py-3 hover:bg-neutral-800 transition-colors rounded-sm shadow-sm">Αποθήκευση Αλλαγών</button>
                 </div>
             </form>
         </div>
