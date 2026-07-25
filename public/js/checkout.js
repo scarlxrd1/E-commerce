@@ -1,6 +1,6 @@
 import { app, db } from './firebase-config.js';
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { translations } from './translations.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
         errorContainer.classList.add('hidden');
     }
 
-    // 4. Form Submission & Validation with Viva Wallet Integration
+    // 4. Form Submission, Firestore Order Persistence & Viva Wallet Integration
     checkoutForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
@@ -245,7 +245,28 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
         try {
-            // Call Vercel Serverless Function to create Viva Wallet Order
+            // 1. Save the Order to Firestore FIRST
+            const orderPayload = {
+                customer: {
+                    firstName: fnInput.value.trim(),
+                    lastName: lnInput.value.trim(),
+                    email: emailInput.value.trim(),
+                    phone: phoneInput.value.trim(),
+                    address: addressInput.value.trim(),
+                    city: cityInput.value.trim(),
+                    zip: zipInput.value.trim(),
+                    country: countryInput.value
+                },
+                items: checkoutCart,
+                totalAmount: totalAmount,
+                status: 'pending',
+                createdAt: serverTimestamp(),
+                userId: currentUser ? currentUser.uid : null
+            };
+
+            await addDoc(collection(db, "orders"), orderPayload);
+
+            // 2. Call Vercel Serverless Function to create Viva Wallet Order
             const response = await fetch('/api/create-payment', {
                 method: 'POST',
                 headers: {
