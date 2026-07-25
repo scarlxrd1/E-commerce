@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. PRODUCTS CRUD OPERATIONS
     // ==========================================
     async function fetchProducts() {
-        productsTableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-neutral-400">Φόρτωση προϊόντων...</td></tr>`;
+        productsTableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-neutral-400">Φόρτωση προϊόντων...</td></tr>`;
         try {
             const querySnapshot = await getDocs(collection(db, "products"));
             productsList = [];
@@ -264,13 +264,13 @@ document.addEventListener('DOMContentLoaded', () => {
             renderProductsTable();
         } catch (error) {
             console.error("Error fetching products:", error);
-            productsTableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500">Σφάλμα φόρτωσης προϊόντων.</td></tr>`;
+            productsTableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-red-500">Σφάλμα φόρτωσης προϊόντων.</td></tr>`;
         }
     }
 
     function renderProductsTable() {
         if (productsList.length === 0) {
-            productsTableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-neutral-400">Δεν βρέθηκαν προϊόντα.</td></tr>`;
+            productsTableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-neutral-400">Δεν βρέθηκαν προϊόντα.</td></tr>`;
             return;
         }
 
@@ -293,6 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="font-serif font-medium">${product.title}</span>
                         </div>
                     </td>
+                    <td class="p-4 text-neutral-500 font-mono text-xs">${product.sku || 'N/A'}</td>
                     <td class="p-4 capitalize text-neutral-500">${product.categories || 'N/A'}</td>
                     <td class="p-4">€${(product.price || 0).toLocaleString('el-GR')}</td>
                     <td class="p-4">${stockBadge}</td>
@@ -386,6 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const newProduct = {
                 title: document.getElementById('add-title').value.trim(),
+                sku: document.getElementById('add-sku').value.trim(),
                 price: parseFloat(document.getElementById('add-price').value),
                 stock: parseInt(document.getElementById('add-stock').value),
                 categories: document.getElementById('add-category').value,
@@ -436,6 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Populate Modal
         document.getElementById('edit-id').value = product.id;
         document.getElementById('edit-title').value = product.title;
+        document.getElementById('edit-sku').value = product.sku || '';
         document.getElementById('edit-price').value = product.price || 0;
         document.getElementById('edit-stock').value = product.stock || 0;
         
@@ -512,6 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const productRef = doc(db, "products", id);
             await updateDoc(productRef, {
                 title: document.getElementById('edit-title').value.trim(),
+                sku: document.getElementById('edit-sku').value.trim(),
                 price: parseFloat(document.getElementById('edit-price').value),
                 stock: parseInt(document.getElementById('edit-stock').value),
                 categories: document.getElementById('edit-category').value,
