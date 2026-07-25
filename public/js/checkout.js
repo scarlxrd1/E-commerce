@@ -22,8 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const zipInput = document.getElementById('checkout-zip');
     const phoneInput = document.getElementById('checkout-phone');
     
-    const paymentRadios = document.querySelectorAll('input[name="payment-method"]');
-    const ccDetails = document.getElementById('cc-details');
     const checkoutForm = document.getElementById('checkout-form');
 
     // 1. Auth State & Cart Loading
@@ -160,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = false;
         submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         const currentLang = localStorage.getItem('aura_lang') || 'el';
-        submitBtn.textContent = translations[currentLang]?.checkout?.complete_order || translations['en'].checkout.complete_order;
+        submitBtn.textContent = translations[currentLang]?.checkout?.proceed_payment_btn || translations['en'].checkout.proceed_payment_btn || 'Proceed to Secure Payment';
     }
 
     // 3. Autofill Logic
@@ -195,17 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 4. Payment Method UI Toggle
-    paymentRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            if (e.target.value === 'credit-card') {
-                ccDetails.classList.remove('hidden');
-            } else {
-                ccDetails.classList.add('hidden');
-            }
-        });
-    });
-
     // Helper: Display Error
     function showError(message) {
         errorContainer.textContent = message;
@@ -219,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
         errorContainer.classList.add('hidden');
     }
 
-    // 5. Form Submission & Validation with Viva Wallet Integration
+    // 4. Form Submission & Validation with Viva Wallet Integration
     checkoutForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
@@ -274,16 +261,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
 
-            if (data.success && data.orderCode) {
+            if (response.ok && data.success && data.orderCode) {
                 // Instantly redirect customer to Viva Smart Checkout URL
                 window.location.href = `https://demo.vivapayments.com/web/checkout?ref=${data.orderCode}`;
             } else {
-                throw new Error(data.message || "Failed to generate payment order.");
+                // Throw the exact error returned by the backend
+                throw new Error(data.error || data.message || "Failed to generate payment order.");
             }
             
         } catch (error) {
             console.error("Payment Error:", error);
-            showError("Could not initiate payment. Please try again later.");
+            showError(error.message || "Could not initiate payment. Please try again later.");
             
             // Revert button state on error
             submitBtn.textContent = originalText;
