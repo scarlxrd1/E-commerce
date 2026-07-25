@@ -1,73 +1,75 @@
 export default async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
     try {
-        // Restrict to POST requests
-        if (req.method !== 'POST') {
-            throw new Error('Method Not Allowed. Expected POST.');
-        }
-
         const { amount, customerEmail, customerName, customerPhone } = req.body;
+        
+        // Τα κλειδιά από το Settings -> API Access & το 4ψήφιο Source Code
+        const clientId = process.env.VIVA_MERCHANT_ID; 
+        const clientSecret = process.env.VIVA_API_KEY; 
+        const sourceCode = process.env.VIVA_SOURCE_CODE; 
 
-        // Securely access environment variables
-        const merchantId = process.env.VIVA_MERCHANT_ID;
-        const apiKey = process.env.VIVA_API_KEY;
-        const sourceCode = process.env.VIVA_SOURCE_CODE;
-
-        // Strict environment variable check
-        if (!merchantId || !apiKey || !sourceCode) {
-            throw new Error("Missing Environment Variables");
+        if (!clientId || !clientSecret || !sourceCode) {
+            throw new Error('Missing Environment Variables in Vercel');
         }
 
-        // Safe amount calculation: parse to float and convert to integer cents
         const amountInCents = Math.round(parseFloat(amount) * 100);
 
-        if (isNaN(amountInCents) || amountInCents <= 0) {
-            throw new Error("Invalid amount provided.");
-        }
-
-        // Generate Basic Auth credentials via Base64
-        const credentials = Buffer.from(`${merchantId}:${apiKey}`).toString('base64');
-
-        // Send POST request to Viva Demo Order API
-        const response = await fetch('https://demo-api.vivapayments.com/checkout/v2/orders', {
+        // Βήμα 1: Παίρνουμε το OAuth2 Access Token από τη Viva Demo
+        const tokenResponse = await fetch('https://demo-accounts.vivapayments.com/connect/token', {
             method: 'POST',
             headers: {
-                'Authorization': `Basic ${credentials}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
+            },
+            body: 'grant_type=client_credentials'
+        });
+
+        const tokenData = await tokenResponse.json();
+
+        if (!tokenResponse.ok || !tokenData.access_token) {
+            throw new Error(`Viva Auth Error ${tokenResponse.status}: ${JSON.stringify(tokenData)}`);
+        }
+
+        const accessToken = tokenData.access_token;
+
+        // Βήμα 2: Δημιουργία παραγγελίας (Smart Checkout Order) με το Access Token
+        const orderResponse = await fetch('https://demo-api.vivapayments.com/checkout/v2/orders', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 amount: amountInCents,
-                customerTrns: "AURA Order",
+                customerTrns: 'AURA Store Order',
                 customer: {
-                    email: customerEmail,
-                    fullName: customerName,
-                    phone: customerPhone
+                    email: customerEmail || 'test@aura.gr',
+                    fullName: customerName || 'AURA Customer',
+                    phone: customerPhone || '+306900000000'
                 },
                 sourceCode: sourceCode
             })
         });
 
-        // Read the raw text BEFORE attempting to parse JSON to catch Viva HTML/Empty errors
-        const responseText = await response.text();
-
-        // Catch non-2xx responses and throw with exact status and raw text
-        if (!response.ok) {
-            throw new Error(`Viva API Error ${response.status}: ${responseText}`);
+        const orderText = await orderResponse.text();
+        let orderData;
+        try {
+            orderData = JSON.parse(orderText);
+        } catch (e) {
+            throw new Error(`Invalid JSON from Viva Orders API: ${orderText}`);
         }
 
-        // Safely parse the valid JSON response
-        const data = JSON.parse(responseText);
+        if (!orderResponse.ok) {
+            throw new Error(`Viva Orders API Error ${orderResponse.status}: ${orderText}`);
+        }
 
-        // Return the successfully generated orderCode to the frontend
-        return res.status(200).json({ 
-            success: true, 
-            orderCode: data.orderCode 
-        });
+        return res.status(200).json({ success: true, orderCode: orderData.orderCode });
 
     } catch (error) {
-        console.error("Create Payment Error:", error.message);
-        // Extreme error handling: return 400 with the exact error message
-        return res.status(400).json({ 
-            error: error.message 
-        });
+        console.error('Viva Payment Backend Error:', error);
+        return res.status(400).json({ error: error.message });
     }
 }
