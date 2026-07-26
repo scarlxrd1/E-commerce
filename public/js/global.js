@@ -281,6 +281,7 @@ function initGlobalUI() {
             e.preventDefault();
             const query = searchInput.value.trim();
             if (query) {
+                // The search input matches against title and sku via collection.js
                 window.location.href = `collection.html?search=${encodeURIComponent(query)}`;
             }
         });
@@ -505,7 +506,15 @@ window.addToCart = function(product) {
     if (existing) {
         existing.quantity += 1;
     } else {
-        cart.push({ ...product, quantity: 1 });
+        cart.push({
+            id: product.id,
+            title: product.title,
+            price: product.price,
+            image: product.image,
+            stock: product.stock,
+            sku: product.sku || '',
+            quantity: 1
+        });
     }
     
     // Asynchronous save, UI updates immediately inside saveCart
