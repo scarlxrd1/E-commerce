@@ -64,6 +64,7 @@ export const translations = {
         },
         product: {
             loading: "Loading details...",
+            sku: "SKU",
             reviews: {
                 title: "Customer Reviews",
                 share_thoughts: "Share Your Thoughts",
@@ -268,6 +269,11 @@ export const translations = {
                 p3: "<strong class='text-stone-900 font-medium'>3. Products and Pricing:</strong> We have made every effort to display as accurately as possible the colors and images of our products that appear at the store. We cannot guarantee that your computer monitor's display of any color will be accurate. Prices for our products are subject to change without notice. We reserve the right at any time to modify or discontinue the Service without notice at any time.",
                 p4: "<strong class='text-stone-900 font-medium'>4. Limitation of Liability:</strong> In no case shall AURA, our directors, officers, employees, affiliates, agents, contractors, or licensors be liable for any injury, loss, claim, or any direct, indirect, incidental, punitive, special, or consequential damages of any kind, including, without limitation lost profits, lost revenue, lost savings, loss of data, replacement costs, or any similar damages, whether based in contract, tort (including negligence), strict liability or otherwise, arising from your use of any of the service or any products procured using the service."
             }
+        },
+        success: {
+            title: "Thank you for your order.",
+            message: "Your secure payment was successful and your order has been received. We will send you an email confirmation shortly.",
+            return_btn: "Continue Shopping"
         }
     },
     el: {
@@ -335,6 +341,7 @@ export const translations = {
         },
         product: {
             loading: "Φόρτωση λεπτομερειών...",
+            sku: "ΚΩΔ",
             reviews: {
                 title: "Κριτικές Πελατών",
                 share_thoughts: "Μοιραστείτε τις Σκέψεις σας",
@@ -539,6 +546,11 @@ export const translations = {
                 p3: "<strong class='text-stone-900 font-medium'>3. Προϊόντα και Τιμολόγηση:</strong> Έχουμε καταβάλει κάθε δυνατή προσπάθεια για να εμφανίσουμε όσο το δυνατόν ακριβέστερα τα χρώματα και τις εικόνες των προϊόντων μας που εμφανίζονται στο κατάστημα. Δεν μπορούμε να εγγυηθούμε ότι η εμφάνιση οποιουδήποτε χρώματος στην οθόνη του υπολογιστή σας θα είναι ακριβής. Οι τιμές των προϊόντων μας υπόκεινται σε αλλαγές χωρίς προειδοποίηση. Διατηρούμε το δικαίωμα ανά πάσα στιγμή να τροποποιήσουμε ή να διακόψουμε την Υπηρεσία χωρίς προειδοποίηση ανά πάσα στιγμή.",
                 p4: "<strong class='text-stone-900 font-medium'>4. Περιορισμός Ευθύνης:</strong> Σε καμία περίπτωση η AURA, οι διευθυντές, οι αξιωματούχοι, οι υπάλληλοι, οι θυγατρικές, οι πράκτορες, οι εργολάβοι ή οι δικαιοπάροχοί μας δεν ευθύνονται για οποιονδήποτε τραυματισμό, απώλεια, αξίωση ή οποιαδήποτε άμεση, έμμεση, τυχαία, τιμωρητική, ειδική ή παρεπόμενη ζημία οποιουδήποτε είδους, συμπεριλαμβανομένων, ενδεικτικά, διαφυγόντων κερδών, διαφυγόντων εσόδων, απώλειας αποταμιεύσεων, απώλειας δεδομένων, κόστους αντικατάστασης ή οποιωνδήποτε παρόμοιων ζημιών, είτε βασίζονται σε σύμβαση, αδικοπραξία (συμπεριλαμβανομένης της αμέλειας), αυστηρή ευθύνη ή άλλως, που προκύπτουν από τη χρήση οποιασδήποτε υπηρεσίας ή οποιωνδήποτε προϊόντων που προμηθευτήκατε χρησιμοποιώντας την υπηρεσία."
             }
+        },
+        success: {
+            title: "Ευχαριστούμε για την παραγγελία σας.",
+            message: "Η πληρωμή ολοκληρώθηκε με ασφάλεια και η παραγγελία σας έχει ληφθεί. Θα σας στείλουμε σύντομα ένα email επιβεβαίωσης.",
+            return_btn: "Συνέχεια Αγορών"
         }
     }
 };
