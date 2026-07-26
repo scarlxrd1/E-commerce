@@ -6,13 +6,13 @@ import { translations } from './translations.js';
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
     let currentUser = null;
+    let userAddresses = [];
     
     // View DOM Elements
     const userNameHeaderEl = document.getElementById('user-name-header');
     const profileNameEl = document.getElementById('profile-name');
     const profileEmailEl = document.getElementById('profile-email');
     const profilePhoneEl = document.getElementById('profile-phone');
-    const profileAddressEl = document.getElementById('profile-address');
     const logoutBtn = document.getElementById('logout-btn');
 
     // Edit DOM Elements
@@ -25,10 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const editFirstNameInput = document.getElementById('edit-firstName');
     const editLastNameInput = document.getElementById('edit-lastName');
     const editPhoneInput = document.getElementById('edit-phone');
-    const editAddressInput = document.getElementById('edit-address');
-    const editCityInput = document.getElementById('edit-city');
-    const editCountryInput = document.getElementById('edit-country');
-    const editZipInput = document.getElementById('edit-zip');
     
     const currentEmailDisplay = document.getElementById('current-email-display');
 
@@ -42,6 +38,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmPasswordInput = document.getElementById('confirm-password-input');
     const emailModalAlert = document.getElementById('email-modal-alert');
     const submitEmailModalBtn = document.getElementById('submit-email-modal-btn');
+
+    // Address Elements
+    const addressesGrid = document.getElementById('addresses-grid');
+    const openAddAddressBtn = document.getElementById('open-add-address-btn');
+    const addAddressModal = document.getElementById('add-address-modal');
+    const addAddressBackdrop = document.getElementById('add-address-backdrop');
+    const closeAddressModalBtn = document.getElementById('close-address-modal-btn');
+    const addAddressForm = document.getElementById('add-address-form');
+    const submitAddressBtn = document.getElementById('submit-address-modal-btn');
 
     // 1. Route Protection & Fetching User Data
     onAuthStateChanged(auth, async (user) => {
@@ -75,28 +80,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 profileNameEl.textContent = fullName || 'Not provided';
                 profileEmailEl.textContent = data.email || currentUser.email;
                 profilePhoneEl.textContent = data.phone || 'Not provided';
-                
-                // Format full address
-                const addressStr = data.address || '';
-                const cityStr = data.city || '';
-                const postalCodeStr = data.postalCode || data.zip || '';
-                const countryStr = data.country || '';
-                
-                const fullAddress = [addressStr, cityStr, postalCodeStr, countryStr]
-                                    .filter(Boolean)
-                                    .join(', ');
-                                    
-                profileAddressEl.textContent = fullAddress || 'Not provided';
 
                 // Pre-fill Edit Mode Inputs
                 editFirstNameInput.value = firstName;
                 editLastNameInput.value = lastName;
                 editPhoneInput.value = data.phone || '';
-                editAddressInput.value = addressStr;
-                editCityInput.value = cityStr;
-                editCountryInput.value = countryStr;
-                editZipInput.value = postalCodeStr;
                 currentEmailDisplay.textContent = currentUser.email;
+
+                // Load Addresses
+                userAddresses = data.addresses || [];
+                
+                // Fallback migration: If they have flat address fields but no addresses array, migrate them
+                if (userAddresses.length === 0 && (data.address || data.city)) {
+                    userAddresses.push({
+                        id: Date.now().toString(),
+                        street: data.address || '',
+                        city: data.city || '',
+                        zip: data.postalCode || data.zip || '',
+                        country: data.country || '',
+                        isDefault: true
+                    });
+                    // Save the migrated array
+                    await updateDoc(docRef, { addresses: userAddresses });
+                }
+
+                renderAddresses();
 
             } else {
                 userNameHeaderEl.textContent = currentUser.email;
@@ -104,8 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 profileNameEl.textContent = 'Not provided';
                 profileEmailEl.textContent = currentUser.email;
                 profilePhoneEl.textContent = 'Not provided';
-                profileAddressEl.textContent = 'Not provided';
                 currentEmailDisplay.textContent = currentUser.email;
+                renderAddresses();
             }
         } catch (error) {
             console.error("Error fetching user profile data:", error);
@@ -238,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadProfileData(); 
     });
 
-    // 3. Handle Main Profile Save (No Auth changes here anymore)
+    // 3. Handle Main Profile Save
     editModeContainer.addEventListener('submit', async (e) => {
         e.preventDefault();
         const originalBtnText = saveEditBtn.textContent;
@@ -249,19 +257,13 @@ document.addEventListener('DOMContentLoaded', () => {
         saveEditBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
         try {
-            // Update Firestore Profile Data
             const userRef = doc(db, "users", currentUser.uid);
             await updateDoc(userRef, {
                 firstName: editFirstNameInput.value.trim(),
                 lastName: editLastNameInput.value.trim(),
-                phone: editPhoneInput.value.trim(),
-                address: editAddressInput.value.trim(),
-                city: editCityInput.value.trim(),
-                country: editCountryInput.value,
-                postalCode: editZipInput.value.trim()
+                phone: editPhoneInput.value.trim()
             });
 
-            // Reload data and switch back to view mode
             await loadProfileData();
             cancelEditBtn.click(); 
 
@@ -278,7 +280,137 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 4. Handle Email Update Modal & Re-authentication
+    // 4. Address Management
+    function renderAddresses() {
+        const currentLang = localStorage.getItem('aura_lang') || 'en';
+        const t = translations[currentLang].profile.addresses || translations['en'].profile.addresses;
+
+        if (userAddresses.length === 0) {
+            addressesGrid.innerHTML = `
+                <div class="col-span-1 md:col-span-2 border border-stone-200 bg-white p-16 rounded-sm flex flex-col items-center justify-center text-center shadow-sm">
+                    <svg class="w-12 h-12 text-stone-300 mb-4 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    <h3 class="font-sans text-stone-900 font-medium mb-2">${t.empty_title || 'No addresses saved'}</h3>
+                    <p class="font-sans text-sm text-stone-500 max-w-sm">${t.empty_desc || 'Save your shipping and billing addresses.'}</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        userAddresses.forEach(address => {
+            const badge = address.isDefault 
+                ? `<span class="px-2 py-1 bg-stone-900 text-white text-[10px] uppercase tracking-widest rounded-sm">${t.primary || 'Primary'}</span>`
+                : `<button class="set-default-btn text-[10px] uppercase tracking-widest text-stone-400 hover:text-stone-900 transition-colors" data-id="${address.id}">${t.set_default || 'Set as Default'}</button>`;
+
+            html += `
+                <div class="bg-white border ${address.isDefault ? 'border-stone-900' : 'border-stone-200'} p-8 rounded-sm shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            ${badge}
+                            <button class="delete-address-btn text-stone-400 hover:text-red-600 transition-colors" data-id="${address.id}" title="${t.delete || 'Delete'}">
+                                <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                        <p class="font-sans text-sm text-stone-900 leading-relaxed">
+                            ${address.street}<br>
+                            ${address.city}, ${address.zip}<br>
+                            ${address.country}
+                        </p>
+                    </div>
+                </div>
+            `;
+        });
+
+        addressesGrid.innerHTML = html;
+    }
+
+    // Address Modal Toggles
+    function closeAddressModal() {
+        addAddressModal.classList.add('hidden');
+        addAddressForm.reset();
+    }
+
+    openAddAddressBtn.addEventListener('click', () => {
+        addAddressModal.classList.remove('hidden');
+    });
+
+    closeAddressModalBtn.addEventListener('click', closeAddressModal);
+    addAddressBackdrop.addEventListener('click', closeAddressModal);
+
+    // Save New Address
+    addAddressForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currentLang = localStorage.getItem('aura_lang') || 'en';
+        
+        const originalText = submitAddressBtn.textContent;
+        submitAddressBtn.textContent = currentLang === 'el' ? 'Αποθήκευση...' : 'Saving...';
+        submitAddressBtn.disabled = true;
+
+        const newAddress = {
+            id: Date.now().toString(),
+            street: document.getElementById('new-street').value.trim(),
+            city: document.getElementById('new-city').value.trim(),
+            zip: document.getElementById('new-zip').value.trim(),
+            country: document.getElementById('new-country').value,
+            isDefault: userAddresses.length === 0 // Make default if it's the first one
+        };
+
+        userAddresses.push(newAddress);
+
+        try {
+            await updateDoc(doc(db, "users", currentUser.uid), { addresses: userAddresses });
+            renderAddresses();
+            closeAddressModal();
+        } catch (error) {
+            console.error("Error saving address:", error);
+            alert("An error occurred while saving the address.");
+        } finally {
+            submitAddressBtn.textContent = originalText;
+            submitAddressBtn.disabled = false;
+        }
+    });
+
+    // Address Grid Actions (Set Default & Delete)
+    addressesGrid.addEventListener('click', async (e) => {
+        const setBtn = e.target.closest('.set-default-btn');
+        const delBtn = e.target.closest('.delete-address-btn');
+
+        if (setBtn) {
+            const id = setBtn.getAttribute('data-id');
+            userAddresses = userAddresses.map(addr => ({
+                ...addr,
+                isDefault: addr.id === id
+            }));
+            
+            try {
+                await updateDoc(doc(db, "users", currentUser.uid), { addresses: userAddresses });
+                renderAddresses();
+            } catch (error) {
+                console.error("Error updating default address:", error);
+            }
+        }
+
+        if (delBtn) {
+            const id = delBtn.getAttribute('data-id');
+            const addressToDelete = userAddresses.find(a => a.id === id);
+            
+            userAddresses = userAddresses.filter(addr => addr.id !== id);
+
+            // If we deleted the default, make the first remaining one default
+            if (addressToDelete && addressToDelete.isDefault && userAddresses.length > 0) {
+                userAddresses[0].isDefault = true;
+            }
+
+            try {
+                await updateDoc(doc(db, "users", currentUser.uid), { addresses: userAddresses });
+                renderAddresses();
+            } catch (error) {
+                console.error("Error deleting address:", error);
+            }
+        }
+    });
+
+    // 5. Handle Email Update Modal & Re-authentication
     function closeEmailModal() {
         emailModal.classList.add('hidden');
         emailForm.reset();
@@ -352,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 5. Handle Logout
+    // 6. Handle Logout
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             try {
