@@ -183,14 +183,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. ORDERS MANAGEMENT
     // ==========================================
     async function fetchOrders() {
-        ordersTableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-neutral-400">Φόρτωση παραγγελιών...</td></tr>`;
+        ordersTableBody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-neutral-400">Φόρτωση παραγγελιών...</td></tr>`;
         try {
             const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
             const querySnapshot = await getDocs(q);
             let html = '';
             
             if (querySnapshot.empty) {
-                ordersTableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-neutral-400">Δεν βρέθηκαν παραγγελίες.</td></tr>`;
+                ordersTableBody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-neutral-400">Δεν βρέθηκαν παραγγελίες.</td></tr>`;
                 return;
             }
 
@@ -205,6 +205,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 let itemsStr = (order.items || []).map(i => `${i.quantity}x [${i.sku || i.title}]`).join('<br>');
                 
+                let paymentBadge = '';
+                if (order.paymentMethod === 'cod') {
+                    paymentBadge = `<span class="block mt-1 text-[10px] text-neutral-500 uppercase tracking-widest">Αντικαταβολή (+2.50€)</span>`;
+                } else if (order.paymentMethod === 'card') {
+                    paymentBadge = `<span class="block mt-1 text-[10px] text-neutral-500 uppercase tracking-widest">Πιστωτική / Χρεωστική Κάρτα</span>`;
+                } else {
+                    paymentBadge = `<span class="block mt-1 text-[10px] text-neutral-500 uppercase tracking-widest">N/A</span>`;
+                }
+
+                let trackingHtml = `
+                    <div class="flex flex-col items-start gap-1">
+                        <input type="text" class="tracking-input border-b border-gray-300 py-1 text-xs w-28 bg-transparent focus:outline-none focus:border-neutral-900" value="${order.trackingNumber || ''}" placeholder="Αριθμός...">
+                        <button class="save-tracking-btn text-[10px] text-blue-500 hover:text-blue-700 transition-colors uppercase tracking-widest mt-1" data-id="${id}">Αποθήκευση</button>
+                    </div>
+                `;
+
                 let statusBadge = '';
                 if(order.status === 'pending') statusBadge = `<span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-[10px] uppercase font-bold tracking-wider">Εκκρεμεί</span>`;
                 else if(order.status === 'paid') statusBadge = `<span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-[10px] uppercase font-bold tracking-wider">Πληρώθηκε</span>`;
@@ -224,7 +240,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td class="p-4 text-sm">${dateStr}</td>
                         <td class="p-4 text-sm">${customerStr}</td>
                         <td class="p-4 text-xs text-neutral-500">${itemsStr}</td>
-                        <td class="p-4 text-sm font-medium">€${(order.totalAmount || 0).toLocaleString('el-GR')}</td>
+                        <td class="p-4 text-sm font-medium">
+                            €${(order.totalAmount || 0).toLocaleString('el-GR')}
+                            ${paymentBadge}
+                        </td>
+                        <td class="p-4">${trackingHtml}</td>
                         <td class="p-4">${statusBadge}</td>
                         <td class="p-4 text-right space-y-2 flex flex-col items-end">
                             <button class="update-order-btn text-blue-500 hover:text-blue-700 transition-colors underline underline-offset-4 text-[10px] tracking-widest uppercase" data-id="${id}" data-status="paid">Σήμανση ως Πληρωμένη</button>
@@ -236,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ordersTableBody.innerHTML = html;
         } catch (error) {
             console.error("Error fetching orders:", error);
-            ordersTableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-red-500">Σφάλμα φόρτωσης παραγγελιών.</td></tr>`;
+            ordersTableBody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-red-500">Σφάλμα φόρτωσης παραγγελιών.</td></tr>`;
         }
     }
 
@@ -254,6 +274,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 2000);
             } catch (err) {
                 console.error('Failed to copy ID: ', err);
+            }
+            return;
+        }
+
+        // Save Tracking Number
+        if (e.target.classList.contains('save-tracking-btn')) {
+            const btn = e.target;
+            const orderId = btn.getAttribute('data-id');
+            const inputEl = btn.previousElementSibling;
+            const newTracking = inputEl.value.trim();
+
+            const originalText = btn.textContent;
+            btn.textContent = '...';
+            btn.disabled = true;
+
+            try {
+                await updateDoc(doc(db, "orders", orderId), { trackingNumber: newTracking });
+                btn.textContent = 'Ενημερώθηκε ✓';
+                btn.classList.replace('text-blue-500', 'text-green-600');
+                setTimeout(() => {
+                    btn.textContent = 'Αποθήκευση';
+                    btn.classList.replace('text-green-600', 'text-blue-500');
+                    btn.disabled = false;
+                }, 2000);
+            } catch (error) {
+                console.error("Error saving tracking:", error);
+                alert("Σφάλμα αποθήκευσης.");
+                btn.textContent = originalText;
+                btn.disabled = false;
             }
             return;
         }
