@@ -1,6 +1,6 @@
 import { app, db } from './firebase-config.js';
 import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, verifyBeforeUpdateEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { translations } from './translations.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             currentUser = user;
             await loadProfileData();
+            await loadUserOrders();
         } else {
             // No user is signed in, redirect instantly to the login page
             window.location.replace('auth.html');
@@ -110,6 +111,114 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Error fetching user profile data:", error);
             userNameHeaderEl.textContent = 'Error loading data';
             userNameHeaderEl.classList.remove('animate-pulse', 'bg-stone-200', 'text-transparent', 'rounded');
+        }
+    }
+
+    async function loadUserOrders() {
+        const ordersContainer = document.getElementById('orders-list-container');
+        if (!ordersContainer) return;
+
+        try {
+            const q = query(collection(db, "orders"), where("userId", "==", currentUser.uid));
+            const snapshot = await getDocs(q);
+            
+            let orders = [];
+            snapshot.forEach(doc => {
+                orders.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Sort descending by date (handled client-side to avoid missing index errors)
+            orders.sort((a, b) => {
+                const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
+                const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+                return timeB - timeA;
+            });
+
+            const currentLang = localStorage.getItem('aura_lang') || 'en';
+            const t = translations[currentLang].profile.orders || translations['en'].profile.orders;
+
+            if (orders.length === 0) {
+                ordersContainer.innerHTML = `
+                    <div class="border border-stone-200 bg-white p-16 rounded-sm flex flex-col items-center justify-center text-center shadow-sm">
+                        <svg class="w-12 h-12 text-stone-300 mb-4 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        <h3 class="font-sans text-stone-900 font-medium mb-2">${t.empty_title || 'No orders yet'}</h3>
+                        <p class="font-sans text-sm text-stone-500 mb-6 max-w-sm">${t.empty_desc || 'When you place an order, it will appear here.'}</p>
+                        <a href="collection.html" class="font-sans text-xs tracking-widest uppercase border-b border-stone-900 text-stone-900 pb-1 hover:text-stone-600 hover:border-stone-600 transition-colors">
+                            ${t.explore_btn || 'Explore Collection'}
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            orders.forEach(order => {
+                const dateObj = order.createdAt ? order.createdAt.toDate() : new Date();
+                const dateStr = dateObj.toLocaleDateString(currentLang === 'el' ? 'el-GR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                
+                let statusLabel = t.status_pending || 'Pending Payment';
+                let statusClasses = "bg-amber-50 text-amber-700 border-amber-100";
+                
+                if (order.status === 'paid') {
+                    statusLabel = t.status_paid || 'Paid';
+                    statusClasses = "bg-green-50 text-green-700 border-green-100";
+                } else if (order.status === 'shipped') {
+                    statusLabel = t.status_shipped || 'Shipped';
+                    statusClasses = "bg-blue-50 text-blue-700 border-blue-100";
+                }
+
+                const statusBadge = `<span class="px-3 py-1 border rounded-sm text-[10px] uppercase font-bold tracking-wider ${statusClasses}">${statusLabel}</span>`;
+
+                let itemsHtml = '';
+                (order.items || []).forEach(item => {
+                    const skuText = item.sku ? `<span class="text-stone-400 ml-2 font-mono text-xs tracking-wider">[${item.sku}]</span>` : '';
+                    itemsHtml += `
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-20 bg-stone-100 rounded-sm overflow-hidden flex-shrink-0 border border-stone-100">
+                                <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1 flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-serif text-stone-900 text-sm md:text-base">${item.title} ${skuText}</h4>
+                                    <p class="font-sans text-stone-500 text-xs mt-1">x${item.quantity}</p>
+                                </div>
+                                <div class="font-sans text-stone-900 text-sm font-medium">
+                                    €${(item.price * item.quantity).toLocaleString()}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                    <div class="bg-white border border-stone-200 rounded-sm shadow-sm overflow-hidden">
+                        <div class="bg-stone-50/50 border-b border-stone-200 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">${t.order_no || 'Order #'} ${order.id.slice(0,8).toUpperCase()}</p>
+                                <p class="font-sans text-sm text-stone-900 font-medium">${dateStr}</p>
+                            </div>
+                            <div class="flex items-center gap-6">
+                                <div class="text-right">
+                                    <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">${t.total || 'Total'}</p>
+                                    <p class="font-sans text-sm font-medium text-stone-900">€${(order.totalAmount || 0).toLocaleString()}</p>
+                                </div>
+                                <div>
+                                    ${statusBadge}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6 flex flex-col gap-6">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+
+            ordersContainer.innerHTML = html;
+
+        } catch (error) {
+            console.error("Error fetching orders:", error);
+            ordersContainer.innerHTML = `<p class="text-red-500 font-sans text-sm p-4 bg-red-50 border border-red-100 rounded-sm text-center">Error loading order history.</p>`;
         }
     }
 
