@@ -246,6 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // 1. Save the Order to Firestore FIRST
+            // Explicitly attach userId for Order History functionality
             const orderPayload = {
                 customer: {
                     firstName: fnInput.value.trim(),
