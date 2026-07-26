@@ -126,7 +126,11 @@ function renderProduct(container, product) {
                     <span class="text-stone-900">${product.title}</span>
                 </nav>
 
-                <h1 class="font-serif text-4xl md:text-5xl text-stone-900 mb-4">${product.title}</h1>
+                <h1 class="font-serif text-4xl md:text-5xl text-stone-900 mb-2">${product.title}</h1>
+                
+                <div class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-6">
+                    <span data-i18n="product.sku">SKU</span>: <span id="product-sku" class="text-stone-900 font-medium">${product.sku || 'N/A'}</span>
+                </div>
                 
                 <div id="header-rating-container" class="flex items-center gap-3 mb-6 h-6">
                     </div>
@@ -181,6 +185,11 @@ function renderProduct(container, product) {
             </div>
         </div>
     `;
+
+    // Trigger translation for dynamically injected content
+    if (typeof window.changeLanguage === 'function') {
+        window.changeLanguage(localStorage.getItem('aura_lang') || 'el');
+    }
 
     // Initialize Gallery Logic
     if (images.length > 1) {
