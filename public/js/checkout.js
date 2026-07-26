@@ -26,6 +26,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const zipInput = document.getElementById('checkout-zip');
     const phoneInput = document.getElementById('checkout-phone');
     
+    // Invoice Elements
+    const invoiceToggle = document.getElementById('invoice-toggle');
+    const invoiceFieldsContainer = document.getElementById('invoice-fields-container');
+    const vatInput = document.getElementById('checkout-vat');
+    const taxOfficeInput = document.getElementById('checkout-tax-office');
+    const companyNameInput = document.getElementById('checkout-company-name');
+    const activityInput = document.getElementById('checkout-activity');
+    const invoiceInputs = [vatInput, taxOfficeInput, companyNameInput, activityInput];
+
     const checkoutForm = document.getElementById('checkout-form');
     const submitBtn = document.getElementById('submit-checkout-btn');
     
@@ -188,7 +197,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 4. Autofill Logic
+    // 4. Invoice Toggle Logic
+    invoiceToggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            invoiceFieldsContainer.classList.remove('hidden');
+            invoiceInputs.forEach(input => input.setAttribute('required', 'true'));
+        } else {
+            invoiceFieldsContainer.classList.add('hidden');
+            invoiceInputs.forEach(input => {
+                input.removeAttribute('required');
+                input.value = ''; 
+            });
+        }
+    });
+
+    // 5. Autofill Logic
     autofillToggle.addEventListener('change', async (e) => {
         if (e.target.checked && currentUser) {
             try {
@@ -258,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 5. Form Submission & Routing
+    // 6. Form Submission & Routing
     checkoutForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
@@ -293,7 +316,17 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
         try {
-            // 1. Build Order Payload
+            // 1. Build Invoice Data
+            const isInvoice = invoiceToggle.checked;
+            const invoiceData = isInvoice ? {
+                isRequired: true,
+                vat: vatInput.value.trim(),
+                taxOffice: taxOfficeInput.value.trim(),
+                companyName: companyNameInput.value.trim(),
+                activity: activityInput.value.trim()
+            } : { isRequired: false };
+
+            // 2. Build Order Payload
             const orderPayload = {
                 customer: {
                     firstName: fnInput.value.trim(),
@@ -316,6 +349,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 totalAmount: finalTotalAmount,
                 paymentMethod: selectedPaymentMethod,
                 codFee: selectedPaymentMethod === 'cod' ? COD_FEE : 0,
+                invoice: invoiceData,
+                documentType: isInvoice ? 'invoice' : 'receipt',
                 status: 'pending',
                 createdAt: serverTimestamp(),
                 userId: currentUser ? currentUser.uid : null
@@ -324,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Save Order to Firestore
             await addDoc(collection(db, "orders"), orderPayload);
 
-            // 2. Routing based on Payment Method
+            // 3. Routing based on Payment Method
             if (selectedPaymentMethod === 'cod') {
                 // Cash on Delivery Logic
                 await clearCart();
