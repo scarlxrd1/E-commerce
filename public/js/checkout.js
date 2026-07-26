@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.textContent = translations[currentLang]?.checkout?.proceed_payment_btn || translations['en'].checkout.proceed_payment_btn || 'Proceed to Secure Payment';
     }
 
-    // 3. Autofill Logic
+    // 3. Autofill Logic using the new Addresses array
     autofillToggle.addEventListener('change', async (e) => {
         if (e.target.checked && currentUser) {
             try {
@@ -172,10 +172,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     lnInput.value = data.lastName || '';
                     emailInput.value = data.email || currentUser.email || '';
                     phoneInput.value = data.phone || '';
-                    addressInput.value = data.address || '';
-                    cityInput.value = data.city || '';
-                    countryInput.value = data.country || '';
-                    zipInput.value = data.postalCode || data.zip || '';
+
+                    // Check for the new addresses array
+                    if (data.addresses && data.addresses.length > 0) {
+                        const defaultAddress = data.addresses.find(a => a.isDefault) || data.addresses[0];
+                        addressInput.value = defaultAddress.street || '';
+                        cityInput.value = defaultAddress.city || '';
+                        countryInput.value = defaultAddress.country || '';
+                        zipInput.value = defaultAddress.zip || '';
+                    } else {
+                        // Fallback to legacy flat fields
+                        addressInput.value = data.address || '';
+                        cityInput.value = data.city || '';
+                        countryInput.value = data.country || '';
+                        zipInput.value = data.postalCode || data.zip || '';
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching user data for autofill:", error);
