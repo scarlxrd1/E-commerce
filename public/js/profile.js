@@ -176,6 +176,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const statusBadge = `<span class="px-3 py-1 border rounded-sm text-[10px] uppercase font-bold tracking-wider ${statusClasses}">${statusLabel}</span>`;
+                
+                const paymentStr = order.paymentMethod === 'cod' 
+                    ? (t.pay_cod || 'Cash on Delivery') 
+                    : (order.paymentMethod === 'card' ? (t.pay_card || 'Credit / Debit Card') : 'N/A');
+                
+                const trackingHtml = order.trackingNumber 
+                    ? `<span class="font-mono text-xs bg-stone-100 px-2 py-1 rounded-sm text-stone-900 border border-stone-200">${order.trackingNumber}</span>` 
+                    : `<span class="font-sans text-sm text-stone-500 italic">${t.no_tracking || 'Pending Shipment'}</span>`;
 
                 let itemsHtml = '';
                 (order.items || []).forEach(item => {
@@ -200,19 +208,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 html += `
                     <div class="bg-white border border-stone-200 rounded-sm shadow-sm overflow-hidden">
-                        <div class="bg-stone-50/50 border-b border-stone-200 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div>
+                        <div class="bg-stone-50/50 border-b border-stone-200 p-6 grid grid-cols-2 md:grid-cols-5 gap-4 items-start md:items-center">
+                            <div class="col-span-2 md:col-span-1">
                                 <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">${t.order_no || 'Order #'} ${order.id.slice(0,8).toUpperCase()}</p>
                                 <p class="font-sans text-sm text-stone-900 font-medium">${dateStr}</p>
                             </div>
-                            <div class="flex items-center gap-6">
-                                <div class="text-right">
-                                    <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">${t.total || 'Total'}</p>
-                                    <p class="font-sans text-sm font-medium text-stone-900">€${(order.totalAmount || 0).toLocaleString()}</p>
-                                </div>
-                                <div>
-                                    ${statusBadge}
-                                </div>
+                            <div class="col-span-1">
+                                <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">${t.total || 'Total'}</p>
+                                <p class="font-sans text-sm font-medium text-stone-900">€${(order.totalAmount || 0).toLocaleString()}</p>
+                            </div>
+                            <div class="col-span-1">
+                                <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">${t.payment_method || 'Payment Method'}</p>
+                                <p class="font-sans text-sm font-medium text-stone-900">${paymentStr}</p>
+                            </div>
+                            <div class="col-span-2 md:col-span-1">
+                                <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">${t.tracking_no || 'Tracking Number'}</p>
+                                ${trackingHtml}
+                            </div>
+                            <div class="col-span-2 md:col-span-1 text-left md:text-right">
+                                ${statusBadge}
                             </div>
                         </div>
                         <div class="p-6 flex flex-col gap-6">
