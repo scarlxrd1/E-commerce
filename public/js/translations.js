@@ -187,9 +187,17 @@ export const translations = {
             },
             orders: {
                 title: "Order History",
+                empty: "You have not placed any orders yet.",
                 empty_title: "No orders yet",
                 empty_desc: "When you place an order, it will appear here. Discover our latest minimalist pieces to elevate your space.",
-                explore_btn: "Explore Collection"
+                explore_btn: "Explore Collection",
+                order_no: "Order #",
+                date: "Date",
+                total: "Total",
+                status: "Status",
+                status_pending: "Pending Payment",
+                status_paid: "Paid",
+                status_shipped: "Shipped"
             },
             addresses: {
                 title: "Saved Addresses",
@@ -464,9 +472,17 @@ export const translations = {
             },
             orders: {
                 title: "Ιστορικό Παραγγελιών",
+                empty: "Δεν έχετε πραγματοποιήσει ακόμα κάποια παραγγελία.",
                 empty_title: "Δεν υπάρχουν παραγγελίες",
                 empty_desc: "Όταν κάνετε μια παραγγελία, θα εμφανιστεί εδώ. Ανακαλύψτε τα νεότερα μινιμαλιστικά κομμάτια μας για να αναβαθμίσετε τον χώρο σας.",
-                explore_btn: "Εξερευνήστε τη Συλλογή"
+                explore_btn: "Εξερευνήστε τη Συλλογή",
+                order_no: "Παραγγελία #",
+                date: "Ημερομηνία",
+                total: "Σύνολο",
+                status: "Κατάσταση",
+                status_pending: "Σε Αναμονή",
+                status_paid: "Πληρώθηκε",
+                status_shipped: "Απεστάλη"
             },
             addresses: {
                 title: "Αποθηκευμένες Διευθύνσεις",
