@@ -109,6 +109,7 @@ function renderGrid(productsToRender) {
                     <button class="${btnClasses}" ${btnDisabled}
                         data-id="${product.id}"
                         data-title="${product.title}"
+                        data-sku="${product.sku || ''}"
                         data-price="${product.price}"
                         data-image="${product.image}"
                         data-stock="${product.stock || 0}">
@@ -182,6 +183,7 @@ function initGridAddToCart() {
             const productData = {
                 id: btn.getAttribute('data-id'),
                 title: btn.getAttribute('data-title'),
+                sku: btn.getAttribute('data-sku'),
                 price: parseInt(btn.getAttribute('data-price')),
                 image: btn.getAttribute('data-image'),
                 stock: parseInt(btn.getAttribute('data-stock'))
