@@ -201,7 +201,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dateStr = dateObj.toLocaleDateString('el-GR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' });
                 
                 const customer = order.customer || {};
-                const customerStr = `${customer.firstName || ''} ${customer.lastName || ''}<br><span class="text-xs text-neutral-400">${customer.email || ''}</span><br><span class="text-xs text-neutral-400">${customer.phone || ''}</span>`;
+                
+                // Document Type & Invoice Data
+                let docTypeBadge = order.documentType === 'invoice' || (order.invoice && order.invoice.isRequired) 
+                    ? `<span class="inline-block mt-2 px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-[10px] uppercase font-bold tracking-wider">Τιμολόγιο B2B</span>`
+                    : `<span class="inline-block mt-2 px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] uppercase font-bold tracking-wider">Απόδειξη Λιανικής</span>`;
+
+                let invoiceBlock = '';
+                if (order.invoice && order.invoice.isRequired) {
+                    invoiceBlock = `
+                        <div class="mt-2 p-3 bg-white border border-gray-200 rounded-sm text-xs text-neutral-600 shadow-sm">
+                            <strong class="text-neutral-900 block mb-1">Στοιχεία Τιμολογίου</strong>
+                            Επωνυμία: ${order.invoice.companyName}<br>
+                            ΑΦΜ: ${order.invoice.vat} | ΔΟΥ: ${order.invoice.taxOffice}<br>
+                            Δραστηριότητα: ${order.invoice.activity}
+                        </div>
+                    `;
+                }
+
+                const customerStr = `${customer.firstName || ''} ${customer.lastName || ''}<br><span class="text-xs text-neutral-400">${customer.email || ''}</span><br><span class="text-xs text-neutral-400">${customer.phone || ''}</span><br>${docTypeBadge}${invoiceBlock}`;
                 
                 let itemsStr = (order.items || []).map(i => `${i.quantity}x [${i.sku || i.title}]`).join('<br>');
                 
