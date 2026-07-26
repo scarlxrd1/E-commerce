@@ -257,7 +257,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     zip: zipInput.value.trim(),
                     country: countryInput.value
                 },
-                items: checkoutCart,
+                items: checkoutCart.map(item => ({
+                    id: item.id,
+                    title: item.title,
+                    sku: item.sku || '',
+                    price: item.price,
+                    quantity: item.quantity,
+                    image: item.image
+                })),
                 totalAmount: totalAmount,
                 status: 'pending',
                 createdAt: serverTimestamp(),
