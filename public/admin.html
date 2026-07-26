@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AURA | Διαχείριση</title>
     
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -25,12 +27,34 @@
             }
         }
     </script>
+
+    <!-- jsPDF & AutoTable CDNs for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
     <style>
         body { 
             background-color: #FBFBFA; 
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Custom Visible Scrollbar for Tables */
+        .visible-scrollbar::-webkit-scrollbar {
+            height: 8px;
+        }
+        .visible-scrollbar::-webkit-scrollbar-track {
+            background: #f5f5f4; /* stone-100 */
+            border-radius: 4px;
+        }
+        .visible-scrollbar::-webkit-scrollbar-thumb {
+            background: #d6d3d1; /* stone-300 */
+            border-radius: 4px;
+        }
+        .visible-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a8a29e; /* stone-400 */
+        }
+
         /* Custom Select Arrow */
         .custom-select {
             background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a8a29e%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E');
@@ -92,14 +116,47 @@
         <main class="flex-1 p-8 md:p-12 overflow-y-auto">
 
             <section id="orders-section" class="block">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+                
+                <!-- Action Controls Bar -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                     <h1 class="font-serif text-3xl text-neutral-900">Διαχείριση Παραγγελιών</h1>
+                    <button id="export-pdf-btn" class="bg-neutral-900 text-white font-sans text-xs tracking-widest uppercase px-5 py-2.5 rounded-sm hover:bg-neutral-800 transition-colors shadow-sm flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Εξαγωγή σε PDF
+                    </button>
                 </div>
 
-                <div class="bg-white border border-gray-200 rounded-sm shadow-sm overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[1000px]">
-                        <thead>
-                            <tr class="bg-neutral-50 border-b border-gray-200 font-sans text-xs tracking-widest uppercase text-neutral-500">
+                <!-- Advanced Search/Filter Toolbar -->
+                <div class="bg-white border border-gray-200 p-6 rounded-sm shadow-sm mb-6">
+                    <div class="flex flex-col md:flex-row gap-6 items-end">
+                        <div class="flex-1 w-full">
+                            <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Αναζήτηση ID</label>
+                            <input type="text" id="order-search-id" placeholder="π.χ. a1b2c3d4..." class="w-full bg-transparent border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-neutral-900 transition-colors">
+                        </div>
+                        <div class="flex-1 w-full">
+                            <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Αναζήτηση Email</label>
+                            <input type="text" id="order-search-email" placeholder="π.χ. πελάτης@email.com..." class="w-full bg-transparent border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-neutral-900 transition-colors">
+                        </div>
+                        <div class="flex-1 w-full">
+                            <label class="block font-sans text-xs tracking-widest uppercase text-neutral-500 mb-2">Ημερομηνία</label>
+                            <input type="date" id="order-search-date" class="w-full bg-transparent border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-neutral-900 transition-colors text-neutral-600">
+                        </div>
+                        <div class="w-full md:w-auto">
+                            <button id="order-search-reset-btn" class="w-full md:w-auto font-sans text-xs tracking-widest uppercase border border-gray-300 text-neutral-600 px-6 py-2 hover:bg-neutral-50 transition-colors rounded-sm h-[37px]">Καθαρισμός / Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Horizontal Scroll Control -->
+                <div id="top-scroll-container" class="w-full overflow-x-auto visible-scrollbar mb-2">
+                    <div id="top-scroll-content" class="h-px"></div>
+                </div>
+
+                <!-- Main Orders Table Wrapper -->
+                <div id="orders-table-wrapper" class="bg-white border border-gray-200 rounded-sm shadow-sm overflow-x-auto visible-scrollbar">
+                    <table id="orders-table" class="w-full text-left border-collapse min-w-[1100px]">
+                        <thead class="sticky top-0 bg-neutral-50 z-10">
+                            <tr class="border-b border-gray-200 font-sans text-xs tracking-widest uppercase text-neutral-500">
                                 <th class="p-4 font-medium">ID</th>
                                 <th class="p-4 font-medium">Ημερομηνία</th>
                                 <th class="p-4 font-medium">Πελάτης / Παραστατικό</th>
