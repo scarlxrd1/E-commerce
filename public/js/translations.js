@@ -197,7 +197,12 @@ export const translations = {
                 status: "Status",
                 status_pending: "Pending Payment",
                 status_paid: "Paid",
-                status_shipped: "Shipped"
+                status_shipped: "Shipped",
+                tracking_no: "Tracking Number",
+                no_tracking: "Pending Shipment",
+                payment_method: "Payment Method",
+                pay_card: "Credit / Debit Card",
+                pay_cod: "Cash on Delivery"
             },
             addresses: {
                 title: "Saved Addresses",
@@ -494,7 +499,12 @@ export const translations = {
                 status: "Κατάσταση",
                 status_pending: "Σε Αναμονή",
                 status_paid: "Πληρώθηκε",
-                status_shipped: "Απεστάλη"
+                status_shipped: "Απεστάλη",
+                tracking_no: "Αριθμός Αποστολής",
+                no_tracking: "Σε αναμονή αποστολής",
+                payment_method: "Τρόπος Πληρωμής",
+                pay_card: "Πιστωτική / Χρεωστική Κάρτα",
+                pay_cod: "Αντικαταβολή"
             },
             addresses: {
                 title: "Αποθηκευμένες Διευθύνσεις",
