@@ -201,9 +201,21 @@ export const translations = {
             },
             addresses: {
                 title: "Saved Addresses",
-                add_new: "+ Add New",
+                add_new_btn: "+ Add New",
                 empty_title: "No alternate addresses saved",
-                empty_desc: "Save your shipping and billing addresses for a faster checkout experience."
+                empty_desc: "Save your shipping and billing addresses for a faster checkout experience.",
+                set_default: "Set as Default",
+                primary: "Primary",
+                delete: "Delete",
+                modal_title: "Add New Address",
+                cancel: "Cancel",
+                save: "Save Address",
+                labels: {
+                    street: "Street Address",
+                    city: "City",
+                    zip: "Postal Code (ZIP)",
+                    country: "Country"
+                }
             },
             change_email_btn: "Change",
             email_modal: {
@@ -486,9 +498,21 @@ export const translations = {
             },
             addresses: {
                 title: "Αποθηκευμένες Διευθύνσεις",
-                add_new: "+ Προσθήκη Νέας",
+                add_new_btn: "+ Προσθήκη Νέας",
                 empty_title: "Δεν υπάρχουν εναλλακτικές διευθύνσεις",
-                empty_desc: "Αποθηκεύστε τις διευθύνσεις αποστολής και χρέωσης για μια πιο γρήγορη εμπειρία αγοράς."
+                empty_desc: "Αποθηκεύστε τις διευθύνσεις αποστολής και χρέωσης για μια πιο γρήγορη εμπειρία αγοράς.",
+                set_default: "Ορισμός ως Προεπιλογή",
+                primary: "Προεπιλογή",
+                delete: "Διαγραφή",
+                modal_title: "Προσθήκη Νέας Διεύθυνσης",
+                cancel: "Ακύρωση",
+                save: "Αποθήκευση Διεύθυνσης",
+                labels: {
+                    street: "Οδός & Αριθμός",
+                    city: "Πόλη",
+                    zip: "Ταχυδρομικός Κώδικας (Τ.Κ.)",
+                    country: "Χώρα"
+                }
             },
             change_email_btn: "Αλλαγή",
             email_modal: {
