@@ -213,7 +213,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 html += `
                     <tr class="hover:bg-neutral-50 transition-colors align-top border-b border-gray-100">
-                        <td class="p-4 font-mono text-xs text-neutral-500">${id.slice(0,8)}...</td>
+                        <td class="p-4">
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono text-xs text-neutral-900">${id}</span>
+                                <button class="copy-id-btn text-neutral-400 hover:text-neutral-900 transition-colors" data-id="${id}" title="Αντιγραφή ID">
+                                    <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                </button>
+                            </div>
+                        </td>
                         <td class="p-4 text-sm">${dateStr}</td>
                         <td class="p-4 text-sm">${customerStr}</td>
                         <td class="p-4 text-xs text-neutral-500">${itemsStr}</td>
@@ -234,6 +241,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     ordersTableBody.addEventListener('click', async (e) => {
+        // Copy Order ID
+        const copyBtn = e.target.closest('.copy-id-btn');
+        if (copyBtn) {
+            const id = copyBtn.getAttribute('data-id');
+            try {
+                await navigator.clipboard.writeText(id);
+                const originalSvg = copyBtn.innerHTML;
+                copyBtn.innerHTML = `<svg class="w-4 h-4 text-green-600 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalSvg;
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy ID: ', err);
+            }
+            return;
+        }
+
+        // Update Order Status
         if (e.target.classList.contains('update-order-btn')) {
             const orderId = e.target.getAttribute('data-id');
             const newStatus = e.target.getAttribute('data-status');
