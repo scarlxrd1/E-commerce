@@ -29,8 +29,21 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const logoutBtn = document.getElementById('logout-btn');
 
-    // Orders Elements
+    // Orders Elements & State
+    let allOrders = [];
+    let filteredOrders = [];
     const ordersTableBody = document.getElementById('orders-table-body');
+    const orderSearchId = document.getElementById('order-search-id');
+    const orderSearchEmail = document.getElementById('order-search-email');
+    const orderSearchDate = document.getElementById('order-search-date');
+    const orderSearchResetBtn = document.getElementById('order-search-reset-btn');
+    const exportPdfBtn = document.getElementById('export-pdf-btn');
+
+    // Top Scrollbar Elements
+    const topScroll = document.getElementById('top-scroll-container');
+    const topScrollContent = document.getElementById('top-scroll-content');
+    const tableWrapper = document.getElementById('orders-table-wrapper');
+    const ordersTable = document.getElementById('orders-table');
 
     // Products Elements
     const productsTableBody = document.getElementById('products-table-body');
@@ -66,19 +79,16 @@ document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
-                // Fetch user document to check for 'admin' role
                 const userDocRef = doc(db, "users", user.uid);
                 const userDocSnap = await getDoc(userDocRef);
 
                 if (userDocSnap.exists() && userDocSnap.data().role === 'admin') {
-                    // Authorized Admin
                     showDashboardView();
                     fetchOrders();
                     fetchProducts();
                     fetchCustomers();
                     fetchSupportTickets();
                 } else {
-                    // Unauthorized User
                     alert("Άρνηση Πρόσβασης: Μη εξουσιοδοτημένος λογαριασμός.");
                     await signOut(auth);
                     showLoginView();
@@ -90,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 showLoginView();
             }
         } else {
-            // Logged out
             showLoginView();
         }
     });
@@ -116,7 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
         loginBtn.disabled = true;
 
         try {
-            // This triggers onAuthStateChanged which handles the role validation
             await signInWithEmailAndPassword(auth, loginEmailInput.value.trim(), loginPasswordInput.value);
             loginForm.reset();
         } catch (error) {
@@ -153,6 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         navOrders.classList.replace('border-transparent', 'border-neutral-900');
         navOrders.classList.add('font-semibold');
         ordersSection.classList.remove('hidden');
+        syncScrollWidths(); // Re-sync top scrollbar when orders tab becomes visible
     });
 
     navProducts.addEventListener('click', () => {
@@ -180,103 +189,222 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 3. ORDERS MANAGEMENT
+    // 3. ORDERS MANAGEMENT (Search, Filter, PDF, Scroll Sync)
     // ==========================================
+    
+    // Sync Top Scrollbar
+    function syncScrollWidths() {
+        if (ordersTable && topScrollContent && !ordersSection.classList.contains('hidden')) {
+            topScrollContent.style.width = ordersTable.offsetWidth + 'px';
+        }
+    }
+    
+    window.addEventListener('resize', syncScrollWidths);
+
+    let isSyncingLeftScroll = false;
+    let isSyncingRightScroll = false;
+
+    topScroll.addEventListener('scroll', function(e) {
+        if (!isSyncingLeftScroll) {
+            isSyncingRightScroll = true;
+            tableWrapper.scrollLeft = this.scrollLeft;
+        }
+        isSyncingLeftScroll = false;
+    });
+
+    tableWrapper.addEventListener('scroll', function(e) {
+        if (!isSyncingRightScroll) {
+            isSyncingLeftScroll = true;
+            topScroll.scrollLeft = this.scrollLeft;
+        }
+        isSyncingRightScroll = false;
+    });
+
     async function fetchOrders() {
         ordersTableBody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-neutral-400">Φόρτωση παραγγελιών...</td></tr>`;
         try {
             const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
             const querySnapshot = await getDocs(q);
-            let html = '';
             
-            if (querySnapshot.empty) {
-                ordersTableBody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-neutral-400">Δεν βρέθηκαν παραγγελίες.</td></tr>`;
-                return;
-            }
-
+            allOrders = [];
             querySnapshot.forEach((docSnap) => {
-                const order = docSnap.data();
-                const id = docSnap.id;
-                const dateObj = order.createdAt ? order.createdAt.toDate() : new Date();
-                const dateStr = dateObj.toLocaleDateString('el-GR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' });
-                
-                const customer = order.customer || {};
-                
-                // Document Type & Invoice Data
-                let docTypeBadge = order.documentType === 'invoice' || (order.invoice && order.invoice.isRequired) 
-                    ? `<span class="inline-block mt-2 px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-[10px] uppercase font-bold tracking-wider">Τιμολόγιο B2B</span>`
-                    : `<span class="inline-block mt-2 px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] uppercase font-bold tracking-wider">Απόδειξη Λιανικής</span>`;
-
-                let invoiceBlock = '';
-                if (order.invoice && order.invoice.isRequired) {
-                    invoiceBlock = `
-                        <div class="mt-2 p-3 bg-white border border-gray-200 rounded-sm text-xs text-neutral-600 shadow-sm">
-                            <strong class="text-neutral-900 block mb-1">Στοιχεία Τιμολογίου</strong>
-                            Επωνυμία: ${order.invoice.companyName}<br>
-                            ΑΦΜ: ${order.invoice.vat} | ΔΟΥ: ${order.invoice.taxOffice}<br>
-                            Δραστηριότητα: ${order.invoice.activity}
-                        </div>
-                    `;
-                }
-
-                const customerStr = `${customer.firstName || ''} ${customer.lastName || ''}<br><span class="text-xs text-neutral-400">${customer.email || ''}</span><br><span class="text-xs text-neutral-400">${customer.phone || ''}</span><br>${docTypeBadge}${invoiceBlock}`;
-                
-                let itemsStr = (order.items || []).map(i => `${i.quantity}x [${i.sku || i.title}]`).join('<br>');
-                
-                let paymentBadge = '';
-                if (order.paymentMethod === 'cod') {
-                    paymentBadge = `<span class="block mt-1 text-[10px] text-neutral-500 uppercase tracking-widest">Αντικαταβολή (+2.50€)</span>`;
-                } else if (order.paymentMethod === 'card') {
-                    paymentBadge = `<span class="block mt-1 text-[10px] text-neutral-500 uppercase tracking-widest">Πιστωτική / Χρεωστική Κάρτα</span>`;
-                } else {
-                    paymentBadge = `<span class="block mt-1 text-[10px] text-neutral-500 uppercase tracking-widest">N/A</span>`;
-                }
-
-                let trackingHtml = `
-                    <div class="flex flex-col items-start gap-1">
-                        <input type="text" class="tracking-input border-b border-gray-300 py-1 text-xs w-28 bg-transparent focus:outline-none focus:border-neutral-900" value="${order.trackingNumber || ''}" placeholder="Αριθμός...">
-                        <button class="save-tracking-btn text-[10px] text-blue-500 hover:text-blue-700 transition-colors uppercase tracking-widest mt-1" data-id="${id}">Αποθήκευση</button>
-                    </div>
-                `;
-
-                let statusBadge = '';
-                if(order.status === 'pending') statusBadge = `<span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-[10px] uppercase font-bold tracking-wider">Εκκρεμεί</span>`;
-                else if(order.status === 'paid') statusBadge = `<span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-[10px] uppercase font-bold tracking-wider">Πληρώθηκε</span>`;
-                else if(order.status === 'shipped') statusBadge = `<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-[10px] uppercase font-bold tracking-wider">Απεστάλη</span>`;
-                else statusBadge = `<span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-[10px] uppercase font-bold tracking-wider">${order.status}</span>`;
-
-                html += `
-                    <tr class="hover:bg-neutral-50 transition-colors align-top border-b border-gray-100">
-                        <td class="p-4">
-                            <div class="flex items-center gap-2">
-                                <span class="font-mono text-xs text-neutral-900">${id}</span>
-                                <button class="copy-id-btn text-neutral-400 hover:text-neutral-900 transition-colors" data-id="${id}" title="Αντιγραφή ID">
-                                    <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                </button>
-                            </div>
-                        </td>
-                        <td class="p-4 text-sm">${dateStr}</td>
-                        <td class="p-4 text-sm">${customerStr}</td>
-                        <td class="p-4 text-xs text-neutral-500">${itemsStr}</td>
-                        <td class="p-4 text-sm font-medium">
-                            €${(order.totalAmount || 0).toLocaleString('el-GR')}
-                            ${paymentBadge}
-                        </td>
-                        <td class="p-4">${trackingHtml}</td>
-                        <td class="p-4">${statusBadge}</td>
-                        <td class="p-4 text-right space-y-2 flex flex-col items-end">
-                            <button class="update-order-btn text-blue-500 hover:text-blue-700 transition-colors underline underline-offset-4 text-[10px] tracking-widest uppercase" data-id="${id}" data-status="paid">Σήμανση ως Πληρωμένη</button>
-                            <button class="update-order-btn text-green-500 hover:text-green-700 transition-colors underline underline-offset-4 text-[10px] tracking-widest uppercase" data-id="${id}" data-status="shipped">Σήμανση ως Απεσταλμένη</button>
-                        </td>
-                    </tr>
-                `;
+                allOrders.push({ id: docSnap.id, ...docSnap.data() });
             });
-            ordersTableBody.innerHTML = html;
+            
+            filteredOrders = [...allOrders];
+            renderOrdersTable();
         } catch (error) {
             console.error("Error fetching orders:", error);
             ordersTableBody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-red-500">Σφάλμα φόρτωσης παραγγελιών.</td></tr>`;
         }
     }
+
+    function applyOrderFilters() {
+        const idTerm = orderSearchId.value.trim().toLowerCase();
+        const emailTerm = orderSearchEmail.value.trim().toLowerCase();
+        const dateTerm = orderSearchDate.value; // YYYY-MM-DD format
+
+        filteredOrders = allOrders.filter(order => {
+            const matchId = order.id.toLowerCase().includes(idTerm);
+            const matchEmail = (order.customer?.email || '').toLowerCase().includes(emailTerm);
+            
+            let matchDate = true;
+            if (dateTerm && order.createdAt) {
+                const d = order.createdAt.toDate();
+                const orderDateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                matchDate = (orderDateStr === dateTerm);
+            } else if (dateTerm && !order.createdAt) {
+                matchDate = false;
+            }
+
+            return matchId && matchEmail && matchDate;
+        });
+
+        renderOrdersTable();
+    }
+
+    // Attach Filter Listeners
+    orderSearchId.addEventListener('input', applyOrderFilters);
+    orderSearchEmail.addEventListener('input', applyOrderFilters);
+    orderSearchDate.addEventListener('change', applyOrderFilters);
+
+    orderSearchResetBtn.addEventListener('click', () => {
+        orderSearchId.value = '';
+        orderSearchEmail.value = '';
+        orderSearchDate.value = '';
+        filteredOrders = [...allOrders];
+        renderOrdersTable();
+    });
+
+    function renderOrdersTable() {
+        if (filteredOrders.length === 0) {
+            ordersTableBody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-neutral-400">Δεν βρέθηκαν παραγγελίες με αυτά τα κριτήρια.</td></tr>`;
+            syncScrollWidths();
+            return;
+        }
+
+        let html = '';
+        filteredOrders.forEach((order) => {
+            const id = order.id;
+            const dateObj = order.createdAt ? order.createdAt.toDate() : new Date();
+            const dateStr = dateObj.toLocaleDateString('el-GR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' });
+            
+            const customer = order.customer || {};
+            
+            // Document Type & Invoice Data
+            let docTypeBadge = order.documentType === 'invoice' || (order.invoice && order.invoice.isRequired) 
+                ? `<span class="inline-block mt-2 px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-[10px] uppercase font-bold tracking-wider">Τιμολόγιο B2B</span>`
+                : `<span class="inline-block mt-2 px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] uppercase font-bold tracking-wider">Απόδειξη Λιανικής</span>`;
+
+            let invoiceBlock = '';
+            if (order.invoice && order.invoice.isRequired) {
+                invoiceBlock = `
+                    <div class="mt-2 p-3 bg-white border border-gray-200 rounded-sm text-xs text-neutral-600 shadow-sm">
+                        <strong class="text-neutral-900 block mb-1">Στοιχεία Τιμολογίου</strong>
+                        Επωνυμία: ${order.invoice.companyName}<br>
+                        ΑΦΜ: ${order.invoice.vat} | ΔΟΥ: ${order.invoice.taxOffice}<br>
+                        Δραστηριότητα: ${order.invoice.activity}
+                    </div>
+                `;
+            }
+
+            const customerStr = `${customer.firstName || ''} ${customer.lastName || ''}<br><span class="text-xs text-neutral-400">${customer.email || ''}</span><br><span class="text-xs text-neutral-400">${customer.phone || ''}</span><br>${docTypeBadge}${invoiceBlock}`;
+            
+            let itemsStr = (order.items || []).map(i => `${i.quantity}x [${i.sku || i.title}]`).join('<br>');
+            
+            let paymentBadge = '';
+            if (order.paymentMethod === 'cod') {
+                paymentBadge = `<span class="block mt-1 text-[10px] text-neutral-500 uppercase tracking-widest">Αντικαταβολή (+2.50€)</span>`;
+            } else if (order.paymentMethod === 'card') {
+                paymentBadge = `<span class="block mt-1 text-[10px] text-neutral-500 uppercase tracking-widest">Πιστωτική / Χρεωστική Κάρτα</span>`;
+            } else {
+                paymentBadge = `<span class="block mt-1 text-[10px] text-neutral-500 uppercase tracking-widest">N/A</span>`;
+            }
+
+            let trackingHtml = `
+                <div class="flex flex-col items-start gap-1">
+                    <input type="text" class="tracking-input border-b border-gray-300 py-1 text-xs w-28 bg-transparent focus:outline-none focus:border-neutral-900" value="${order.trackingNumber || ''}" placeholder="Αριθμός...">
+                    <button class="save-tracking-btn text-[10px] text-blue-500 hover:text-blue-700 transition-colors uppercase tracking-widest mt-1" data-id="${id}">Αποθήκευση</button>
+                </div>
+            `;
+
+            let statusBadge = '';
+            if(order.status === 'pending') statusBadge = `<span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-[10px] uppercase font-bold tracking-wider">Εκκρεμεί</span>`;
+            else if(order.status === 'paid') statusBadge = `<span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-[10px] uppercase font-bold tracking-wider">Πληρώθηκε</span>`;
+            else if(order.status === 'shipped') statusBadge = `<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-[10px] uppercase font-bold tracking-wider">Απεστάλη</span>`;
+            else statusBadge = `<span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-[10px] uppercase font-bold tracking-wider">${order.status}</span>`;
+
+            html += `
+                <tr class="hover:bg-neutral-50 transition-colors align-top border-b border-gray-100">
+                    <td class="p-4">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono text-xs text-neutral-900">${id}</span>
+                            <button class="copy-id-btn text-neutral-400 hover:text-neutral-900 transition-colors" data-id="${id}" title="Αντιγραφή ID">
+                                <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="p-4 text-sm">${dateStr}</td>
+                    <td class="p-4 text-sm">${customerStr}</td>
+                    <td class="p-4 text-xs text-neutral-500">${itemsStr}</td>
+                    <td class="p-4 text-sm font-medium">
+                        €${(order.totalAmount || 0).toLocaleString('el-GR')}
+                        ${paymentBadge}
+                    </td>
+                    <td class="p-4">${trackingHtml}</td>
+                    <td class="p-4">${statusBadge}</td>
+                    <td class="p-4 text-right space-y-2 flex flex-col items-end">
+                        <button class="update-order-btn text-blue-500 hover:text-blue-700 transition-colors underline underline-offset-4 text-[10px] tracking-widest uppercase" data-id="${id}" data-status="paid">Σήμανση ως Πληρωμένη</button>
+                        <button class="update-order-btn text-green-500 hover:text-green-700 transition-colors underline underline-offset-4 text-[10px] tracking-widest uppercase" data-id="${id}" data-status="shipped">Σήμανση ως Απεσταλμένη</button>
+                    </td>
+                </tr>
+            `;
+        });
+        ordersTableBody.innerHTML = html;
+        syncScrollWidths(); // Sync the top scrollbar length to the new table size
+    }
+
+    // PDF Export Logic
+    exportPdfBtn.addEventListener('click', () => {
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+            alert("Η βιβλιοθήκη PDF δεν φορτώθηκε σωστά. Δοκιμάστε ξανά.");
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape');
+        
+        doc.setFontSize(16);
+        // Note: Standard jsPDF fonts do not fully support Greek characters without a VFS font file.
+        // We output standard characters, depending on browser/system it may fallback or show '?'.
+        doc.text("AURA Store - Αναφορά Παραγγελιών", 14, 15);
+        
+        doc.setFontSize(10);
+        doc.text(`Ημερομηνία: ${new Date().toLocaleString('el-GR')}`, 14, 22);
+        doc.text(`Σύνολο Παραγγελιών: ${filteredOrders.length}`, 14, 27);
+        const totalSum = filteredOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+        doc.text(`Συνολική Αξία: ${totalSum.toLocaleString('el-GR')} EUR`, 14, 32);
+
+        const tableData = filteredOrders.map(o => {
+            const dateStr = o.createdAt ? o.createdAt.toDate().toLocaleDateString('el-GR') : '';
+            const customerStr = `${o.customer?.firstName || ''} ${o.customer?.lastName || ''}\n${o.customer?.email || ''}`;
+            const itemsStr = (o.items || []).map(i => `${i.quantity}x [${i.sku || i.title}]`).join('\n');
+            const payment = o.paymentMethod === 'cod' ? 'Αντικαταβολή' : (o.paymentMethod === 'card' ? 'Κάρτα' : 'N/A');
+            const total = `${(o.totalAmount || 0).toLocaleString('el-GR')} EUR`;
+            const status = o.status === 'pending' ? 'Εκκρεμεί' : (o.status === 'paid' ? 'Πληρώθηκε' : (o.status === 'shipped' ? 'Απεστάλη' : o.status));
+            
+            return [o.id, dateStr, customerStr, itemsStr, payment, total, status];
+        });
+
+        doc.autoTable({
+            startY: 40,
+            head: [['ID', 'Ημερομηνία', 'Πελάτης', 'Προϊόντα', 'Πληρωμή', 'Σύνολο', 'Κατάσταση']],
+            body: tableData,
+            styles: { fontSize: 8, font: 'helvetica' },
+        });
+
+        doc.save('aura_orders_report.pdf');
+    });
 
     ordersTableBody.addEventListener('click', async (e) => {
         // Copy Order ID
@@ -309,6 +437,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 await updateDoc(doc(db, "orders", orderId), { trackingNumber: newTracking });
+                
+                // Update local array to keep it in sync without re-fetching everything
+                const orderIndex = allOrders.findIndex(o => o.id === orderId);
+                if(orderIndex !== -1) allOrders[orderIndex].trackingNumber = newTracking;
+                const filteredIndex = filteredOrders.findIndex(o => o.id === orderId);
+                if(filteredIndex !== -1) filteredOrders[filteredIndex].trackingNumber = newTracking;
+
                 btn.textContent = 'Ενημερώθηκε ✓';
                 btn.classList.replace('text-blue-500', 'text-green-600');
                 setTimeout(() => {
@@ -333,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (confirm(`Είστε σίγουροι ότι θέλετε να αλλάξετε την κατάσταση σε '${newStatus === 'paid' ? 'Πληρώθηκε' : 'Απεστάλη'}';`)) {
                 try {
                     await updateDoc(doc(db, "orders", orderId), { status: newStatus });
-                    await fetchOrders(); // Refresh table
+                    await fetchOrders(); // Full refresh to ensure consistency
                 } catch (error) {
                     console.error("Error updating order status:", error);
                     alert("Σφάλμα κατά την ενημέρωση της παραγγελίας.");
