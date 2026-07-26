@@ -7,6 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
     let currentUser = null;
     let checkoutCart = [];
+    
+    // Payment State
+    let selectedPaymentMethod = 'card';
+    const COD_FEE = 2.50;
 
     // DOM Elements
     const autofillContainer = document.getElementById('autofill-container');
@@ -23,24 +27,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const phoneInput = document.getElementById('checkout-phone');
     
     const checkoutForm = document.getElementById('checkout-form');
+    const submitBtn = document.getElementById('submit-checkout-btn');
+    
+    const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
+    const codFeeRow = document.getElementById('cod-fee-row');
+    const subtotalEl = document.getElementById('checkout-subtotal');
+    const totalEl = document.getElementById('checkout-total');
 
     // 1. Auth State & Cart Loading
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
-            // Show Autofill option for logged-in users
             autofillContainer.classList.remove('hidden');
             autofillContainer.classList.add('flex');
-            
-            // Fetch authoritative cart from Firestore
             await loadCheckoutCart(user);
         } else {
             currentUser = null;
-            // Hide Autofill option for guests
             autofillContainer.classList.add('hidden');
             autofillContainer.classList.remove('flex');
-            
-            // Fetch cart from LocalStorage
             await loadCheckoutCart(null);
         }
     });
@@ -73,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
             item.quantity = newQty;
         }
         
-        // Save
         if (currentUser) {
             try {
                 const userRef = doc(db, "users", currentUser.uid);
@@ -87,7 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         renderCheckoutSummary(checkoutCart);
         
-        // Sync with global cart state if available
         if (typeof window.syncGlobalCart === 'function') {
             window.syncGlobalCart(checkoutCart);
         }
@@ -95,9 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderCheckoutSummary(cartItems) {
         const container = document.getElementById('checkout-items-container');
-        const subtotalEl = document.getElementById('checkout-subtotal');
-        const totalEl = document.getElementById('checkout-total');
-        const submitBtn = checkoutForm.querySelector('button[type="submit"]');
         
         if (cartItems.length === 0) {
             container.innerHTML = `
@@ -109,7 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
             subtotalEl.textContent = '€0';
             totalEl.textContent = '€0';
             
-            // Disable form if cart is empty
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
             submitBtn.textContent = 'Cart is empty';
@@ -117,11 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let html = '';
-        let total = 0;
+        let cartTotal = 0;
 
         cartItems.forEach((item, index) => {
             const itemTotal = item.price * item.quantity;
-            total += itemTotal;
+            cartTotal += itemTotal;
             const disablePlus = item.quantity >= (item.stock || 0);
             
             html += `
@@ -151,17 +149,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         container.innerHTML = html;
-        subtotalEl.textContent = `€${total.toLocaleString()}`;
-        totalEl.textContent = `€${total.toLocaleString()}`;
+        subtotalEl.textContent = `€${cartTotal.toLocaleString()}`;
         
-        // Enable form if items exist
         submitBtn.disabled = false;
         submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        const currentLang = localStorage.getItem('aura_lang') || 'el';
-        submitBtn.textContent = translations[currentLang]?.checkout?.proceed_payment_btn || translations['en'].checkout.proceed_payment_btn || 'Proceed to Secure Payment';
+        
+        updateTotals(cartTotal);
     }
 
-    // 3. Autofill Logic using the new Addresses array
+    // 3. Payment Method Selection & Totals Calculation
+    function updateTotals(baseCartTotal) {
+        if (baseCartTotal === undefined) {
+            baseCartTotal = checkoutCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        }
+        
+        const currentLang = localStorage.getItem('aura_lang') || 'en';
+        let finalTotal = baseCartTotal;
+
+        if (selectedPaymentMethod === 'cod') {
+            finalTotal += COD_FEE;
+            codFeeRow.classList.remove('hidden');
+            codFeeRow.classList.add('flex');
+            submitBtn.textContent = translations[currentLang]?.checkout?.place_order_btn || translations['en'].checkout.place_order_btn;
+        } else {
+            codFeeRow.classList.add('hidden');
+            codFeeRow.classList.remove('flex');
+            submitBtn.textContent = translations[currentLang]?.checkout?.pay_with_card_btn || translations['en'].checkout.pay_with_card_btn;
+        }
+
+        // Format to 2 decimal places to accurately show the .50
+        totalEl.textContent = `€${finalTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    paymentRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            selectedPaymentMethod = e.target.value;
+            updateTotals();
+        });
+    });
+
+    // 4. Autofill Logic
     autofillToggle.addEventListener('change', async (e) => {
         if (e.target.checked && currentUser) {
             try {
@@ -173,7 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     emailInput.value = data.email || currentUser.email || '';
                     phoneInput.value = data.phone || '';
 
-                    // Check for the new addresses array
                     if (data.addresses && data.addresses.length > 0) {
                         const defaultAddress = data.addresses.find(a => a.isDefault) || data.addresses[0];
                         addressInput.value = defaultAddress.street || '';
@@ -181,7 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         countryInput.value = defaultAddress.country || '';
                         zipInput.value = defaultAddress.zip || '';
                     } else {
-                        // Fallback to legacy flat fields
                         addressInput.value = data.address || '';
                         cityInput.value = data.city || '';
                         countryInput.value = data.country || '';
@@ -192,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Error fetching user data for autofill:", error);
             }
         } else {
-            // Unchecked: Clear fields
             fnInput.value = '';
             lnInput.value = '';
             emailInput.value = '';
@@ -217,12 +241,28 @@ document.addEventListener('DOMContentLoaded', () => {
         errorContainer.classList.add('hidden');
     }
 
-    // 4. Form Submission, Firestore Order Persistence & Viva Wallet Integration
+    // Clear Cart Helper (Used for COD success)
+    async function clearCart() {
+        checkoutCart = [];
+        if (currentUser) {
+            try {
+                await updateDoc(doc(db, "users", currentUser.uid), { cart: [] });
+            } catch (error) {
+                console.error("Error clearing user cart:", error);
+            }
+        } else {
+            localStorage.removeItem('aura_cart');
+        }
+        if (typeof window.syncGlobalCart === 'function') {
+            window.syncGlobalCart([]);
+        }
+    }
+
+    // 5. Form Submission & Routing
     checkoutForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
 
-        // Strict Validations
         const nameRegex = /^[a-zA-Zα-ωΑ-ΩάέήίόύώΆΈΉΊΌΎΏ\s]+$/;
         const phoneRegex = /^\+?\d+$/;
 
@@ -239,25 +279,21 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Calculate total amount
-        const totalAmount = checkoutCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-        if (totalAmount <= 0) {
+        const baseCartTotal = checkoutCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        if (baseCartTotal <= 0) {
             showError("Your cart is empty or the total is invalid.");
             return;
         }
 
-        // Proceed with checkout
-        const submitBtn = checkoutForm.querySelector('button[type="submit"]');
+        const finalTotalAmount = selectedPaymentMethod === 'cod' ? baseCartTotal + COD_FEE : baseCartTotal;
+
         const originalText = submitBtn.textContent;
-        
-        submitBtn.textContent = 'Redirecting to Secure Payment...';
+        submitBtn.textContent = 'Processing...';
         submitBtn.disabled = true;
         submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
         try {
-            // 1. Save the Order to Firestore FIRST
-            // Explicitly attach userId for Order History functionality
+            // 1. Build Order Payload
             const orderPayload = {
                 customer: {
                     firstName: fnInput.value.trim(),
@@ -277,43 +313,50 @@ document.addEventListener('DOMContentLoaded', () => {
                     quantity: item.quantity,
                     image: item.image
                 })),
-                totalAmount: totalAmount,
+                totalAmount: finalTotalAmount,
+                paymentMethod: selectedPaymentMethod,
+                codFee: selectedPaymentMethod === 'cod' ? COD_FEE : 0,
                 status: 'pending',
                 createdAt: serverTimestamp(),
                 userId: currentUser ? currentUser.uid : null
             };
 
+            // Save Order to Firestore
             await addDoc(collection(db, "orders"), orderPayload);
 
-            // 2. Call Vercel Serverless Function to create Viva Wallet Order
-            const response = await fetch('/api/create-payment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    amount: totalAmount,
-                    customerEmail: emailInput.value.trim(),
-                    customerName: `${fnInput.value.trim()} ${lnInput.value.trim()}`,
-                    customerPhone: phoneInput.value.trim()
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success && data.orderCode) {
-                // Instantly redirect customer to Viva Smart Checkout URL
-                window.location.href = `https://demo.vivapayments.com/web/checkout?ref=${data.orderCode}`;
+            // 2. Routing based on Payment Method
+            if (selectedPaymentMethod === 'cod') {
+                // Cash on Delivery Logic
+                await clearCart();
+                window.location.href = 'success.html';
             } else {
-                // Throw the exact error returned by the backend
-                throw new Error(data.error || data.message || "Failed to generate payment order.");
+                // Viva Wallet Logic
+                const response = await fetch('/api/create-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        amount: finalTotalAmount,
+                        customerEmail: emailInput.value.trim(),
+                        customerName: `${fnInput.value.trim()} ${lnInput.value.trim()}`,
+                        customerPhone: phoneInput.value.trim()
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success && data.orderCode) {
+                    window.location.href = `https://demo.vivapayments.com/web/checkout?ref=${data.orderCode}`;
+                } else {
+                    throw new Error(data.error || data.message || "Failed to generate payment order.");
+                }
             }
             
         } catch (error) {
             console.error("Payment Error:", error);
             showError(error.message || "Could not initiate payment. Please try again later.");
             
-            // Revert button state on error
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
             submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
