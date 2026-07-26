@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const customer = order.customer || {};
                 const customerStr = `${customer.firstName || ''} ${customer.lastName || ''}<br><span class="text-xs text-neutral-400">${customer.email || ''}</span><br><span class="text-xs text-neutral-400">${customer.phone || ''}</span>`;
                 
-                let itemsStr = (order.items || []).map(i => `${i.quantity}x ${i.title}`).join('<br>');
+                let itemsStr = (order.items || []).map(i => `${i.quantity}x [${i.sku || i.title}]`).join('<br>');
                 
                 let statusBadge = '';
                 if(order.status === 'pending') statusBadge = `<span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-[10px] uppercase font-bold tracking-wider">Εκκρεμεί</span>`;
