@@ -130,6 +130,11 @@ export const translations = {
                 greece: "Greece",
                 cyprus: "Cyprus"
             },
+            invoice_toggle: "I require an Invoice (for Companies / Professionals)",
+            tax_id: "VAT / Tax ID",
+            tax_office: "Tax Office",
+            company_name: "Company Name",
+            company_activity: "Business Activity / Profession",
             payment_title: "Payment Method",
             card_title: "Credit / Debit Card",
             card_desc: "Pay securely via Viva Wallet Smart Checkout",
@@ -432,6 +437,11 @@ export const translations = {
                 greece: "Ελλάδα",
                 cyprus: "Κύπρος"
             },
+            invoice_toggle: "Επιθυμώ έκδοση Τιμολογίου (για Εταιρείες / Επαγγελματίες)",
+            tax_id: "ΑΦΜ",
+            tax_office: "ΔΟΥ",
+            company_name: "Επωνυμία Εταιρείας",
+            company_activity: "Δραστηριότητα / Επάγγελμα",
             payment_title: "Τρόπος Πληρωμής",
             card_title: "Πιστωτική / Χρεωστική Κάρτα",
             card_desc: "Ασφαλής πληρωμή μέσω Viva Wallet Smart Checkout",
