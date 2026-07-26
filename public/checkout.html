@@ -34,6 +34,15 @@
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Custom Radio Button styling for Payment Methods */
+        input[type="radio"]:checked + span {
+            border-color: #1C1917; /* stone-900 */
+        }
+        input[type="radio"]:checked + span > .radio-dot {
+            background-color: #1C1917; /* stone-900 */
+            border-color: #1C1917;
+        }
     </style>
 </head>
 <body class="font-sans text-stone-900 antialiased selection:bg-stone-200 selection:text-stone-900">
@@ -120,20 +129,54 @@
                         </div>
                     </section>
 
-                    <!-- Secure Payment Info Section -->
+                    <!-- Payment Method Section -->
                     <section>
-                        <h2 data-i18n="checkout.secure_payment_title" class="font-serif text-2xl text-stone-900 mb-6">Secure Payment via Viva Wallet</h2>
-                        <div class="bg-stone-50 border border-stone-200 p-6 md:p-8 rounded-sm flex flex-col items-center text-center gap-4">
-                            <svg class="w-8 h-8 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                            <p data-i18n="checkout.secure_payment_desc" class="font-sans text-sm text-stone-500 leading-relaxed max-w-md">
-                                You will be redirected to Viva Wallet's secure environment to complete your payment using Credit/Debit Card, Apple Pay, Google Pay, or IRIS.
-                            </p>
+                        <h2 data-i18n="checkout.payment_title" class="font-serif text-2xl text-stone-900 mb-6">Payment Method</h2>
+                        
+                        <div id="payment-methods-container" class="space-y-4">
+                            <!-- Card Payment Option -->
+                            <label class="relative flex cursor-pointer rounded-sm bg-white shadow-sm focus:outline-none group">
+                                <input type="radio" name="payment_method" value="card" class="peer sr-only" checked>
+                                <span class="flex w-full items-center border border-stone-200 p-6 rounded-sm transition-colors group-hover:border-stone-300">
+                                    <span class="radio-dot w-4 h-4 rounded-full border border-stone-300 mr-4 flex-shrink-0 transition-colors relative flex items-center justify-center">
+                                        <!-- Inner dot for checked state -->
+                                        <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
+                                    </span>
+                                    <span class="flex flex-col">
+                                        <span class="font-sans text-sm font-medium text-stone-900" data-i18n="checkout.card_title">Credit / Debit Card</span>
+                                        <span class="font-sans text-xs text-stone-500 mt-1" data-i18n="checkout.card_desc">Pay securely via Viva Wallet Smart Checkout</span>
+                                    </span>
+                                    <!-- Icon -->
+                                    <span class="ml-auto text-stone-300">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                    </span>
+                                </span>
+                            </label>
+
+                            <!-- Cash on Delivery Option -->
+                            <label class="relative flex cursor-pointer rounded-sm bg-white shadow-sm focus:outline-none group">
+                                <input type="radio" name="payment_method" value="cod" class="peer sr-only">
+                                <span class="flex w-full items-center border border-stone-200 p-6 rounded-sm transition-colors group-hover:border-stone-300">
+                                    <span class="radio-dot w-4 h-4 rounded-full border border-stone-300 mr-4 flex-shrink-0 transition-colors relative flex items-center justify-center">
+                                        <!-- Inner dot for checked state -->
+                                        <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
+                                    </span>
+                                    <span class="flex flex-col">
+                                        <span class="font-sans text-sm font-medium text-stone-900" data-i18n="checkout.cod_title">Cash on Delivery</span>
+                                        <span class="font-sans text-xs text-stone-500 mt-1" data-i18n="checkout.cod_desc">Pay with cash upon courier delivery (+€2.50)</span>
+                                    </span>
+                                    <!-- Icon -->
+                                    <span class="ml-auto text-stone-300">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                    </span>
+                                </span>
+                            </label>
                         </div>
                     </section>
 
                     <!-- Submit Button -->
-                    <button data-i18n="checkout.proceed_payment_btn" type="submit" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-6 rounded-sm hover:bg-stone-800 transition-colors shadow-lg mt-4">
-                        Proceed to Secure Payment
+                    <button id="submit-checkout-btn" data-i18n="checkout.pay_with_card_btn" type="submit" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-6 rounded-sm hover:bg-stone-800 transition-colors shadow-lg mt-4">
+                        Proceed to Payment
                     </button>
                 </form>
             </div>
@@ -142,7 +185,7 @@
             <aside class="lg:col-span-5 bg-white border border-stone-200 p-8 md:p-10 rounded-sm shadow-sm sticky top-32">
                 <h2 data-i18n="checkout.order_summary" class="font-serif text-2xl text-stone-900 mb-8">Order Summary</h2>
                 
-                <!-- Items Container (Added padding to prevent badge clipping) -->
+                <!-- Items Container -->
                 <div id="checkout-items-container" class="flex flex-col gap-6 mb-8 max-h-[40vh] overflow-y-auto pt-2 pr-3 pl-1 no-scrollbar">
                     <p data-i18n="checkout.loading_cart" class="text-stone-400 font-sans text-sm animate-pulse">Loading cart...</p>
                 </div>
@@ -159,6 +202,12 @@
                     <div class="flex justify-between items-center font-sans text-sm text-stone-500">
                         <span data-i18n="checkout.taxes">Taxes</span>
                         <span data-i18n="checkout.included">Included</span>
+                    </div>
+                    
+                    <!-- Dynamic COD Fee Row (Hidden by default) -->
+                    <div id="cod-fee-row" class="hidden flex justify-between items-center font-sans text-sm text-stone-500">
+                        <span data-i18n="checkout.cod_fee_label">COD Fee</span>
+                        <span class="text-stone-900">€2.50</span>
                     </div>
                     
                     <div class="w-full h-px bg-stone-200 my-6"></div>
