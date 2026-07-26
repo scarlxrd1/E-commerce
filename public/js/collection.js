@@ -75,12 +75,14 @@ function applyFilters() {
     const maxPrice = maxPriceInput ? parseFloat(maxPriceInput) : Infinity;
 
     const filteredProducts = allProducts.filter(p => {
-        // Evaluate Search Match
+        // Evaluate Search Match (Title, Description, and SKU)
         let matchesSearch = true;
         if (searchQuery) {
             const titleMatch = p.title && p.title.toLowerCase().includes(searchQuery);
-            const descMatch = p.desc && p.desc.toLowerCase().includes(searchQuery);
-            matchesSearch = titleMatch || descMatch;
+            const descMatch = (p.desc && p.desc.toLowerCase().includes(searchQuery)) || 
+                              (p.description && p.description.toLowerCase().includes(searchQuery));
+            const skuMatch = p.sku && p.sku.toLowerCase().includes(searchQuery);
+            matchesSearch = titleMatch || descMatch || skuMatch;
         }
 
         // Evaluate Category Match
@@ -155,6 +157,7 @@ function renderGrid(productsToRender) {
                     <button class="${btnClasses}" ${btnDisabled}
                         data-id="${product.id}"
                         data-title="${product.title}"
+                        data-sku="${product.sku || ''}"
                         data-price="${product.price}"
                         data-image="${product.image}"
                         data-stock="${product.stock || 0}">
@@ -249,6 +252,7 @@ function initQuickAdd() {
             const productData = {
                 id: btn.getAttribute('data-id'),
                 title: btn.getAttribute('data-title'),
+                sku: btn.getAttribute('data-sku'),
                 price: parseInt(btn.getAttribute('data-price')),
                 image: btn.getAttribute('data-image'),
                 stock: parseInt(btn.getAttribute('data-stock'))
