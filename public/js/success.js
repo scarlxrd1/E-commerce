@@ -1,27 +1,52 @@
-import { app, db } from './firebase-config.js';
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Immediately clear local storage carts
-    localStorage.removeItem('cart');
-    localStorage.removeItem('aura_cart');
-
-    // 2. Clear global cart array if the function exists
-    if (typeof window.syncGlobalCart === 'function') {
-        window.syncGlobalCart([]);
+    // Initialize EmailJS
+    if (typeof emailjs !== 'undefined') {
+        emailjs.init("YOUR_PUBLIC_KEY");
     }
 
-    // 3. Clear Firestore cart for authenticated users
-    const auth = getAuth(app);
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            try {
-                const userRef = doc(db, "users", user.uid);
-                await updateDoc(userRef, { cart: [] });
-            } catch (error) {
-                console.error("Error clearing user cart in Firestore:", error);
+    const lastOrderStr = sessionStorage.getItem('aura_last_order');
+    const emailSent = sessionStorage.getItem('aura_order_email_sent');
+
+    if (lastOrderStr && !emailSent && typeof emailjs !== 'undefined') {
+        try {
+            const order = JSON.parse(lastOrderStr);
+            
+            // Format items summary
+            const itemsSummary = order.items.map(item => 
+                `${item.quantity}x [${item.sku || 'N/A'}] ${item.title} - €${item.price.toLocaleString()}`
+            ).join('\n');
+
+            // Format payment method
+            let paymentString = "N/A";
+            if (order.paymentMethod === 'cod') {
+                paymentString = "Αντικαταβολή (+€2.50)";
+            } else if (order.paymentMethod === 'card') {
+                paymentString = "Πιστωτική / Χρεωστική Κάρτα (Viva Wallet)";
             }
+
+            // Prepare Template Params
+            const templateParams = {
+                to_name: `${order.customer.firstName} ${order.customer.lastName}`.trim(),
+                to_email: order.customer.email,
+                order_id: order.orderId,
+                payment_method: paymentString,
+                shipping_address: `${order.customer.address}, ${order.customer.city} ${order.customer.zip}`,
+                items_summary: itemsSummary,
+                total_amount: `€${order.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            };
+
+            // Send Email
+            emailjs.send("YOUR_SERVICE_ID", "YOUR_ORDER_TEMPLATE_ID", templateParams)
+                .then(() => {
+                    console.log("Order confirmation email sent successfully.");
+                    sessionStorage.setItem('aura_order_email_sent', 'true');
+                })
+                .catch((error) => {
+                    console.error("Failed to send order confirmation email:", error);
+                });
+                
+        } catch (error) {
+            console.error("Error processing order for email confirmation:", error);
         }
-    });
+    }
 });
