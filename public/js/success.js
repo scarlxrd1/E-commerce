@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize EmailJS
     if (typeof emailjs !== 'undefined') {
-        emailjs.init("YOUR_PUBLIC_KEY");
+        emailjs.init("VjioTcL168a56Y0fO");
     }
 
     const lastOrderStr = sessionStorage.getItem('aura_last_order');
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             // Send Email
-            emailjs.send("YOUR_SERVICE_ID", "YOUR_ORDER_TEMPLATE_ID", templateParams)
+            emailjs.send("service_c24ml8x", "template_y5ko9jj", templateParams)
                 .then(() => {
                     console.log("Order confirmation email sent successfully.");
                     sessionStorage.setItem('aura_order_email_sent', 'true');
