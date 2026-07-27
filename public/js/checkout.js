@@ -357,7 +357,18 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             // Save Order to Firestore
-            await addDoc(collection(db, "orders"), orderPayload);
+            const docRef = await addDoc(collection(db, "orders"), orderPayload);
+
+            // Save order data to sessionStorage for EmailJS on success page
+            const sessionOrderData = {
+                orderId: docRef.id,
+                customer: orderPayload.customer,
+                paymentMethod: orderPayload.paymentMethod,
+                items: orderPayload.items,
+                totalAmount: orderPayload.totalAmount
+            };
+            sessionStorage.setItem('aura_last_order', JSON.stringify(sessionOrderData));
+            sessionStorage.removeItem('aura_order_email_sent');
 
             // 3. Routing based on Payment Method
             if (selectedPaymentMethod === 'cod') {
