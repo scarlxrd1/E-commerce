@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             // Send Email
-            emailjs.send("service_c24ml8x", "template_y5ko9jj", templateParams)
+            emailjs.send("service_c24ml8x", "template_7qgdnhq", templateParams)
                 .then(() => {
                     console.log("Order confirmation email sent successfully.");
                     sessionStorage.setItem('aura_order_email_sent', 'true');
