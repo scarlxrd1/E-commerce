@@ -365,45 +365,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // PDF Export Logic
-    exportPdfBtn.addEventListener('click', () => {
+    exportPdfBtn.addEventListener('click', async () => {
+        const originalText = exportPdfBtn.innerHTML;
+        exportPdfBtn.innerHTML = 'Εξαγωγή...';
+        exportPdfBtn.disabled = true;
+
         if (!window.jspdf || !window.jspdf.jsPDF) {
             alert("Η βιβλιοθήκη PDF δεν φορτώθηκε σωστά. Δοκιμάστε ξανά.");
+            exportPdfBtn.innerHTML = originalText;
+            exportPdfBtn.disabled = false;
             return;
         }
 
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('landscape');
-        
-        doc.setFontSize(16);
-        // Note: Standard jsPDF fonts do not fully support Greek characters without a VFS font file.
-        // We output standard characters, depending on browser/system it may fallback or show '?'.
-        doc.text("AURA Store - Αναφορά Παραγγελιών", 14, 15);
-        
-        doc.setFontSize(10);
-        doc.text(`Ημερομηνία: ${new Date().toLocaleString('el-GR')}`, 14, 22);
-        doc.text(`Σύνολο Παραγγελιών: ${filteredOrders.length}`, 14, 27);
-        const totalSum = filteredOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-        doc.text(`Συνολική Αξία: ${totalSum.toLocaleString('el-GR')} EUR`, 14, 32);
-
-        const tableData = filteredOrders.map(o => {
-            const dateStr = o.createdAt ? o.createdAt.toDate().toLocaleDateString('el-GR') : '';
-            const customerStr = `${o.customer?.firstName || ''} ${o.customer?.lastName || ''}\n${o.customer?.email || ''}`;
-            const itemsStr = (o.items || []).map(i => `${i.quantity}x [${i.sku || i.title}]`).join('\n');
-            const payment = o.paymentMethod === 'cod' ? 'Αντικαταβολή' : (o.paymentMethod === 'card' ? 'Κάρτα' : 'N/A');
-            const total = `${(o.totalAmount || 0).toLocaleString('el-GR')} EUR`;
-            const status = o.status === 'pending' ? 'Εκκρεμεί' : (o.status === 'paid' ? 'Πληρώθηκε' : (o.status === 'shipped' ? 'Απεστάλη' : o.status));
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape');
             
-            return [o.id, dateStr, customerStr, itemsStr, payment, total, status];
-        });
+            // Load custom font for Greek characters
+            const fontUrl = "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Regular.ttf";
+            const response = await fetch(fontUrl);
+            const buffer = await response.arrayBuffer();
+            const base64Font = btoa(new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+            
+            doc.addFileToVFS("Roboto-Regular.ttf", base64Font);
+            doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+            doc.setFont("Roboto");
+            
+            doc.setFontSize(16);
+            doc.text("AURA Store - Αναφορά Παραγγελιών", 14, 15);
+            
+            doc.setFontSize(10);
+            doc.text(`Ημερομηνία: ${new Date().toLocaleString('el-GR')}`, 14, 22);
+            doc.text(`Σύνολο Παραγγελιών: ${filteredOrders.length}`, 14, 27);
+            const totalSum = filteredOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+            doc.text(`Συνολική Αξία: ${totalSum.toLocaleString('el-GR')} EUR`, 14, 32);
 
-        doc.autoTable({
-            startY: 40,
-            head: [['ID', 'Ημερομηνία', 'Πελάτης', 'Προϊόντα', 'Πληρωμή', 'Σύνολο', 'Κατάσταση']],
-            body: tableData,
-            styles: { fontSize: 8, font: 'helvetica' },
-        });
+            const tableData = filteredOrders.map(o => {
+                const dateStr = o.createdAt ? o.createdAt.toDate().toLocaleDateString('el-GR') : '';
+                const customerStr = `${o.customer?.firstName || ''} ${o.customer?.lastName || ''}\n${o.customer?.email || ''}`;
+                const itemsStr = (o.items || []).map(i => `${i.quantity}x [${i.sku || i.title}]`).join('\n');
+                const payment = o.paymentMethod === 'cod' ? 'Αντικαταβολή' : (o.paymentMethod === 'card' ? 'Κάρτα' : 'N/A');
+                const total = `${(o.totalAmount || 0).toLocaleString('el-GR')} EUR`;
+                const status = o.status === 'pending' ? 'Εκκρεμεί' : (o.status === 'paid' ? 'Πληρώθηκε' : (o.status === 'shipped' ? 'Απεστάλη' : o.status));
+                
+                return [o.id, dateStr, customerStr, itemsStr, payment, total, status];
+            });
 
-        doc.save('aura_orders_report.pdf');
+            doc.autoTable({
+                startY: 40,
+                head: [['ID', 'Ημερομηνία', 'Πελάτης', 'Προϊόντα', 'Πληρωμή', 'Σύνολο', 'Κατάσταση']],
+                body: tableData,
+                styles: { fontSize: 8, font: 'Roboto' },
+            });
+
+            doc.save('aura_orders_report.pdf');
+        } catch (error) {
+            console.error("PDF Export Error:", error);
+            alert("Σφάλμα κατά την εξαγωγή του PDF.");
+        } finally {
+            exportPdfBtn.innerHTML = originalText;
+            exportPdfBtn.disabled = false;
+        }
     });
 
     ordersTableBody.addEventListener('click', async (e) => {
