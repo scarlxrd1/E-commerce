@@ -5,6 +5,11 @@ import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, 
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
     
+    // Initialize EmailJS
+    if (typeof emailjs !== 'undefined') {
+        emailjs.init("YOUR_PUBLIC_KEY"); // Replace with actual EmailJS Public Key
+    }
+
     // UI Views
     const loginView = document.getElementById('login-view');
     const dashboardView = document.getElementById('dashboard-view');
@@ -446,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Save Tracking Number
+        // Save Tracking Number & Trigger EmailJS
         if (e.target.classList.contains('save-tracking-btn')) {
             const btn = e.target;
             const orderId = btn.getAttribute('data-id');
@@ -458,24 +463,57 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
 
             try {
+                // 1. Update Firestore
                 await updateDoc(doc(db, "orders", orderId), { trackingNumber: newTracking });
                 
-                // Update local array to keep it in sync without re-fetching everything
+                // 2. Update local arrays to keep UI in sync without re-fetching everything
                 const orderIndex = allOrders.findIndex(o => o.id === orderId);
-                if(orderIndex !== -1) allOrders[orderIndex].trackingNumber = newTracking;
+                let order = null;
+                if(orderIndex !== -1) {
+                    allOrders[orderIndex].trackingNumber = newTracking;
+                    order = allOrders[orderIndex];
+                }
                 const filteredIndex = filteredOrders.findIndex(o => o.id === orderId);
                 if(filteredIndex !== -1) filteredOrders[filteredIndex].trackingNumber = newTracking;
 
-                btn.textContent = 'Ενημερώθηκε ✓';
+                // 3. Trigger EmailJS Notification
+                if (order && typeof emailjs !== 'undefined') {
+                    try {
+                        const itemsSummary = (order.items || []).map(i => `${i.quantity}x [${i.sku || 'N/A'}] ${i.title}`).join('\n');
+                        const paymentMethodStr = order.paymentMethod === 'cod' ? 'Αντικαταβολή' : (order.paymentMethod === 'card' ? 'Πιστωτική / Χρεωστική Κάρτα' : 'N/A');
+                        
+                        const templateParams = {
+                            to_name: `${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`.trim(),
+                            to_email: order.customer?.email || '',
+                            order_id: orderId,
+                            tracking_number: newTracking,
+                            payment_method: paymentMethodStr,
+                            items_summary: itemsSummary,
+                            total_amount: `€${(order.totalAmount || 0).toLocaleString('el-GR')}`
+                        };
+
+                        await emailjs.send("YOUR_SERVICE_ID", "YOUR_TRACKING_TEMPLATE_ID", templateParams);
+                        btn.textContent = 'Ενημερώθηκε & Εστάλη ✓';
+                    } catch (emailError) {
+                        console.error("Failed to send tracking email:", emailError);
+                        alert("Ο κωδικός αποθηκεύτηκε, αλλά το email απέτυχε να σταλεί.");
+                        btn.textContent = 'Ενημερώθηκε ✓';
+                    }
+                } else {
+                    btn.textContent = 'Ενημερώθηκε ✓';
+                }
+
+                // 4. UI Reset
                 btn.classList.replace('text-blue-500', 'text-green-600');
                 setTimeout(() => {
                     btn.textContent = 'Αποθήκευση';
                     btn.classList.replace('text-green-600', 'text-blue-500');
                     btn.disabled = false;
-                }, 2000);
+                }, 3000);
+
             } catch (error) {
                 console.error("Error saving tracking:", error);
-                alert("Σφάλμα αποθήκευσης.");
+                alert("Σφάλμα αποθήκευσης. Δοκιμάστε ξανά.");
                 btn.textContent = originalText;
                 btn.disabled = false;
             }
