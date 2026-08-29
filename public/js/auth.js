@@ -197,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     postalCode: postalCodeInput.value.trim(),
                     email: email,
                     cart: [], 
+                    role: "customer",
                     createdAt: new Date().toISOString()
                 });
             }
