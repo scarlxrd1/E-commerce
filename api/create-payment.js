@@ -1,4 +1,3 @@
-```javascript
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
@@ -189,4 +188,3 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'We could not process your order. Please try again.' });
     }
 }
-```
