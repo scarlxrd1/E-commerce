@@ -2,20 +2,19 @@ import { app, db } from './firebase-config.js';
 import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, verifyBeforeUpdateEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { translations } from './translations.js';
+import { escapeHTML } from './sanitize.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
     let currentUser = null;
     let userAddresses = [];
     
-    // View DOM Elements
     const userNameHeaderEl = document.getElementById('user-name-header');
     const profileNameEl = document.getElementById('profile-name');
     const profileEmailEl = document.getElementById('profile-email');
     const profilePhoneEl = document.getElementById('profile-phone');
     const logoutBtn = document.getElementById('logout-btn');
 
-    // Edit DOM Elements
     const viewModeContainer = document.getElementById('profile-view-mode');
     const editModeContainer = document.getElementById('profile-edit-mode');
     const editProfileBtn = document.getElementById('edit-profile-btn');
@@ -28,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const currentEmailDisplay = document.getElementById('current-email-display');
 
-    // Email Modal Elements
     const emailModal = document.getElementById('change-email-modal');
     const emailModalBackdrop = document.getElementById('change-email-backdrop');
     const openEmailModalBtn = document.getElementById('open-email-modal-btn');
@@ -39,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const emailModalAlert = document.getElementById('email-modal-alert');
     const submitEmailModalBtn = document.getElementById('submit-email-modal-btn');
 
-    // Address Elements
     const addressesGrid = document.getElementById('addresses-grid');
     const openAddAddressBtn = document.getElementById('open-add-address-btn');
     const addAddressModal = document.getElementById('add-address-modal');
@@ -48,14 +45,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const addAddressForm = document.getElementById('add-address-form');
     const submitAddressBtn = document.getElementById('submit-address-modal-btn');
 
-    // 1. Route Protection & Fetching User Data
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
             await loadProfileData();
             await loadUserOrders();
         } else {
-            // No user is signed in, redirect instantly to the login page
             window.location.replace('auth.html');
         }
     });
@@ -67,30 +62,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                
-                // Update View Mode
                 const firstName = data.firstName || '';
                 const lastName = data.lastName || '';
                 const fullName = `${firstName} ${lastName}`.trim();
                 
-                // Header Name
-                userNameHeaderEl.textContent = fullName || currentUser.email;
+                userNameHeaderEl.textContent = escapeHTML(fullName || currentUser.email);
                 userNameHeaderEl.classList.remove('animate-pulse', 'bg-stone-200', 'text-transparent', 'rounded');
                 
-                profileNameEl.textContent = fullName || 'Not provided';
-                profileEmailEl.textContent = data.email || currentUser.email;
-                profilePhoneEl.textContent = data.phone || 'Not provided';
+                profileNameEl.textContent = escapeHTML(fullName || 'Not provided');
+                profileEmailEl.textContent = escapeHTML(data.email || currentUser.email);
+                profilePhoneEl.textContent = escapeHTML(data.phone || 'Not provided');
 
-                // Pre-fill Edit Mode Inputs
                 editFirstNameInput.value = firstName;
                 editLastNameInput.value = lastName;
                 editPhoneInput.value = data.phone || '';
-                currentEmailDisplay.textContent = currentUser.email;
+                currentEmailDisplay.textContent = escapeHTML(currentUser.email);
 
-                // Load Addresses
                 userAddresses = data.addresses || [];
                 
-                // Fallback migration: If they have flat address fields but no addresses array, migrate them
                 if (userAddresses.length === 0 && (data.address || data.city)) {
                     userAddresses.push({
                         id: Date.now().toString(),
@@ -100,19 +89,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         country: data.country || '',
                         isDefault: true
                     });
-                    // Save the migrated array
                     await updateDoc(docRef, { addresses: userAddresses });
                 }
-
                 renderAddresses();
-
             } else {
-                userNameHeaderEl.textContent = currentUser.email;
+                userNameHeaderEl.textContent = escapeHTML(currentUser.email);
                 userNameHeaderEl.classList.remove('animate-pulse', 'bg-stone-200', 'text-transparent', 'rounded');
                 profileNameEl.textContent = 'Not provided';
-                profileEmailEl.textContent = currentUser.email;
+                profileEmailEl.textContent = escapeHTML(currentUser.email);
                 profilePhoneEl.textContent = 'Not provided';
-                currentEmailDisplay.textContent = currentUser.email;
+                currentEmailDisplay.textContent = escapeHTML(currentUser.email);
                 renderAddresses();
             }
         } catch (error) {
@@ -135,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 orders.push({ id: doc.id, ...doc.data() });
             });
 
-            // Sort descending by date (handled client-side to avoid missing index errors)
             orders.sort((a, b) => {
                 const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
                 const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
@@ -167,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let statusLabel = t.status_pending || 'Pending Payment';
                 let statusClasses = "bg-amber-50 text-amber-700 border-amber-100";
                 
-                if (order.status === 'paid') {
+                if (order.status === 'paid' || order.status === 'confirmed') {
                     statusLabel = t.status_paid || 'Paid';
                     statusClasses = "bg-green-50 text-green-700 border-green-100";
                 } else if (order.status === 'shipped') {
@@ -182,24 +167,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     : (order.paymentMethod === 'card' ? (t.pay_card || 'Credit / Debit Card') : 'N/A');
                 
                 const trackingHtml = order.trackingNumber 
-                    ? `<span class="font-mono text-xs bg-stone-100 px-2 py-1 rounded-sm text-stone-900 border border-stone-200">${order.trackingNumber}</span>` 
+                    ? `<span class="font-mono text-xs bg-stone-100 px-2 py-1 rounded-sm text-stone-900 border border-stone-200">${escapeHTML(order.trackingNumber)}</span>` 
                     : `<span class="font-sans text-sm text-stone-500 italic">${t.no_tracking || 'Pending Shipment'}</span>`;
 
                 let itemsHtml = '';
                 (order.items || []).forEach(item => {
-                    const skuText = item.sku ? `<span class="text-stone-400 ml-2 font-mono text-xs tracking-wider">[${item.sku}]</span>` : '';
+                    const skuText = item.sku ? `<span class="text-stone-400 ml-2 font-mono text-xs tracking-wider">[${escapeHTML(item.sku)}]</span>` : '';
                     itemsHtml += `
                         <div class="flex items-center gap-4">
                             <div class="w-16 h-20 bg-stone-100 rounded-sm overflow-hidden flex-shrink-0 border border-stone-100">
-                                <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
+                                <img src="${escapeHTML(item.image)}" alt="${escapeHTML(item.title)}" class="w-full h-full object-cover">
                             </div>
                             <div class="flex-1 flex justify-between items-center">
                                 <div>
-                                    <h4 class="font-serif text-stone-900 text-sm md:text-base">${item.title} ${skuText}</h4>
-                                    <p class="font-sans text-stone-500 text-xs mt-1">x${item.quantity}</p>
+                                    <h4 class="font-serif text-stone-900 text-sm md:text-base">${escapeHTML(item.title)} ${skuText}</h4>
+                                    <p class="font-sans text-stone-500 text-xs mt-1">x${escapeHTML(item.quantity)}</p>
                                 </div>
                                 <div class="font-sans text-stone-900 text-sm font-medium">
-                                    €${(item.price * item.quantity).toLocaleString()}
+                                    €${escapeHTML((item.price * item.quantity).toLocaleString())}
                                 </div>
                             </div>
                         </div>
@@ -210,12 +195,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="bg-white border border-stone-200 rounded-sm shadow-sm overflow-hidden">
                         <div class="bg-stone-50/50 border-b border-stone-200 p-6 grid grid-cols-2 md:grid-cols-5 gap-4 items-start md:items-center">
                             <div class="col-span-2 md:col-span-1">
-                                <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">${t.order_no || 'Order #'} ${order.id.slice(0,8).toUpperCase()}</p>
-                                <p class="font-sans text-sm text-stone-900 font-medium">${dateStr}</p>
+                                <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">${t.order_no || 'Order #'} ${escapeHTML(order.id.slice(0,8).toUpperCase())}</p>
+                                <p class="font-sans text-sm text-stone-900 font-medium">${escapeHTML(dateStr)}</p>
                             </div>
                             <div class="col-span-1">
                                 <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">${t.total || 'Total'}</p>
-                                <p class="font-sans text-sm font-medium text-stone-900">€${(order.totalAmount || 0).toLocaleString()}</p>
+                                <p class="font-sans text-sm font-medium text-stone-900">€${escapeHTML((order.totalAmount || 0).toLocaleString())}</p>
                             </div>
                             <div class="col-span-1">
                                 <p class="font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">${t.payment_method || 'Payment Method'}</p>
@@ -244,7 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 2. Toggle Edit/View Modes
     editProfileBtn.addEventListener('click', () => {
         viewModeContainer.classList.add('hidden');
         editModeContainer.classList.remove('hidden');
@@ -260,11 +244,9 @@ document.addEventListener('DOMContentLoaded', () => {
         loadProfileData(); 
     });
 
-    // 3. Handle Main Profile Save
     editModeContainer.addEventListener('submit', async (e) => {
         e.preventDefault();
         const originalBtnText = saveEditBtn.textContent;
-        
         const currentLang = localStorage.getItem('aura_lang') || 'en';
         saveEditBtn.textContent = currentLang === 'el' ? 'Αποθήκευση...' : 'Saving...';
         saveEditBtn.disabled = true;
@@ -277,15 +259,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 lastName: editLastNameInput.value.trim(),
                 phone: editPhoneInput.value.trim()
             });
-
             await loadProfileData();
             cancelEditBtn.click(); 
-
         } catch (error) {
             console.error("Error updating profile:", error);
-            const msg = currentLang === 'el' 
-                ? "Προέκυψε σφάλμα κατά την αποθήκευση του προφίλ σας: " 
-                : "An error occurred while saving your profile: ";
+            const msg = currentLang === 'el' ? "Προέκυψε σφάλμα: " : "An error occurred: ";
             alert(msg + error.message);
         } finally {
             saveEditBtn.textContent = originalBtnText;
@@ -294,7 +272,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 4. Address Management
     function renderAddresses() {
         const currentLang = localStorage.getItem('aura_lang') || 'en';
         const t = translations[currentLang].profile.addresses || translations['en'].profile.addresses;
@@ -314,31 +291,29 @@ document.addEventListener('DOMContentLoaded', () => {
         userAddresses.forEach(address => {
             const badge = address.isDefault 
                 ? `<span class="px-2 py-1 bg-stone-900 text-white text-[10px] uppercase tracking-widest rounded-sm">${t.primary || 'Primary'}</span>`
-                : `<button class="set-default-btn text-[10px] uppercase tracking-widest text-stone-400 hover:text-stone-900 transition-colors" data-id="${address.id}">${t.set_default || 'Set as Default'}</button>`;
+                : `<button class="set-default-btn text-[10px] uppercase tracking-widest text-stone-400 hover:text-stone-900 transition-colors" data-id="${escapeHTML(address.id)}">${t.set_default || 'Set as Default'}</button>`;
 
             html += `
                 <div class="bg-white border ${address.isDefault ? 'border-stone-900' : 'border-stone-200'} p-8 rounded-sm shadow-sm flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-start mb-4">
                             ${badge}
-                            <button class="delete-address-btn text-stone-400 hover:text-red-600 transition-colors" data-id="${address.id}" title="${t.delete || 'Delete'}">
+                            <button class="delete-address-btn text-stone-400 hover:text-red-600 transition-colors" data-id="${escapeHTML(address.id)}" title="${t.delete || 'Delete'}">
                                 <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
                         <p class="font-sans text-sm text-stone-900 leading-relaxed">
-                            ${address.street}<br>
-                            ${address.city}, ${address.zip}<br>
-                            ${address.country}
+                            ${escapeHTML(address.street)}<br>
+                            ${escapeHTML(address.city)}, ${escapeHTML(address.zip)}<br>
+                            ${escapeHTML(address.country)}
                         </p>
                     </div>
                 </div>
             `;
         });
-
         addressesGrid.innerHTML = html;
     }
 
-    // Address Modal Toggles
     function closeAddressModal() {
         addAddressModal.classList.add('hidden');
         addAddressForm.reset();
@@ -351,11 +326,9 @@ document.addEventListener('DOMContentLoaded', () => {
     closeAddressModalBtn.addEventListener('click', closeAddressModal);
     addAddressBackdrop.addEventListener('click', closeAddressModal);
 
-    // Save New Address
     addAddressForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const currentLang = localStorage.getItem('aura_lang') || 'en';
-        
         const originalText = submitAddressBtn.textContent;
         submitAddressBtn.textContent = currentLang === 'el' ? 'Αποθήκευση...' : 'Saving...';
         submitAddressBtn.disabled = true;
@@ -366,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
             city: document.getElementById('new-city').value.trim(),
             zip: document.getElementById('new-zip').value.trim(),
             country: document.getElementById('new-country').value,
-            isDefault: userAddresses.length === 0 // Make default if it's the first one
+            isDefault: userAddresses.length === 0
         };
 
         userAddresses.push(newAddress);
@@ -384,18 +357,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Address Grid Actions (Set Default & Delete)
     addressesGrid.addEventListener('click', async (e) => {
         const setBtn = e.target.closest('.set-default-btn');
         const delBtn = e.target.closest('.delete-address-btn');
 
         if (setBtn) {
             const id = setBtn.getAttribute('data-id');
-            userAddresses = userAddresses.map(addr => ({
-                ...addr,
-                isDefault: addr.id === id
-            }));
-            
+            userAddresses = userAddresses.map(addr => ({ ...addr, isDefault: addr.id === id }));
             try {
                 await updateDoc(doc(db, "users", currentUser.uid), { addresses: userAddresses });
                 renderAddresses();
@@ -407,10 +375,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (delBtn) {
             const id = delBtn.getAttribute('data-id');
             const addressToDelete = userAddresses.find(a => a.id === id);
-            
             userAddresses = userAddresses.filter(addr => addr.id !== id);
 
-            // If we deleted the default, make the first remaining one default
             if (addressToDelete && addressToDelete.isDefault && userAddresses.length > 0) {
                 userAddresses[0].isDefault = true;
             }
@@ -424,7 +390,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 5. Handle Email Update Modal & Re-authentication
     function closeEmailModal() {
         emailModal.classList.add('hidden');
         emailForm.reset();
@@ -442,7 +407,6 @@ document.addEventListener('DOMContentLoaded', () => {
     emailForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const currentLang = localStorage.getItem('aura_lang') || 'en';
-        
         const newEmail = newEmailInput.value.trim();
         const password = confirmPasswordInput.value;
 
@@ -456,28 +420,18 @@ document.addEventListener('DOMContentLoaded', () => {
         emailModalAlert.classList.add('hidden');
 
         try {
-            // 1. Re-authenticate user
             const credential = EmailAuthProvider.credential(currentUser.email, password);
             await reauthenticateWithCredential(currentUser, credential);
-
-            // 2. Trigger verification email to the new address
             await verifyBeforeUpdateEmail(currentUser, newEmail);
 
-            // 3. Update Firestore to reflect the pending/new email
-            await updateDoc(doc(db, "users", currentUser.uid), {
-                email: newEmail
-            });
-
-            // 4. Show success
             const successMsg = translations[currentLang]?.profile?.email_modal?.success || translations['en'].profile.email_modal.success;
             emailModalAlert.textContent = successMsg;
             emailModalAlert.className = "mb-6 p-4 bg-green-50 border border-green-100 text-green-600 text-sm font-sans rounded-sm text-center";
             emailModalAlert.classList.remove('hidden');
 
-            // 5. Cleanup
             setTimeout(() => {
                 closeEmailModal();
-                loadProfileData(); // refresh UI
+                loadProfileData(); 
             }, 3000);
 
         } catch (error) {
@@ -498,7 +452,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 6. Handle Logout
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             try {
