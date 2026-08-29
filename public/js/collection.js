@@ -1,9 +1,9 @@
 import { db } from './firebase-config.js';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { escapeHTML } from './sanitize.js';
 
-// Master arrays for client-side filtering
 let allProducts = [];
-let ratingsMap = {}; // Will hold { productId: { sum: X, count: Y } }
+let ratingsMap = {}; 
 
 document.addEventListener('DOMContentLoaded', async () => {
     ensureFontAwesome();
@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     initFilters();
 });
 
-// Utility to inject FontAwesome if missing (needed for stars)
 function ensureFontAwesome() {
     if (!document.querySelector('link[href*="font-awesome"]')) {
         const link = document.createElement('link');
@@ -26,7 +25,6 @@ async function fetchAndRenderCollection() {
     const countDisplay = document.getElementById('item-count');
 
     try {
-        // 1. Fetch All Reviews to calculate averages
         const reviewsSnap = await getDocs(collection(db, "reviews"));
         reviewsSnap.forEach(doc => {
             const data = doc.data();
@@ -37,31 +35,22 @@ async function fetchAndRenderCollection() {
             ratingsMap[data.productId].count += 1;
         });
 
-        // 2. Fetch all products once (Filter out hidden)
         const querySnapshot = await getDocs(collection(db, "products"));
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            // ONLY push if the product is active/visible
             if (data.status !== 'hidden') {
                 allProducts.push({ id: doc.id, ...data });
             }
         });
 
-        // 3. Apply initial filters (incorporates URL search, category, and price)
         applyFilters();
-
     } catch (error) {
         console.error("Error fetching collection from Firebase:", error);
-        if (productGrid) {
-            productGrid.innerHTML = `<p class="col-span-full text-center text-stone-500">Failed to load collection. Please try again later.</p>`;
-        }
-        if (countDisplay) {
-            countDisplay.textContent = "Error loading pieces";
-        }
+        if (productGrid) productGrid.innerHTML = `<p class="col-span-full text-center text-stone-500">Failed to load collection. Please try again later.</p>`;
+        if (countDisplay) countDisplay.textContent = "Error loading pieces";
     }
 }
 
-// Consolidates all filter logic: Search, Category, and Price
 function applyFilters() {
     const urlParams = new URLSearchParams(window.location.search);
     const searchQuery = urlParams.get('search') ? urlParams.get('search').toLowerCase() : null;
@@ -75,7 +64,6 @@ function applyFilters() {
     const maxPrice = maxPriceInput ? parseFloat(maxPriceInput) : Infinity;
 
     const filteredProducts = allProducts.filter(p => {
-        // Evaluate Search Match (Title, Description, and SKU)
         let matchesSearch = true;
         if (searchQuery) {
             const titleMatch = p.title && p.title.toLowerCase().includes(searchQuery);
@@ -84,34 +72,24 @@ function applyFilters() {
             const skuMatch = p.sku && p.sku.toLowerCase().includes(searchQuery);
             matchesSearch = titleMatch || descMatch || skuMatch;
         }
-
-        // Evaluate Category Match
         let matchesCategory = true;
         if (selectedCategory !== 'all') {
             const categories = p.categories || "";
             matchesCategory = categories.split(' ').includes(selectedCategory);
         }
-
-        // Evaluate Price Match
         const price = p.price || 0;
         const matchesPrice = price >= minPrice && price <= maxPrice;
-
         return matchesSearch && matchesCategory && matchesPrice;
     });
 
     renderGrid(filteredProducts);
 }
 
-// Helper to generate Star Rating HTML
 function generateStarsHTML(ratingObj) {
     if (!ratingObj || ratingObj.count === 0 || isNaN(ratingObj.sum) || isNaN(ratingObj.count)) {
         return `<span class="font-sans text-[10px] tracking-widest uppercase text-stone-400">No reviews yet</span>`;
     }
-    
-    // Calculate exact decimal average
     const exactAvg = ratingObj.sum / ratingObj.count;
-    
-    // Round to nearest whole number for the star loop
     const roundedAvg = Math.round(exactAvg);
     
     let starsHtml = '<div class="flex gap-[2px] text-xs">';
@@ -119,11 +97,9 @@ function generateStarsHTML(ratingObj) {
         starsHtml += `<i class="fa-solid fa-star ${i <= roundedAvg ? 'text-stone-900' : 'text-stone-200'}"></i>`;
     }
     starsHtml += `</div><span class="font-sans text-xs text-stone-500 ml-2">(${ratingObj.count})</span>`;
-    
     return `<div class="flex items-center justify-center">${starsHtml}</div>`;
 }
 
-// Helper to generate HTML and inject it based on a provided array
 function renderGrid(productsToRender) {
     const productGrid = document.getElementById('product-grid');
     const countDisplay = document.getElementById('item-count');
@@ -135,12 +111,9 @@ function renderGrid(productsToRender) {
     productsToRender.forEach((product) => {
         const mtClass = (index % 3 === 1) ? "lg:mt-24" : "";
         const hoverImg = product.hoverImage ? product.hoverImage : product.image;
-
-        // Get rating data
         const ratingData = ratingsMap[product.id] || { sum: 0, count: 0 };
         const ratingHTML = generateStarsHTML(ratingData);
         
-        // Stock Status Logic
         const isOutOfStock = product.stock <= 0;
         const btnClasses = isOutOfStock
             ? `quick-add-btn absolute bottom-0 left-0 w-full bg-stone-300 text-stone-500 font-sans text-xs tracking-widest uppercase py-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-20 cursor-not-allowed`
@@ -149,23 +122,23 @@ function renderGrid(productsToRender) {
         const btnDisabled = isOutOfStock ? `disabled` : ``;
 
         htmlString += `
-            <a href="product.html?id=${product.id}" target="_blank" class="product-card fade-in-up group flex flex-col gap-6 ${mtClass}" data-category="${product.categories}">
+            <a href="product.html?id=${escapeHTML(product.id)}" target="_blank" class="product-card fade-in-up group flex flex-col gap-6 ${mtClass}" data-category="${escapeHTML(product.categories || '')}">
                 <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
-                    <img src="${product.image}" alt="${product.title}" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0 z-10">
-                    <img src="${hoverImg}" alt="${product.title} Lifestyle" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100 z-0">
+                    <img src="${escapeHTML(product.image)}" alt="${escapeHTML(product.title)}" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0 z-10">
+                    <img src="${escapeHTML(hoverImg)}" alt="${escapeHTML(product.title)} Lifestyle" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100 z-0">
                     
                     <button class="${btnClasses}" ${btnDisabled}
-                        data-id="${product.id}"
-                        data-title="${product.title}"
-                        data-sku="${product.sku || ''}"
-                        data-price="${product.price}"
-                        data-image="${product.image}"
-                        data-stock="${product.stock || 0}">
+                        data-id="${escapeHTML(product.id)}"
+                        data-title="${escapeHTML(product.title)}"
+                        data-sku="${escapeHTML(product.sku || '')}"
+                        data-price="${escapeHTML(product.price)}"
+                        data-image="${escapeHTML(product.image)}"
+                        data-stock="${escapeHTML(product.stock || 0)}">
                         ${btnText}
                     </button>
                 </div>
                 <div class="flex flex-col items-center text-center">
-                    <h2 class="font-serif text-xl text-stone-900 mb-2">${product.title}</h2>
+                    <h2 class="font-serif text-xl text-stone-900 mb-2">${escapeHTML(product.title)}</h2>
                     <div class="mb-3">${ratingHTML}</div>
                     <p class="font-sans text-sm text-stone-500">€${product.price.toLocaleString()}</p>
                 </div>
@@ -180,13 +153,12 @@ function renderGrid(productsToRender) {
 
     productGrid.innerHTML = htmlString;
 
-    // Update Counter UI dynamically
     const urlParams = new URLSearchParams(window.location.search);
     const searchQuery = urlParams.get('search');
     
     if (countDisplay) {
         if (searchQuery) {
-            countDisplay.textContent = `Search results for: '${searchQuery}' (${productsToRender.length})`;
+            countDisplay.textContent = `Search results for: '${escapeHTML(searchQuery)}' (${productsToRender.length})`;
         } else {
             countDisplay.textContent = `Showing ${productsToRender.length} piece${productsToRender.length !== 1 ? 's' : ''}`;
         }
@@ -200,7 +172,6 @@ function initFilters() {
     const filterBtns = document.querySelectorAll('.filter-btn');
     const applyPriceBtn = document.getElementById('apply-price-filter');
 
-    // Category Buttons
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             filterBtns.forEach(b => {
@@ -215,16 +186,12 @@ function initFilters() {
                 url.searchParams.delete('search');
                 window.history.pushState({}, '', url);
             }
-
             applyFilters();
         });
     });
 
-    // Price Filter Button
     if (applyPriceBtn) {
-        applyPriceBtn.addEventListener('click', () => {
-            applyFilters();
-        });
+        applyPriceBtn.addEventListener('click', () => applyFilters());
     }
 }
 
