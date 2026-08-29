@@ -1,18 +1,17 @@
 import { app, db } from './firebase-config.js';
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { doc, getDoc, updateDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { translations } from './translations.js';
+import { escapeHTML } from './sanitize.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
     let currentUser = null;
     let checkoutCart = [];
     
-    // Payment State
     let selectedPaymentMethod = 'card';
     const COD_FEE = 2.50;
 
-    // DOM Elements
     const autofillContainer = document.getElementById('autofill-container');
     const autofillToggle = document.getElementById('autofill-toggle');
     const errorContainer = document.getElementById('checkout-error');
@@ -26,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const zipInput = document.getElementById('checkout-zip');
     const phoneInput = document.getElementById('checkout-phone');
     
-    // Invoice Elements
     const invoiceToggle = document.getElementById('invoice-toggle');
     const invoiceFieldsContainer = document.getElementById('invoice-fields-container');
     const vatInput = document.getElementById('checkout-vat');
@@ -43,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const subtotalEl = document.getElementById('checkout-subtotal');
     const totalEl = document.getElementById('checkout-total');
 
-    // 1. Auth State & Cart Loading
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
@@ -58,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. Fetch & Render Cart Summary
     async function loadCheckoutCart(user) {
         if (user) {
             try {
@@ -72,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             checkoutCart = JSON.parse(localStorage.getItem('aura_cart')) || [];
         }
-
         renderCheckoutSummary(checkoutCart);
     }
 
@@ -135,22 +130,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="flex items-center gap-5">
                     <div class="relative flex-shrink-0 overflow-visible">
                         <div class="w-16 h-20 bg-stone-100 rounded-sm overflow-hidden border border-stone-200">
-                            <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
+                            <img src="${escapeHTML(item.image)}" alt="${escapeHTML(item.title)}" class="w-full h-full object-cover">
                         </div>
-                        <span class="absolute -top-2 -right-2 w-5 h-5 bg-stone-900 text-white text-[11px] font-medium rounded-full flex items-center justify-center z-20 shadow-sm pointer-events-none">${item.quantity}</span>
+                        <span class="absolute -top-2 -right-2 w-5 h-5 bg-stone-900 text-white text-[11px] font-medium rounded-full flex items-center justify-center z-20 shadow-sm pointer-events-none">${escapeHTML(item.quantity)}</span>
                     </div>
                     <div class="flex-1 flex justify-between items-center">
                         <div class="flex flex-col">
-                            <h4 class="font-serif text-stone-900 text-sm md:text-base">${item.title}</h4>
-                            <p class="font-sans text-stone-500 text-xs mt-1">€${item.price.toLocaleString()} each</p>
+                            <h4 class="font-serif text-stone-900 text-sm md:text-base">${escapeHTML(item.title)}</h4>
+                            <p class="font-sans text-stone-500 text-xs mt-1">€${escapeHTML(item.price.toLocaleString())} each</p>
                             <div class="flex items-center gap-3 mt-2">
                                 <button onclick="window.updateCheckoutCartQty(${index}, -1)" type="button" class="w-6 h-6 flex items-center justify-center border border-stone-300 text-stone-500 hover:text-stone-900 hover:border-stone-900 rounded-sm transition-colors">-</button>
-                                <span class="font-sans text-sm text-stone-900 w-4 text-center">${item.quantity}</span>
+                                <span class="font-sans text-sm text-stone-900 w-4 text-center">${escapeHTML(item.quantity)}</span>
                                 <button onclick="window.updateCheckoutCartQty(${index}, 1)" type="button" class="w-6 h-6 flex items-center justify-center border border-stone-300 text-stone-500 hover:text-stone-900 hover:border-stone-900 rounded-sm transition-colors ${disablePlus ? 'opacity-50 cursor-not-allowed' : ''}" ${disablePlus ? 'disabled' : ''}>+</button>
                             </div>
                         </div>
                         <div class="font-sans text-stone-900 text-sm font-medium ml-4">
-                            €${itemTotal.toLocaleString()}
+                            €${escapeHTML(itemTotal.toLocaleString())}
                         </div>
                     </div>
                 </div>
@@ -166,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTotals(cartTotal);
     }
 
-    // 3. Payment Method Selection & Totals Calculation
     function updateTotals(baseCartTotal) {
         if (baseCartTotal === undefined) {
             baseCartTotal = checkoutCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -186,7 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.textContent = translations[currentLang]?.checkout?.pay_with_card_btn || translations['en'].checkout.pay_with_card_btn;
         }
 
-        // Format to 2 decimal places to accurately show the .50
         totalEl.textContent = `€${finalTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 
@@ -197,7 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 4. Invoice Toggle Logic
     invoiceToggle.addEventListener('change', (e) => {
         if (e.target.checked) {
             invoiceFieldsContainer.classList.remove('hidden');
@@ -211,7 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 5. Autofill Logic
     autofillToggle.addEventListener('change', async (e) => {
         if (e.target.checked && currentUser) {
             try {
@@ -251,20 +242,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Helper: Display Error
     function showError(message) {
         errorContainer.textContent = message;
         errorContainer.classList.remove('hidden');
         errorContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    // Helper: Hide Error
     function hideError() {
         errorContainer.textContent = '';
         errorContainer.classList.add('hidden');
     }
 
-    // Clear Cart Helper (Used for COD success)
     async function clearCart() {
         checkoutCart = [];
         if (currentUser) {
@@ -281,7 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 6. Form Submission & Routing
     checkoutForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
@@ -316,7 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
         try {
-            // 1. Build Invoice Data
             const isInvoice = invoiceToggle.checked;
             const invoiceData = isInvoice ? {
                 isRequired: true,
@@ -326,8 +312,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 activity: activityInput.value.trim()
             } : { isRequired: false };
 
-            // 2. Build Order Payload
-            const orderPayload = {
+            const response = await fetch('/api/create-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    items: checkoutCart.map(item => ({ id: item.id, quantity: item.quantity })),
+                    paymentMethod: selectedPaymentMethod,
+                    customer: {
+                        firstName: fnInput.value.trim(),
+                        lastName: lnInput.value.trim(),
+                        email: emailInput.value.trim(),
+                        phone: phoneInput.value.trim(),
+                        address: addressInput.value.trim(),
+                        city: cityInput.value.trim(),
+                        zip: zipInput.value.trim(),
+                        country: countryInput.value
+                    },
+                    invoice: invoiceData,
+                    userId: currentUser ? currentUser.uid : null
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || "Failed to process order.");
+            }
+
+            const sessionOrderData = {
+                orderId: data.orderId,
                 customer: {
                     firstName: fnInput.value.trim(),
                     lastName: lnInput.value.trim(),
@@ -338,65 +353,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     zip: zipInput.value.trim(),
                     country: countryInput.value
                 },
-                items: checkoutCart.map(item => ({
-                    id: item.id,
-                    title: item.title,
-                    sku: item.sku || '',
-                    price: item.price,
-                    quantity: item.quantity,
-                    image: item.image
-                })),
-                totalAmount: finalTotalAmount,
                 paymentMethod: selectedPaymentMethod,
-                codFee: selectedPaymentMethod === 'cod' ? COD_FEE : 0,
-                invoice: invoiceData,
-                documentType: isInvoice ? 'invoice' : 'receipt',
-                status: 'pending',
-                createdAt: serverTimestamp(),
-                userId: currentUser ? currentUser.uid : null
-            };
-
-            // Save Order to Firestore
-            const docRef = await addDoc(collection(db, "orders"), orderPayload);
-
-            // Save order data to sessionStorage for EmailJS on success page
-            const sessionOrderData = {
-                orderId: docRef.id,
-                customer: orderPayload.customer,
-                paymentMethod: orderPayload.paymentMethod,
-                items: orderPayload.items,
-                totalAmount: orderPayload.totalAmount
+                items: checkoutCart,
+                totalAmount: finalTotalAmount
             };
             sessionStorage.setItem('aura_last_order', JSON.stringify(sessionOrderData));
             sessionStorage.removeItem('aura_order_email_sent');
 
-            // 3. Routing based on Payment Method
             if (selectedPaymentMethod === 'cod') {
-                // Cash on Delivery Logic
                 await clearCart();
                 window.location.href = 'success.html';
             } else {
-                // Viva Wallet Logic
-                const response = await fetch('/api/create-payment', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        amount: finalTotalAmount,
-                        customerEmail: emailInput.value.trim(),
-                        customerName: `${fnInput.value.trim()} ${lnInput.value.trim()}`,
-                        customerPhone: phoneInput.value.trim()
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.success && data.orderCode) {
-                    window.location.href = `https://demo.vivapayments.com/web/checkout?ref=${data.orderCode}`;
-                } else {
-                    throw new Error(data.error || data.message || "Failed to generate payment order.");
-                }
+                window.location.href = `https://demo.vivapayments.com/web/checkout?ref=${data.orderCode}`;
             }
             
         } catch (error) {
