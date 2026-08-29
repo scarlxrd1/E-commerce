@@ -1,12 +1,11 @@
 import { app, db } from './firebase-config.js';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { translations } from './translations.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
     let isLoginMode = true;
-    let currentCaptcha = '';
 
     // DOM Elements
     const form = document.getElementById('auth-form');
@@ -15,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const forgotPasswordContainer = document.getElementById('forgot-password-container');
     const forgotPasswordBtn = document.getElementById('forgot-password-btn');
     
-    // Registration Fields
     const registerFieldsContainer = document.getElementById('register-fields');
     const firstNameInput = document.getElementById('firstName');
     const lastNameInput = document.getElementById('lastName');
@@ -25,15 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const countryInput = document.getElementById('country');
     const postalCodeInput = document.getElementById('postalCode');
     
-    // Captcha Elements
-    const captchaTextEl = document.getElementById('captcha-text');
-    const captchaInput = document.getElementById('captcha-input');
-    const refreshCaptchaBtn = document.getElementById('refresh-captcha-btn');
+    const allRegisterInputs = [firstNameInput, lastNameInput, phoneInput, addressInput, cityInput, countryInput, postalCodeInput];
 
-    // Array of fields to toggle 'required' attribute on
-    const allRegisterInputs = [firstNameInput, lastNameInput, phoneInput, addressInput, cityInput, countryInput, postalCodeInput, captchaInput];
-
-    // UI Elements
     const titleEl = document.getElementById('auth-title');
     const subtitleEl = document.getElementById('auth-subtitle');
     const submitBtn = document.getElementById('auth-submit-btn');
@@ -41,30 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const togglePrefix = document.getElementById('toggle-text-prefix');
     const errorContainer = document.getElementById('auth-error');
 
-    // Captcha Generator Function
-    function generateCaptcha() {
-        const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        let captcha = '';
-        for (let i = 0; i < 6; i++) {
-            captcha += chars[Math.floor(Math.random() * chars.length)];
-        }
-        captchaTextEl.textContent = captcha;
-        captchaInput.value = '';
-        currentCaptcha = captcha;
-    }
-
-    refreshCaptchaBtn.addEventListener('click', generateCaptcha);
-
-    // Toggle between Sign In and Create Account
     toggleBtn.addEventListener('click', () => {
         isLoginMode = !isLoginMode;
         
-        // Clear inputs and errors on toggle
         form.reset();
         hideError();
 
         if (isLoginMode) {
-            // Re-apply translations for Login Mode
             const currentLang = localStorage.getItem('aura_lang') || 'en';
             titleEl.textContent = translations[currentLang]?.auth?.sign_in_title || translations['en'].auth.sign_in_title;
             subtitleEl.textContent = translations[currentLang]?.auth?.sign_in_subtitle || translations['en'].auth.sign_in_subtitle;
@@ -72,16 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
             togglePrefix.textContent = translations[currentLang]?.auth?.no_account || translations['en'].auth.no_account;
             toggleBtn.textContent = translations[currentLang]?.auth?.create_one || translations['en'].auth.create_one;
             
-            // Hide extra fields and remove 'required' so form can submit
             registerFieldsContainer.classList.add('hidden');
             registerFieldsContainer.classList.remove('flex');
             allRegisterInputs.forEach(input => input.removeAttribute('required'));
             
-            // Show Forgot Password logic
             forgotPasswordContainer.classList.remove('hidden');
-            
         } else {
-            // Apply translations for Registration Mode
             const currentLang = localStorage.getItem('aura_lang') || 'en';
             titleEl.textContent = currentLang === 'el' ? 'Δημιουργία Λογαριασμού' : 'Create Account';
             subtitleEl.textContent = currentLang === 'el' ? 'Γίνετε μέλος της AURA για μια απρόσκοπτη εμπειρία.' : 'Join AURA for a seamless experience.';
@@ -89,20 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
             togglePrefix.textContent = currentLang === 'el' ? 'Έχετε ήδη λογαριασμό;' : 'Already have an account?';
             toggleBtn.textContent = currentLang === 'el' ? 'Σύνδεση' : 'Sign in';
             
-            // Show extra fields and make them required
             registerFieldsContainer.classList.remove('hidden');
             registerFieldsContainer.classList.add('flex');
             allRegisterInputs.forEach(input => input.setAttribute('required', 'true'));
             
-            // Hide Forgot Password logic
             forgotPasswordContainer.classList.add('hidden');
-            
-            // Generate initial captcha
-            generateCaptcha();
         }
     });
 
-    // Forgot Password Logic
     forgotPasswordBtn.addEventListener('click', async () => {
         hideError();
         const email = emailInput.value.trim();
@@ -122,20 +86,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             await sendPasswordResetEmail(auth, email);
-            const successMsg = currentLang === 'el' 
-                ? "Ένας σύνδεσμος επαναφοράς κωδικού έχει σταλεί στο email σας." 
-                : "A password reset link has been sent to your email.";
-            showSuccess(successMsg);
         } catch (error) {
-            console.error("Password Reset Error:", error);
-            showError(getFriendlyErrorMessage(error.code));
+            console.error("Password Reset Event Triggered");
         } finally {
+            // Generic message to prevent enumeration
+            const successMsg = currentLang === 'el' 
+                ? "Εάν υπάρχει λογαριασμός με αυτό το email, έχει σταλεί ένας σύνδεσμος επαναφοράς." 
+                : "If an account exists with this email, a reset link has been sent.";
+            showSuccess(successMsg);
             forgotPasswordBtn.textContent = originalText;
             forgotPasswordBtn.disabled = false;
         }
     });
 
-    // Handle Form Submission with Strict Validation
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
@@ -144,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = passwordInput.value;
         const currentLang = localStorage.getItem('aura_lang') || 'en';
 
-        // Strict Validations for Registration Mode
         if (!isLoginMode) {
             const nameRegex = /^[a-zA-Zα-ωΑ-ΩάέήίόύώΆΈΉΊΌΎΏ\s]+$/;
             const phoneRegex = /^\+?\d+$/;
@@ -165,50 +127,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 showError(currentLang === 'el' ? "Ο κωδικός πρόσβασης πρέπει να είναι μεγαλύτερος από 6 χαρακτήρες." : "Password must be greater than 6 characters.");
                 return;
             }
-            if (captchaInput.value !== currentCaptcha) {
-                showError(currentLang === 'el' ? "Η επαλήθευση ασφαλείας απέτυχε. Παρακαλώ δοκιμάστε ξανά." : "Captcha verification failed. Please try again.");
-                generateCaptcha();
-                return;
-            }
         }
 
         const originalBtnText = submitBtn.textContent;
-
-        // UI Loading State
         submitBtn.textContent = currentLang === 'el' ? 'Επεξεργασία...' : 'Processing...';
         submitBtn.disabled = true;
         submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
         try {
             if (isLoginMode) {
-                // LOGIN LOGIC
                 await signInWithEmailAndPassword(auth, email, password);
             } else {
-                // REGISTRATION LOGIC
-
-                // 1. Check Unique Phone Number in Firestore
-                const phoneVal = phoneInput.value.trim();
-                const q = query(collection(db, "users"), where("phone", "==", phoneVal));
-                const querySnapshot = await getDocs(q);
-
-                if (!querySnapshot.empty) {
-                    // Phone number already exists
-                    const errorMsg = translations[currentLang]?.auth?.error_phone_exists || translations['en'].auth.error_phone_exists;
-                    showError(errorMsg);
-                    
-                    // Revert UI Loading State
+                // CAPTCHA Verification
+                const captchaToken = 'dummy-token-replace-with-recaptcha';
+                const captchaRes = await fetch('/api/verify-captcha', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: captchaToken })
+                });
+                const captchaData = await captchaRes.json();
+                
+                if (!captchaData.success) {
+                    showError(currentLang === 'el' ? "Η επαλήθευση ασφαλείας απέτυχε. Παρακαλώ δοκιμάστε ξανά." : "Security verification failed. Please try again.");
                     submitBtn.textContent = originalBtnText;
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-                    generateCaptcha();
                     return;
                 }
 
-                // 2. Proceed with user creation
+                // Phone Check Server-Side
+                const phoneVal = phoneInput.value.trim();
+                const phoneCheckRes = await fetch('/api/check-phone', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: phoneVal })
+                });
+                const phoneCheckData = await phoneCheckRes.json();
+                
+                if (phoneCheckData.exists) {
+                    showError(translations[currentLang]?.auth?.error_phone_exists || translations['en'].auth.error_phone_exists);
+                    submitBtn.textContent = originalBtnText;
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    return;
+                }
+
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // Create the user document in Firestore with strict shipping details
                 await setDoc(doc(db, "users", user.uid), {
                     firstName: firstNameInput.value.trim(),
                     lastName: lastNameInput.value.trim(),
@@ -218,50 +184,39 @@ document.addEventListener('DOMContentLoaded', () => {
                     country: countryInput.value,
                     postalCode: postalCodeInput.value.trim(),
                     email: email,
-                    cart: [], // Initialize empty cloud cart
+                    cart: [], 
                     createdAt: new Date().toISOString()
                 });
             }
             
-            // On success, redirect to the homepage
             window.location.href = 'index.html';
 
         } catch (error) {
             console.error("Authentication Error:", error);
             showError(getFriendlyErrorMessage(error.code));
-            
-            // Revert UI Loading State
             submitBtn.textContent = originalBtnText;
             submitBtn.disabled = false;
             submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-            
-            if (!isLoginMode) {
-                generateCaptcha(); // Refresh captcha on failure
-            }
         }
     });
 
-    // Helper: Display Error
     function showError(message) {
         errorContainer.textContent = message;
         errorContainer.className = "mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-sans rounded-sm text-center";
         errorContainer.classList.remove('hidden');
     }
 
-    // Helper: Display Success
     function showSuccess(message) {
         errorContainer.textContent = message;
         errorContainer.className = "mb-6 p-4 bg-green-50 border border-green-100 text-green-600 text-sm font-sans rounded-sm text-center";
         errorContainer.classList.remove('hidden');
     }
 
-    // Helper: Hide Error
     function hideError() {
         errorContainer.textContent = '';
         errorContainer.className = "hidden mb-6 p-4 text-sm font-sans rounded-sm text-center";
     }
 
-    // Helper: Format Firebase Auth Errors
     function getFriendlyErrorMessage(errorCode) {
         const currentLang = localStorage.getItem('aura_lang') || 'en';
         const isEl = currentLang === 'el';
@@ -272,9 +227,9 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'auth/user-disabled': 
                 return isEl ? 'Αυτός ο λογαριασμός έχει απενεργοποιηθεί από τον διαχειριστή.' : 'This account has been disabled by an administrator.';
             case 'auth/user-not-found': 
-                return isEl ? 'Δεν μπορέσαμε να βρούμε λογαριασμό με αυτό το email.' : 'We could not find an account with that email.';
+                return isEl ? 'Μη έγκυρο email ή κωδικός πρόσβασης. Παρακαλώ δοκιμάστε ξανά.' : 'Invalid email or password. Please try again.';
             case 'auth/wrong-password': 
-                return isEl ? 'Ο κωδικός πρόσβασης που εισαγάγατε είναι λανθασμένος.' : 'The password you entered is incorrect.';
+                return isEl ? 'Μη έγκυρο email ή κωδικός πρόσβασης. Παρακαλώ δοκιμάστε ξανά.' : 'Invalid email or password. Please try again.';
             case 'auth/invalid-credential':
                 return isEl ? 'Μη έγκυρο email ή κωδικός πρόσβασης. Παρακαλώ δοκιμάστε ξανά.' : 'Invalid email or password. Please try again.';
             case 'auth/email-already-in-use': 
