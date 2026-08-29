@@ -6,6 +6,7 @@ import { translations } from './translations.js';
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
     let isLoginMode = true;
+    let currentCaptcha = '';
 
     // DOM Elements
     const form = document.getElementById('auth-form');
@@ -23,7 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const countryInput = document.getElementById('country');
     const postalCodeInput = document.getElementById('postalCode');
     
-    const allRegisterInputs = [firstNameInput, lastNameInput, phoneInput, addressInput, cityInput, countryInput, postalCodeInput];
+    // CAPTCHA Elements
+    const captchaDisplay = document.getElementById('captcha-display');
+    const captchaInputEl = document.getElementById('captcha-input');
+    const refreshCaptchaBtn = document.getElementById('refresh-captcha-btn');
+    
+    const allRegisterInputs = [firstNameInput, lastNameInput, phoneInput, addressInput, cityInput, countryInput, postalCodeInput, captchaInputEl];
 
     const titleEl = document.getElementById('auth-title');
     const subtitleEl = document.getElementById('auth-subtitle');
@@ -32,6 +38,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const togglePrefix = document.getElementById('toggle-text-prefix');
     const errorContainer = document.getElementById('auth-error');
 
+    // 1. Generate CAPTCHA Function
+    function generateCaptcha() {
+        const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        let captcha = '';
+        for (let i = 0; i < 6; i++) {
+            captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        currentCaptcha = captcha;
+        
+        if (captchaDisplay) {
+            captchaDisplay.textContent = currentCaptcha;
+        }
+        if (captchaInputEl) {
+            captchaInputEl.value = '';
+        }
+    }
+
+    // 2. Attach Refresh Listener
+    if (refreshCaptchaBtn) {
+        refreshCaptchaBtn.addEventListener('click', generateCaptcha);
+    }
+
+    // 3. Toggle Mode Listener
     toggleBtn.addEventListener('click', () => {
         isLoginMode = !isLoginMode;
         
@@ -48,7 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             registerFieldsContainer.classList.add('hidden');
             registerFieldsContainer.classList.remove('flex');
-            allRegisterInputs.forEach(input => input.removeAttribute('required'));
+            allRegisterInputs.forEach(input => {
+                if (input) input.removeAttribute('required');
+            });
             
             forgotPasswordContainer.classList.remove('hidden');
         } else {
@@ -61,9 +92,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             registerFieldsContainer.classList.remove('hidden');
             registerFieldsContainer.classList.add('flex');
-            allRegisterInputs.forEach(input => input.setAttribute('required', 'true'));
+            allRegisterInputs.forEach(input => {
+                if (input) input.setAttribute('required', 'true');
+            });
             
             forgotPasswordContainer.classList.add('hidden');
+            
+            // Generate code automatically when switching to registration
+            generateCaptcha();
         }
     });
 
@@ -99,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 4. Form Submission & Backend CAPTCHA Verification
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
@@ -138,17 +175,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isLoginMode) {
                 await signInWithEmailAndPassword(auth, email, password);
             } else {
-                // CAPTCHA Verification
-                const captchaToken = 'dummy-token-replace-with-recaptcha';
+                // CAPTCHA Verification via Serverless Backend
+                const captchaVal = captchaInputEl.value.trim();
+                
                 const captchaRes = await fetch('/api/verify-captcha', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: captchaToken })
+                    body: JSON.stringify({ 
+                        captchaInput: captchaVal, 
+                        expectedCaptcha: currentCaptcha 
+                    })
                 });
                 const captchaData = await captchaRes.json();
                 
                 if (!captchaData.success) {
                     showError(currentLang === 'el' ? "Η επαλήθευση ασφαλείας απέτυχε. Παρακαλώ δοκιμάστε ξανά." : "Security verification failed. Please try again.");
+                    generateCaptcha(); // Refresh CAPTCHA on failure
                     submitBtn.textContent = originalBtnText;
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
@@ -172,9 +214,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
+                // Create User in Firebase Auth
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
+                // Create User Document in Firestore
                 await setDoc(doc(db, "users", user.uid), {
                     firstName: firstNameInput.value.trim(),
                     lastName: lastNameInput.value.trim(),
@@ -189,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
             
+            // Redirect after successful login/registration
             window.location.href = 'index.html';
 
         } catch (error) {
@@ -197,6 +242,11 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.textContent = originalBtnText;
             submitBtn.disabled = false;
             submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            
+            // Refresh CAPTCHA if registration failed due to an Auth error
+            if (!isLoginMode) {
+                generateCaptcha();
+            }
         }
     });
 
