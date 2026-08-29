@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             return;
                         }
                         grecaptcha.ready(() => {
-                            grecaptcha.execute('YOUR_RECAPTCHA_SITE_KEY', { action: 'register' })
+                            grecaptcha.execute('6Lcp654tAAAAAIE9s-4N5ThVCBKZwkxsBOnHxm-7', { action: 'register' })
                                 .then(resolve)
                                 .catch(reject);
                         });
