@@ -6,7 +6,6 @@ import { translations } from './translations.js';
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
     let isLoginMode = true;
-    let currentCaptcha = '';
 
     // DOM Elements
     const form = document.getElementById('auth-form');
@@ -24,12 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const countryInput = document.getElementById('country');
     const postalCodeInput = document.getElementById('postalCode');
     
-    // CAPTCHA Elements
-    const captchaDisplay = document.getElementById('captcha-display');
-    const captchaInputEl = document.getElementById('captcha-input');
-    const refreshCaptchaBtn = document.getElementById('refresh-captcha-btn');
-    
-    const allRegisterInputs = [firstNameInput, lastNameInput, phoneInput, addressInput, cityInput, countryInput, postalCodeInput, captchaInputEl];
+    const allRegisterInputs = [firstNameInput, lastNameInput, phoneInput, addressInput, cityInput, countryInput, postalCodeInput];
 
     const titleEl = document.getElementById('auth-title');
     const subtitleEl = document.getElementById('auth-subtitle');
@@ -38,29 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const togglePrefix = document.getElementById('toggle-text-prefix');
     const errorContainer = document.getElementById('auth-error');
 
-    // 1. Generate CAPTCHA Function
-    function generateCaptcha() {
-        const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-        let captcha = '';
-        for (let i = 0; i < 6; i++) {
-            captcha += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        currentCaptcha = captcha;
-        
-        if (captchaDisplay) {
-            captchaDisplay.textContent = currentCaptcha;
-        }
-        if (captchaInputEl) {
-            captchaInputEl.value = '';
-        }
-    }
-
-    // 2. Attach Refresh Listener
-    if (refreshCaptchaBtn) {
-        refreshCaptchaBtn.addEventListener('click', generateCaptcha);
-    }
-
-    // 3. Toggle Mode Listener
+    // Toggle Mode Listener
     toggleBtn.addEventListener('click', () => {
         isLoginMode = !isLoginMode;
         
@@ -97,9 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             forgotPasswordContainer.classList.add('hidden');
-            
-            // Generate code automatically when switching to registration
-            generateCaptcha();
         }
     });
 
@@ -135,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 4. Form Submission & Backend CAPTCHA Verification
+    // Form Submission & Backend Validation
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideError();
@@ -175,22 +144,38 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isLoginMode) {
                 await signInWithEmailAndPassword(auth, email, password);
             } else {
-                // CAPTCHA Verification via Serverless Backend
-                const captchaVal = captchaInputEl.value.trim();
-                
+                // Google reCAPTCHA v3 Verification
+                let token;
+                try {
+                    token = await new Promise((resolve, reject) => {
+                        if (typeof grecaptcha === 'undefined') {
+                            reject(new Error('reCAPTCHA not loaded'));
+                            return;
+                        }
+                        grecaptcha.ready(() => {
+                            grecaptcha.execute('YOUR_RECAPTCHA_SITE_KEY', { action: 'register' })
+                                .then(resolve)
+                                .catch(reject);
+                        });
+                    });
+                } catch (recaptchaError) {
+                    console.error("reCAPTCHA generation failed:", recaptchaError);
+                    showError(currentLang === 'el' ? "Αποτυχία φόρτωσης reCAPTCHA. Απενεργοποιήστε τυχόν adblockers." : "reCAPTCHA failed to load. Please disable adblockers.");
+                    submitBtn.textContent = originalBtnText;
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    return;
+                }
+
                 const captchaRes = await fetch('/api/verify-captcha', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        captchaInput: captchaVal, 
-                        expectedCaptcha: currentCaptcha 
-                    })
+                    body: JSON.stringify({ token })
                 });
                 const captchaData = await captchaRes.json();
                 
                 if (!captchaData.success) {
-                    showError(currentLang === 'el' ? "Η επαλήθευση ασφαλείας απέτυχε. Παρακαλώ δοκιμάστε ξανά." : "Security verification failed. Please try again.");
-                    generateCaptcha(); // Refresh CAPTCHA on failure
+                    showError(currentLang === 'el' ? "Η επαλήθευση ασφαλείας απέτυχε. Παρακαλώ δοκιμάστε ξανά." : "Security validation failed. Please try again.");
                     submitBtn.textContent = originalBtnText;
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
@@ -242,11 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.textContent = originalBtnText;
             submitBtn.disabled = false;
             submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-            
-            // Refresh CAPTCHA if registration failed due to an Auth error
-            if (!isLoginMode) {
-                generateCaptcha();
-            }
         }
     });
 
