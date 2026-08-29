@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             return;
                         }
                         grecaptcha.ready(() => {
-                            grecaptcha.execute('6Lcp654tAAAAAIE9s-4N5ThVCBKZwkxsBOnHxm-7', { action: 'register' })
+                            grecaptcha.execute('YOUR_RECAPTCHA_SITE_KEY', { action: 'register' })
                                 .then(resolve)
                                 .catch(reject);
                         });
@@ -182,23 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                // Phone Check Server-Side
-                const phoneVal = phoneInput.value.trim();
-                const phoneCheckRes = await fetch('/api/check-phone', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: phoneVal })
-                });
-                const phoneCheckData = await phoneCheckRes.json();
-                
-                if (phoneCheckData.exists) {
-                    showError(translations[currentLang]?.auth?.error_phone_exists || translations['en'].auth.error_phone_exists);
-                    submitBtn.textContent = originalBtnText;
-                    submitBtn.disabled = false;
-                    submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-                    return;
-                }
-
                 // Create User in Firebase Auth
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
@@ -207,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await setDoc(doc(db, "users", user.uid), {
                     firstName: firstNameInput.value.trim(),
                     lastName: lastNameInput.value.trim(),
-                    phone: phoneVal,
+                    phone: phoneInput.value.trim(),
                     address: addressInput.value.trim(),
                     city: cityInput.value.trim(),
                     country: countryInput.value,
