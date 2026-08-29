@@ -20,35 +20,43 @@
                         serif: ['"Playfair Display"', 'serif'],
                         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
                     },
-                    colors: { cream: '#FBFBFA' }
+                    colors: {
+                        cream: '#FBFBFA',
+                    }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #FBFBFA; overflow-x: hidden; }
+        body { 
+            background-color: #FBFBFA; 
+            overflow-x: hidden;
+        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="font-sans text-stone-900 antialiased selection:bg-stone-200 selection:text-stone-900">
-    
+
     <!-- ========================================== -->
     <!-- DYNAMIC NAVBAR PLACEHOLDER -->
     <!-- ========================================== -->
     <div id="navbar-container"></div>
-    
+
     <!-- Main Authentication Container -->
     <main class="min-h-[75vh] flex items-center justify-center px-6 py-24">
+        
         <div class="w-full max-w-lg bg-white p-10 md:p-14 shadow-sm border border-stone-100 rounded-sm transition-all duration-300">
             <div class="text-center mb-10">
                 <h1 data-i18n="auth.sign_in_title" id="auth-title" class="font-serif text-3xl md:text-4xl text-stone-900 mb-3">Sign In</h1>
                 <p data-i18n="auth.sign_in_subtitle" id="auth-subtitle" class="font-sans text-sm text-stone-500">Access your AURA account.</p>
             </div>
-            
+
             <!-- Error/Success Message Container -->
-            <div id="auth-error" class="hidden mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-sans rounded-sm text-center"></div>
-            
+            <div id="auth-error" class="hidden mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm font-sans rounded-sm text-center">
+                <!-- Message text injected here -->
+            </div>
+
             <form id="auth-form" class="flex flex-col gap-6">
                 
                 <!-- Registration Only Fields (Hidden by default) -->
@@ -63,14 +71,17 @@
                             <input type="text" id="lastName" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                         </div>
                     </div>
+
                     <div>
                         <label data-i18n="auth.labels.phone" for="phone" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Phone Number</label>
                         <input type="tel" id="phone" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                     </div>
+
                     <div>
                         <label data-i18n="auth.labels.address" for="address" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Home Address</label>
                         <input type="text" id="address" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                     </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label data-i18n="auth.labels.city" for="city" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">City</label>
@@ -85,27 +96,28 @@
                             </select>
                         </div>
                     </div>
+
                     <div>
                         <label data-i18n="auth.labels.postal_code" for="postalCode" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Postal Code (ZIP)</label>
                         <input type="text" id="postalCode" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                     </div>
-                    
-                    <!-- Custom Security Captcha Integration -->
+
+                    <!-- Custom Security Captcha -->
                     <div id="captcha-container" class="flex flex-col gap-3 mt-2">
                         <label data-i18n="auth.labels.security_check" for="captcha-input" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-1">Security Check</label>
                         <div class="flex items-center gap-4">
-                            <div id="captcha-display" class="bg-stone-100 border border-stone-300 text-stone-800 font-mono text-xl tracking-[0.4em] px-6 py-3 rounded-sm select-none flex items-center justify-center w-36 h-12 shadow-inner font-bold">
-                                <!-- Captcha code will be injected here via JS -->
+                            <div id="captcha-display" class="bg-stone-100 border border-stone-300 text-stone-800 font-mono text-xl tracking-[0.4em] font-bold px-6 py-3 rounded-sm select-none flex items-center justify-center w-36 h-12 shadow-inner">
+                                <!-- Captcha text injected via JS -->
                             </div>
                             <button type="button" id="refresh-captcha-btn" class="text-stone-400 hover:text-stone-900 transition-colors" title="Refresh Captcha">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                             </button>
                         </div>
-                        <input type="text" id="captcha-input" placeholder="Enter the 6-character code" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
+                        <input data-i18n="auth.placeholders.captcha" type="text" id="captcha-input" placeholder="Enter the 6-character code" class="w-full bg-transparent border-b border-stone-300 py-3 font-sans text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors">
                     </div>
 
                 </div>
-                
+
                 <!-- Standard Fields (Always Visible) -->
                 <div>
                     <label data-i18n="auth.labels.email" for="email" class="block font-sans text-xs tracking-widest uppercase text-stone-500 mb-2">Email Address</label>
@@ -123,7 +135,7 @@
                     Sign In
                 </button>
             </form>
-            
+
             <div class="mt-8 text-center">
                 <p class="font-sans text-sm text-stone-500">
                     <span data-i18n="auth.no_account" id="toggle-text-prefix">Don't have an account?</span> 
@@ -131,13 +143,14 @@
                 </p>
             </div>
         </div>
+
     </main>
-    
+
     <!-- ========================================== -->
     <!-- DYNAMIC FOOTER PLACEHOLDER -->
     <!-- ========================================== -->
     <div id="footer-container"></div>
-    
+
     <!-- Global Scripts -->
     <script type="module" src="./js/global.js"></script>
     
