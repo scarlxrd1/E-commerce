@@ -1,6 +1,7 @@
 import { app, db } from './firebase-config.js';
 import { doc, getDoc, collection, query, where, getDocs, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { escapeHTML } from './sanitize.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('single-product-container');
@@ -19,16 +20,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (docSnap.exists()) {
             const data = docSnap.data();
             
-            // Check Visibility Status
             if (data.status === 'hidden') {
                 renderError(container, "This piece is currently unavailable.");
                 return;
             }
 
-            // 1. Render the main product
             renderProduct(container, { id: docSnap.id, ...data });
-            
-            // 2. Initialize the Reviews System
             initReviewsSystem(productId);
         } else {
             renderError(container, "The requested piece could not be found.");
@@ -43,7 +40,7 @@ function renderError(container, message) {
     container.innerHTML = `
         <div class="text-center flex flex-col items-center">
             <h1 class="font-serif text-4xl text-stone-900 mb-6">Not Found</h1>
-            <p class="font-sans text-stone-500 mb-10">${message}</p>
+            <p class="font-sans text-stone-500 mb-10">${escapeHTML(message)}</p>
             <a href="collection.html" class="font-sans text-sm tracking-widest uppercase border-b border-stone-900 text-stone-900 pb-1 hover:text-stone-600 hover:border-stone-600 transition-colors">
                 Return to Collection
             </a>
@@ -52,7 +49,6 @@ function renderError(container, message) {
 }
 
 function renderProduct(container, product) {
-    // Determine images for gallery
     let images = product.images || [];
     if (images.length === 0) {
         if (product.image) images.push(product.image);
@@ -61,29 +57,25 @@ function renderProduct(container, product) {
     images = [...new Set(images)];
     if (images.length === 0) images.push('');
 
-    // Update document title for SEO
-    document.title = `AURA | ${product.title}`;
-
+    document.title = `AURA | ${escapeHTML(product.title)}`;
     container.classList.remove('flex', 'items-center', 'justify-center');
     
-    // Build Thumbnails HTML
     let thumbnailsHTML = '';
     if (images.length > 1) {
         thumbnailsHTML = `
             <div class="flex gap-4 overflow-x-auto no-scrollbar py-4">
                 ${images.map((img, index) => `
                     <button class="gallery-thumbnail flex-shrink-0 w-20 h-24 bg-stone-100 overflow-hidden rounded-sm border-2 ${index === 0 ? 'border-stone-900' : 'border-transparent'} transition-colors" data-index="${index}">
-                        <img src="${img}" alt="Thumbnail ${index + 1}" class="w-full h-full object-cover pointer-events-none">
+                        <img src="${escapeHTML(img)}" alt="Thumbnail ${index + 1}" class="w-full h-full object-cover pointer-events-none">
                     </button>
                 `).join('')}
             </div>
         `;
     }
 
-    // Build Slider HTML
     let sliderHTML = `
         <div class="relative aspect-[4/5] w-full bg-stone-100 overflow-hidden rounded-sm group">
-            <img id="main-gallery-image" src="${images[0]}" alt="${product.title}" class="w-full h-full object-cover transition-opacity duration-300">
+            <img id="main-gallery-image" src="${escapeHTML(images[0])}" alt="${escapeHTML(product.title)}" class="w-full h-full object-cover transition-opacity duration-300">
             ${images.length > 1 ? `
                 <button id="prev-image-btn" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur hover:bg-white text-stone-900 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 z-10">
                     <i class="fa-solid fa-chevron-left"></i>
@@ -96,7 +88,6 @@ function renderProduct(container, product) {
         ${thumbnailsHTML}
     `;
 
-    // Out of Stock Logic
     const isOutOfStock = product.stock <= 0;
     const stockBadgeHTML = isOutOfStock
         ? `<span class="inline-block px-3 py-1 bg-red-50 text-red-600 border border-red-100 text-xs tracking-widest uppercase rounded-sm mb-6 font-medium">Out of Stock</span>`
@@ -109,44 +100,32 @@ function renderProduct(container, product) {
     const btnText = isOutOfStock ? `Out of Stock` : `Add to Cart`;
     const btnDisabled = isOutOfStock ? `disabled` : ``;
 
-    // Inject layout
     container.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-start">
-            
             <div class="flex flex-col w-full max-w-2xl mx-auto md:max-w-none">
                 ${sliderHTML}
             </div>
-
             <div class="flex flex-col sticky top-32">
                 <nav class="flex text-xs font-sans tracking-widest uppercase text-stone-400 mb-8 gap-2">
                     <a href="index.html" class="hover:text-stone-900 transition-colors">Home</a>
                     <span>/</span>
                     <a href="collection.html" class="hover:text-stone-900 transition-colors">Collection</a>
                     <span>/</span>
-                    <span class="text-stone-900">${product.title}</span>
+                    <span class="text-stone-900">${escapeHTML(product.title)}</span>
                 </nav>
-
-                <h1 class="font-serif text-4xl md:text-5xl text-stone-900 mb-2">${product.title}</h1>
-                
+                <h1 class="font-serif text-4xl md:text-5xl text-stone-900 mb-2">${escapeHTML(product.title)}</h1>
                 <div class="font-sans text-xs tracking-widest uppercase text-stone-400 mb-6">
-                    <span data-i18n="product.sku">SKU</span>: <span id="product-sku" class="text-stone-900 font-medium">${product.sku || 'N/A'}</span>
+                    <span data-i18n="product.sku">SKU</span>: <span id="product-sku" class="text-stone-900 font-medium">${escapeHTML(product.sku || 'N/A')}</span>
                 </div>
-                
-                <div id="header-rating-container" class="flex items-center gap-3 mb-6 h-6">
-                    </div>
-
+                <div id="header-rating-container" class="flex items-center gap-3 mb-6 h-6"></div>
                 <div class="flex items-center justify-between mb-4">
-                    <p class="font-sans text-xl text-stone-500 font-medium">€${product.price.toLocaleString()}</p>
+                    <p class="font-sans text-xl text-stone-500 font-medium">€${(product.price || 0).toLocaleString()}</p>
                 </div>
-                
                 <div>${stockBadgeHTML}</div>
-                
                 <div class="w-12 h-px bg-stone-300 mb-8"></div>
-                
                 <div class="prose prose-stone font-sans text-stone-500 leading-relaxed mb-10">
-                    <p id="product-description">${product.description || product.desc || 'No description available for this piece.'}</p>
+                    <p id="product-description">${escapeHTML(product.description || product.desc || 'No description available for this piece.')}</p>
                 </div>
-
                 <div class="space-y-6 mb-12">
                     <div class="flex items-center gap-4 text-sm font-sans text-stone-600">
                         <svg class="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"></path></svg>
@@ -154,19 +133,17 @@ function renderProduct(container, product) {
                     </div>
                     <div class="flex items-center gap-4 text-sm font-sans text-stone-600">
                         <svg class="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Estimated Dispatch: <span id="product-dispatch">${product.estimated_dispatch || '3-5 Business Days'}</span>
+                        Estimated Dispatch: <span id="product-dispatch">${escapeHTML(product.estimated_dispatch || '3-5 Business Days')}</span>
                     </div>
                 </div>
-
                 <button id="add-to-cart-btn" class="${btnClasses}" ${btnDisabled}
-                    data-id="${product.id}"
-                    data-title="${product.title}"
-                    data-price="${product.price}"
-                    data-image="${product.image}"
-                    data-stock="${product.stock || 0}">
+                    data-id="${escapeHTML(product.id)}"
+                    data-title="${escapeHTML(product.title)}"
+                    data-price="${escapeHTML(product.price)}"
+                    data-image="${escapeHTML(product.image)}"
+                    data-stock="${escapeHTML(product.stock || 0)}">
                     ${btnText}
                 </button>
-
                 <div class="border-t border-stone-200">
                     <details class="group border-b border-stone-200 py-5" open>
                         <summary class="font-sans text-sm font-medium tracking-wide text-stone-900 cursor-pointer flex justify-between items-center list-none [&::-webkit-details-marker]:hidden">
@@ -186,12 +163,10 @@ function renderProduct(container, product) {
         </div>
     `;
 
-    // Trigger translation for dynamically injected content
     if (typeof window.changeLanguage === 'function') {
         window.changeLanguage(localStorage.getItem('aura_lang') || 'el');
     }
 
-    // Initialize Gallery Logic
     if (images.length > 1) {
         let currentIndex = 0;
         const mainImageEl = document.getElementById('main-gallery-image');
@@ -205,7 +180,6 @@ function renderProduct(container, product) {
                 mainImageEl.src = images[index];
                 mainImageEl.style.opacity = 1;
             }, 150);
-
             thumbnails.forEach(t => t.classList.remove('border-stone-900'));
             thumbnails.forEach(t => t.classList.add('border-transparent'));
             thumbnails[index].classList.remove('border-transparent');
@@ -228,14 +202,11 @@ function renderProduct(container, product) {
         thumbnails.forEach(thumb => {
             thumb.addEventListener('click', (e) => {
                 const index = parseInt(e.currentTarget.getAttribute('data-index'));
-                if (index !== currentIndex) {
-                    updateGallery(index);
-                }
+                if (index !== currentIndex) updateGallery(index);
             });
         });
     }
 
-    // Hook up Add to Cart
     const addBtn = document.getElementById('add-to-cart-btn');
     if (addBtn && !isOutOfStock) {
         addBtn.addEventListener('click', () => {
@@ -269,15 +240,11 @@ function renderProduct(container, product) {
     }
 }
 
-// ==========================================
-// REVIEWS SYSTEM INITIALIZATION
-// ==========================================
 function initReviewsSystem(productId) {
     const auth = getAuth(app);
     let currentUser = null;
     let currentRating = 0;
 
-    // DOM Elements
     const reviewsSection = document.getElementById('reviews-section');
     const loggedOutEl = document.getElementById('review-logged-out');
     const alreadyReviewedEl = document.getElementById('review-already-submitted');
@@ -289,40 +256,31 @@ function initReviewsSystem(productId) {
     const headerRatingContainer = document.getElementById('header-rating-container');
 
     if (!reviewsSection) return;
-
-    // Unhide the reviews section wrapper
     reviewsSection.classList.remove('hidden');
 
-    // 1. Auth State Listener & One-Review Check
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         if (user) {
             loggedOutEl.classList.add('hidden');
-            
-            // Check if this user has already reviewed this exact product
             const reviewId = `${productId}_${user.uid}`;
             const reviewRef = doc(db, "reviews", reviewId);
             
             try {
                 const reviewSnap = await getDoc(reviewRef);
                 if (reviewSnap.exists()) {
-                    // User already reviewed it
                     reviewForm.classList.add('hidden');
                     reviewForm.classList.remove('flex');
                     alreadyReviewedEl.classList.remove('hidden');
                 } else {
-                    // User hasn't reviewed it yet
                     alreadyReviewedEl.classList.add('hidden');
                     reviewForm.classList.remove('hidden');
                     reviewForm.classList.add('flex');
                 }
             } catch (error) {
                 console.error("Error checking existing review:", error);
-                // Fallback: show form if error occurs
                 reviewForm.classList.remove('hidden');
                 reviewForm.classList.add('flex');
             }
-
         } else {
             reviewForm.classList.add('hidden');
             reviewForm.classList.remove('flex');
@@ -331,20 +289,14 @@ function initReviewsSystem(productId) {
         }
     });
 
-    // 2. Helper to Render Header Stars
     function renderHeaderStars(sum, count) {
         if (!headerRatingContainer) return;
-        
         if (count === 0 || isNaN(sum) || isNaN(count)) {
             headerRatingContainer.innerHTML = `<span class="font-sans text-xs text-stone-400 italic">No reviews yet</span>`;
             return;
         }
-
-        // Calculate exact decimal average
         const exactAvg = sum / count;
         const displayAvg = (Math.round(exactAvg * 10) / 10).toFixed(1); 
-        
-        // Round to nearest whole number for the star loop
         const roundedAvg = Math.round(exactAvg);
 
         let starsHtml = '<div class="flex gap-1 text-sm">';
@@ -352,11 +304,9 @@ function initReviewsSystem(productId) {
             starsHtml += `<i class="fa-solid fa-star ${i <= roundedAvg ? 'text-stone-900' : 'text-stone-200'}"></i>`;
         }
         starsHtml += `</div><span class="font-sans text-sm text-stone-500 ml-2 font-medium">${displayAvg} <span class="font-normal text-stone-400">(${count})</span></span>`;
-        
         headerRatingContainer.innerHTML = starsHtml;
     }
 
-    // 3. Fetch and Render Reviews
     async function fetchAndRenderReviews() {
         try {
             const q = query(collection(db, "reviews"), where("productId", "==", productId));
@@ -368,15 +318,11 @@ function initReviewsSystem(productId) {
             snapshot.forEach(doc => {
                 const data = doc.data();
                 reviews.push({ id: doc.id, ...data });
-                
-                // Force Type Casting to Number
                 totalScore += Number(data.rating) || 0; 
             });
 
-            // Update Header Rating
             renderHeaderStars(totalScore, reviews.length);
 
-            // Sort Descending
             reviews.sort((a, b) => {
                 const timeA = a.timestamp ? a.timestamp.toMillis() : Date.now();
                 const timeB = b.timestamp ? b.timestamp.toMillis() : Date.now();
@@ -409,14 +355,14 @@ function initReviewsSystem(productId) {
                     <div class="bg-white border border-stone-100 p-8 md:p-10 rounded-sm shadow-sm flex flex-col gap-5">
                         <div class="flex justify-between items-start">
                             <div>
-                                <h4 class="font-sans font-semibold text-stone-900 text-sm md:text-base">${review.userName}</h4>
-                                <span class="font-sans text-xs text-stone-400 tracking-wider uppercase">${dateStr}</span>
+                                <h4 class="font-sans font-semibold text-stone-900 text-sm md:text-base">${escapeHTML(review.userName)}</h4>
+                                <span class="font-sans text-xs text-stone-400 tracking-wider uppercase">${escapeHTML(dateStr)}</span>
                             </div>
                             <div class="text-xs flex gap-1">
                                 ${starsHtml}
                             </div>
                         </div>
-                        <p class="font-sans text-sm text-stone-600 leading-relaxed">${review.comment}</p>
+                        <p class="font-sans text-sm text-stone-600 leading-relaxed">${escapeHTML(review.comment)}</p>
                     </div>
                 `;
             });
@@ -429,10 +375,8 @@ function initReviewsSystem(productId) {
         }
     }
 
-    // Initial Fetch
     fetchAndRenderReviews();
 
-    // 4. Star Rating Interactive Logic
     function updateStarsUI(rating) {
         stars.forEach(star => {
             const starVal = parseInt(star.getAttribute('data-rating'));
@@ -458,16 +402,11 @@ function initReviewsSystem(productId) {
         });
     });
 
-    starContainer.addEventListener('mouseleave', () => {
-        updateStarsUI(currentRating);
-    });
+    starContainer.addEventListener('mouseleave', () => updateStarsUI(currentRating));
 
-    // 5. Form Submission Logic
     reviewForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
         if (!currentUser) return;
-        
         if (currentRating === 0) {
             alert("Please select a star rating before submitting.");
             return;
@@ -492,7 +431,6 @@ function initReviewsSystem(productId) {
                 }
             }
 
-            // Deterministic Document ID to enforce One-Review-Per-User
             const reviewId = `${productId}_${currentUser.uid}`;
 
             await setDoc(doc(db, "reviews", reviewId), {
@@ -504,18 +442,15 @@ function initReviewsSystem(productId) {
                 timestamp: serverTimestamp()
             });
 
-            // Transition UI State
             reviewForm.classList.add('hidden');
             reviewForm.classList.remove('flex');
             alreadyReviewedEl.classList.remove('hidden');
 
-            // Re-render the reviews list and header rating seamlessly
             await fetchAndRenderReviews();
 
         } catch (error) {
             console.error("Error posting review:", error);
             alert("Failed to post your review. Please try again.");
-            
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
             submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
