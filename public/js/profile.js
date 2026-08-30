@@ -255,21 +255,25 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const newPhone = editPhoneInput.value.trim();
             
-            // 1. Enforce Phone Number Uniqueness (Exclude current user)
-            const phoneQuery = query(collection(db, "users"), where("phone", "==", newPhone));
-            const phoneSnap = await getDocs(phoneQuery);
-            
-            let phoneTaken = false;
-            phoneSnap.forEach(d => {
-                if (d.id !== currentUser.uid) {
-                    phoneTaken = true;
-                }
+            // 1. Enforce Phone Number Uniqueness securely via backend
+            const phoneCheckRes = await fetch('/api/check-phone', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    phone: newPhone, 
+                    excludeUid: currentUser.uid 
+                })
             });
-
-            if (phoneTaken) {
-                const msg = currentLang === 'el' 
-                    ? "Αυτός ο αριθμός τηλεφώνου χρησιμοποιείται ήδη από άλλον λογαριασμό." 
-                    : "This phone number is already in use by another account.";
+            
+            if (!phoneCheckRes.ok) throw new Error('Phone check failed');
+            
+            const phoneCheckData = await phoneCheckRes.json();
+            
+            if (phoneCheckData.exists) {
+                const msg = translations[currentLang]?.auth?.error_phone_exists || 
+                    (currentLang === 'el' 
+                        ? "Αυτός ο αριθμός τηλεφώνου χρησιμοποιείται ήδη από άλλον λογαριασμό." 
+                        : "This phone number is already in use by another account.");
                 alert(msg);
                 saveEditBtn.textContent = originalBtnText;
                 saveEditBtn.disabled = false;
