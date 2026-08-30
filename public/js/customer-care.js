@@ -42,11 +42,33 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
         try {
-            const captchaToken = 'dummy-token-replace-with-recaptcha';
+            // Generate reCAPTCHA v3 token dynamically
+            let token;
+            try {
+                token = await new Promise((resolve, reject) => {
+                    if (typeof grecaptcha === 'undefined') {
+                        reject(new Error('reCAPTCHA not loaded'));
+                        return;
+                    }
+                    grecaptcha.ready(() => {
+                        grecaptcha.execute('6Lcp654tAAAAAIE9s-4N5ThVCBKZwkxsBOnHxm-7', { action: 'support_ticket' })
+                            .then(resolve)
+                            .catch(reject);
+                    });
+                });
+            } catch (recaptchaError) {
+                console.error("reCAPTCHA generation failed:", recaptchaError);
+                alert("reCAPTCHA failed to load. Please disable adblockers and try again.");
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                return;
+            }
+
             const captchaRes = await fetch('/api/verify-captcha', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: captchaToken })
+                body: JSON.stringify({ token })
             });
             const captchaData = await captchaRes.json();
             
