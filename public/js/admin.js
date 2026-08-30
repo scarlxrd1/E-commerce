@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const supportSection = document.getElementById('support-section');
     
     const logoutBtn = document.getElementById('logout-btn');
+    const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
 
     // Orders Elements & State
     let allOrders = [];
@@ -141,9 +142,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    logoutBtn.addEventListener('click', async () => {
+    const performLogout = async () => {
         await signOut(auth);
-    });
+    };
+
+    if (logoutBtn) logoutBtn.addEventListener('click', performLogout);
+    if (mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', performLogout);
 
     // ==========================================
     // 2. DASHBOARD NAVIGATION
@@ -681,6 +685,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 estimated_dispatch: document.getElementById('add-dispatch').value,
                 status: document.getElementById('add-status').value,
                 description: document.getElementById('add-description').value.trim(),
+                materials: document.getElementById('add-materials').value.trim(),
+                care: document.getElementById('add-care').value.trim(),
+                dimensions: document.getElementById('add-dimensions').value.trim(),
                 image: primaryImage,
                 hoverImage: hoverImage,
                 images: images
@@ -750,6 +757,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         document.getElementById('edit-description').value = product.description || product.desc || '';
+        document.getElementById('edit-materials').value = product.materials || '';
+        document.getElementById('edit-care').value = product.care || product.customCare || '';
+        document.getElementById('edit-dimensions').value = product.dimensions || '';
 
         // Populate images
         editImageInputsContainer.innerHTML = '';
@@ -809,6 +819,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 estimated_dispatch: document.getElementById('edit-dispatch').value,
                 status: document.getElementById('edit-status').value,
                 description: document.getElementById('edit-description').value.trim(),
+                materials: document.getElementById('edit-materials').value.trim(),
+                care: document.getElementById('edit-care').value.trim(),
+                dimensions: document.getElementById('edit-dimensions').value.trim(),
                 image: primaryImage,
                 hoverImage: hoverImage,
                 images: images
