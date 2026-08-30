@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 5. Send Welcome Email via EmailJS
                 try {
                     if (typeof emailjs !== 'undefined') {
-                        emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', {
+                        emailjs.send('service_c24ml8x', 'template_y5ko9jj', {
                             to_name: firstNameInput.value.trim(),
                             to_email: email
                         });
