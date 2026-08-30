@@ -19,7 +19,39 @@ export default async function handler(req, res) {
             return res.status(405).json({ error: 'Method Not Allowed' });
         }
 
-        const { items, paymentMethod, customer, invoice, userId } = req.body;
+        const { items, paymentMethod, customer, invoice, userId, recaptchaToken } = req.body;
+
+        // ---------- 0. reCAPTCHA v3 verification ----------
+        // MUST run first, before any Firestore read/write, so that
+        // scripted COD-spam requests are rejected at zero cost to
+        // our database (stock exhaustion mitigation).
+        if (!recaptchaToken || typeof recaptchaToken !== 'string') {
+            return res.status(400).json({ error: 'Security verification token is missing.' });
+        }
+
+        const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+        if (!recaptchaSecret) {
+            console.error('RECAPTCHA_SECRET_KEY is not configured on the server.');
+            return res.status(500).json({ error: 'Server misconfiguration. Please contact support.' });
+        }
+
+        let recaptchaData;
+        try {
+            const recaptchaVerifyRes = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `secret=${recaptchaSecret}&response=${recaptchaToken}`
+            });
+            recaptchaData = await recaptchaVerifyRes.json();
+        } catch (recaptchaFetchError) {
+            console.error('reCAPTCHA verification request failed:', recaptchaFetchError);
+            return res.status(400).json({ error: 'Security verification failed. Please try again.' });
+        }
+
+        if (!recaptchaData || !recaptchaData.success || (typeof recaptchaData.score === 'number' && recaptchaData.score < 0.5)) {
+            console.warn('reCAPTCHA verification rejected:', recaptchaData);
+            return res.status(400).json({ error: 'Security verification failed. Please refresh the page and try again.' });
+        }
 
         // ---------- 1. Basic shape validation ----------
         if (!Array.isArray(items) || items.length === 0 || items.length > 50) {
