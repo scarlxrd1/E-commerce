@@ -233,6 +233,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     role: "customer",
                     createdAt: new Date().toISOString()
                 });
+
+                // 5. Send Welcome Email via EmailJS
+                try {
+                    if (typeof emailjs !== 'undefined') {
+                        emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', {
+                            to_name: firstNameInput.value.trim(),
+                            to_email: email
+                        });
+                    } else {
+                        console.warn("EmailJS is not loaded; welcome email skipped.");
+                    }
+                } catch (emailError) {
+                    console.error("Failed to send welcome email:", emailError);
+                }
             }
             
             // Redirect after successful login/registration
