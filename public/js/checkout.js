@@ -302,6 +302,35 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
         submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
+        // ==========================================================
+        // SECURITY FIX: Google reCAPTCHA v3 — Anti Stock-Exhaustion
+        // ==========================================================
+        // Generates a fresh, single-use token bound to the 'checkout'
+        // action. The backend independently verifies this token with
+        // Google BEFORE performing any stock decrement or DB write.
+        // ==========================================================
+        let recaptchaToken;
+        try {
+            recaptchaToken = await new Promise((resolve, reject) => {
+                if (typeof grecaptcha === 'undefined') {
+                    reject(new Error('reCAPTCHA not loaded'));
+                    return;
+                }
+                grecaptcha.ready(() => {
+                    grecaptcha.execute('6Lcp654tAAAAAIE9s-4N5ThVCBKZwkxsBOnHxm-7', { action: 'checkout' })
+                        .then(resolve)
+                        .catch(reject);
+                });
+            });
+        } catch (recaptchaError) {
+            console.error("reCAPTCHA generation failed:", recaptchaError);
+            showError("Security check failed to load. Please disable adblockers and try again.");
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            return;
+        }
+
         try {
             const isInvoice = invoiceToggle.checked;
             const invoiceData = isInvoice ? {
@@ -331,7 +360,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         country: countryInput.value
                     },
                     invoice: invoiceData,
-                    userId: currentUser ? currentUser.uid : null
+                    userId: currentUser ? currentUser.uid : null,
+                    recaptchaToken
                 })
             });
 
