@@ -234,16 +234,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     createdAt: new Date().toISOString()
                 });
 
-                // 5. Send Welcome Email via EmailJS
+                // 5. Send Welcome Email via EmailJS REST API
                 try {
-                    if (typeof emailjs !== 'undefined') {
-                        emailjs.send('service_c24ml8x', 'template_y5ko9jj', {
-                            to_name: firstNameInput.value.trim(),
-                            to_email: email
-                        });
-                    } else {
-                        console.warn("EmailJS is not loaded; welcome email skipped.");
-                    }
+                    const emailPayload = {
+                        service_id: "service_c24ml8x",
+                        template_id: "Ytemplate_y5ko9jj",
+                        user_id: "VjioTcL168a56Y0fO",
+                        template_params: {
+                            user_name: firstNameInput.value.trim(),
+                            user_email: email
+                        }
+                    };
+
+                    await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(emailPayload)
+                    });
                 } catch (emailError) {
                     console.error("Failed to send welcome email:", emailError);
                 }
