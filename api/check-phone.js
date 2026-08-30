@@ -18,16 +18,24 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { phone } = req.body;
+        const { phone, excludeUid } = req.body;
         
         if (!phone || typeof phone !== 'string') {
             return res.status(400).json({ error: 'A valid phone number is required.' });
         }
 
         const usersRef = adminDb.collection('users');
-        const snapshot = await usersRef.where('phone', '==', phone.trim()).limit(1).get();
+        const snapshot = await usersRef.where('phone', '==', phone.trim()).get();
 
-        return res.status(200).json({ exists: !snapshot.empty });
+        let exists = false;
+        
+        snapshot.forEach(doc => {
+            if (doc.id !== excludeUid) {
+                exists = true;
+            }
+        });
+
+        return res.status(200).json({ exists });
         
     } catch (error) {
         console.error('Error checking phone uniqueness:', error);
