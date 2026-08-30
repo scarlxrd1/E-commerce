@@ -1,6 +1,6 @@
 import { app, db } from './firebase-config.js';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { translations } from './translations.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -144,16 +144,33 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isLoginMode) {
                 await signInWithEmailAndPassword(auth, email, password);
             } else {
-                // 1. Enforce Phone Number Uniqueness before any creation logic
                 const phoneToCheck = phoneInput.value.trim();
-                const phoneQuery = query(collection(db, "users"), where("phone", "==", phoneToCheck));
-                const phoneSnap = await getDocs(phoneQuery);
                 
-                if (!phoneSnap.empty) {
-                    const phoneExistsError = translations[currentLang]?.auth?.error_phone_exists || 
-                        (currentLang === 'el' ? 'Αυτός ο αριθμός τηλεφώνου χρησιμοποιείται ήδη από άλλον λογαριασμό.' : 'This phone number is already in use by another account.');
+                // 1. Check Phone Number Uniqueness securely via backend
+                try {
+                    const phoneCheckRes = await fetch('/api/check-phone', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: phoneToCheck })
+                    });
                     
-                    showError(phoneExistsError);
+                    if (!phoneCheckRes.ok) throw new Error('Phone check failed');
+                    
+                    const phoneCheckData = await phoneCheckRes.json();
+                    
+                    if (phoneCheckData.exists) {
+                        const phoneExistsError = translations[currentLang]?.auth?.error_phone_exists || 
+                            (currentLang === 'el' ? 'Αυτός ο αριθμός τηλεφώνου χρησιμοποιείται ήδη από άλλον λογαριασμό.' : 'This phone number is already in use by another account.');
+                        
+                        showError(phoneExistsError);
+                        submitBtn.textContent = originalBtnText;
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                        return;
+                    }
+                } catch (phoneCheckError) {
+                    console.error("Error verifying phone uniqueness:", phoneCheckError);
+                    showError(currentLang === 'el' ? "Προέκυψε σφάλμα κατά τον έλεγχο ασφαλείας. Παρακαλώ δοκιμάστε ξανά." : "A security check error occurred. Please try again.");
                     submitBtn.textContent = originalBtnText;
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
