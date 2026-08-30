@@ -122,7 +122,7 @@ function renderGrid(productsToRender) {
         const btnDisabled = isOutOfStock ? `disabled` : ``;
 
         htmlString += `
-            <a href="product.html?id=${escapeHTML(product.id)}" target="_blank" class="product-card fade-in-up group flex flex-col gap-6 ${mtClass}" data-category="${escapeHTML(product.categories || '')}">
+            <a href="product.html?id=${escapeHTML(product.id)}" class="product-card fade-in-up group flex flex-col gap-6 ${mtClass}" data-category="${escapeHTML(product.categories || '')}">
                 <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
                     <img src="${escapeHTML(product.image)}" alt="${escapeHTML(product.title)}" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0 z-10">
                     <img src="${escapeHTML(hoverImg)}" alt="${escapeHTML(product.title)} Lifestyle" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100 z-0">
