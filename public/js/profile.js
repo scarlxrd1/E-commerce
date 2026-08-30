@@ -253,11 +253,36 @@ document.addEventListener('DOMContentLoaded', () => {
         saveEditBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
         try {
+            const newPhone = editPhoneInput.value.trim();
+            
+            // 1. Enforce Phone Number Uniqueness (Exclude current user)
+            const phoneQuery = query(collection(db, "users"), where("phone", "==", newPhone));
+            const phoneSnap = await getDocs(phoneQuery);
+            
+            let phoneTaken = false;
+            phoneSnap.forEach(d => {
+                if (d.id !== currentUser.uid) {
+                    phoneTaken = true;
+                }
+            });
+
+            if (phoneTaken) {
+                const msg = currentLang === 'el' 
+                    ? "Αυτός ο αριθμός τηλεφώνου χρησιμοποιείται ήδη από άλλον λογαριασμό." 
+                    : "This phone number is already in use by another account.";
+                alert(msg);
+                saveEditBtn.textContent = originalBtnText;
+                saveEditBtn.disabled = false;
+                saveEditBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                return;
+            }
+
+            // 2. Proceed with updating profile
             const userRef = doc(db, "users", currentUser.uid);
             await updateDoc(userRef, {
                 firstName: editFirstNameInput.value.trim(),
                 lastName: editLastNameInput.value.trim(),
-                phone: editPhoneInput.value.trim()
+                phone: newPhone
             });
             await loadProfileData();
             cancelEditBtn.click(); 
