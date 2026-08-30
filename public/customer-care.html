@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AURA | Customer Care</title>
+    
+    <!-- Google reCAPTCHA v3 -->
+    <script src="https://www.google.com/recaptcha/api.js?render=6Lcp654tAAAAAIE9s-4N5ThVCBKZwkxsBOnHxm-7"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -79,6 +83,12 @@
                     <button data-i18n="customer_care.form.submit" type="submit" id="submit-support-btn" class="w-full bg-stone-900 text-white font-sans text-sm tracking-widest uppercase py-5 mt-4 hover:bg-stone-800 transition-colors rounded-sm shadow-sm">
                         Submit Inquiry
                     </button>
+                    <!-- Google reCAPTCHA Disclaimer -->
+                    <div class="mt-2 text-[10px] text-stone-400 leading-relaxed text-center font-sans">
+                        This site is protected by reCAPTCHA and the Google 
+                        <a href="https://policies.google.com/privacy" class="underline hover:text-stone-600 transition-colors" target="_blank">Privacy Policy</a> and 
+                        <a href="https://policies.google.com/terms" class="underline hover:text-stone-600 transition-colors" target="_blank">Terms of Service</a> apply.
+                    </div>
                 </form>
             </section>
             <section>
