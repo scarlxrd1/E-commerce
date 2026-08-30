@@ -153,9 +153,9 @@ function renderProduct(container, product) {
                             </span>
                         </summary>
                         <div class="font-sans text-sm text-stone-500 mt-4 leading-relaxed space-y-2">
-                            <p><strong>Materials:</strong> FSC-Certified Timber, Organic Finishes</p>
-                            <p><strong>Care:</strong> Wipe clean with a soft, dry cloth. Avoid harsh chemicals.</p>
-                            <p><strong>Dimensions:</strong> Varies by piece. Contact us for specifics.</p>
+                            <p><strong>Materials:</strong> ${escapeHTML(product.materials || 'FSC-Certified Timber, Organic Finishes')}</p>
+                            <p><strong>Care:</strong> ${escapeHTML(product.care || 'Wipe clean with a soft, dry cloth. Avoid harsh chemicals.')}</p>
+                            <p><strong>Dimensions:</strong> ${escapeHTML(product.dimensions || 'Varies by piece. Contact us for specifics.')}</p>
                         </div>
                     </details>
                 </div>
