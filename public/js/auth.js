@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const emailPayload = {
                         service_id: "service_c24ml8x",
-                        template_id: "Ytemplate_y5ko9jj",
+                        template_id: "template_y5ko9jj",
                         user_id: "VjioTcL168a56Y0fO",
                         template_params: {
                             user_name: firstNameInput.value.trim(),
