@@ -38,6 +38,27 @@ export const translations = {
             hero_title: "Elevate Your <br/><span class='italic text-stone-600'>Space.</span>",
             hero_subtitle: "Discover our curated collection of minimalist furniture. Crafted with sustainable materials and designed for the modern sanctuary.",
             explore: "Explore Collection",
+            manifesto: "A room should hold its silence. We pare each piece back to material, proportion, and light — nothing stays that doesn't need to.",
+            values: {
+                material: {
+                    label: "Material",
+                    desc: "FSC-certified oak, organic linen, and low-VOC finishes throughout."
+                },
+                craft: {
+                    label: "Craft",
+                    desc: "Finished by hand in small batches, built to be inherited."
+                },
+                delivery: {
+                    label: "Delivery",
+                    desc: "Complimentary shipping, with white-glove service at checkout."
+                }
+            },
+            materiality: {
+                heading: "Furniture as Architecture",
+                p1: "Every AURA piece begins with proportion, not decoration. We work with FSC-certified timber and unbleached natural textiles, chosen to soften with age rather than wear out.",
+                p2: "The result is furniture built for a single home, and intended to outlast it by generations.",
+                link: "See how we source our materials"
+            },
             curated_pieces: "Curated Pieces",
             filters: {
                 all: "All",
@@ -45,7 +66,11 @@ export const translations = {
                 tables: "Tables",
                 decor: "Decor"
             },
-            view_full: "View Full Collection"
+            view_full: "View Full Collection",
+            closing: {
+                quote: "Good design isn't what you add. It's everything you have the discipline to leave out.",
+                attribution: "The AURA Design Studio"
+            }
         },
         collection: {
             title: "The Collection",
@@ -345,6 +370,27 @@ export const translations = {
             hero_title: "Αναβαθμίστε τον <br/><span class='italic text-stone-600'>Χώρο σας.</span>",
             hero_subtitle: "Ανακαλύψτε την επιλεγμένη συλλογή μας από μινιμαλιστικά έπιπλα. Κατασκευασμένα με βιώσιμα υλικά και σχεδιασμένα για το σύγχρονο καταφύγιο.",
             explore: "Εξερευνήστε τη Συλλογή",
+            manifesto: "Ένας χώρος οφείλει να διατηρεί τη σιωπή του. Απογυμνώνουμε κάθε κομμάτι ως την ύλη, την αναλογία και το φως — τίποτα δεν παραμένει αν δεν χρειάζεται να μείνει.",
+            values: {
+                material: {
+                    label: "Υλικό",
+                    desc: "Δρυς πιστοποιημένη κατά FSC, οργανικό λινό και φινιρίσματα χαμηλών ΠΟΕ σε κάθε κομμάτι."
+                },
+                craft: {
+                    label: "Χειροτεχνία",
+                    desc: "Φινιρισμένα στο χέρι, σε μικρές παρτίδες, φτιαγμένα για να κληροδοτούνται."
+                },
+                delivery: {
+                    label: "Παράδοση",
+                    desc: "Δωρεάν αποστολή, με υπηρεσία White-Glove διαθέσιμη στο ταμείο."
+                }
+            },
+            materiality: {
+                heading: "Έπιπλο ως Αρχιτεκτονική",
+                p1: "Κάθε κομμάτι της AURA ξεκινά από την αναλογία, όχι τη διακόσμηση. Επιλέγουμε ξυλεία πιστοποιημένη κατά FSC και φυσικά, αλεύκαντα υφάσματα, φτιαγμένα να απαλύνουν με τον χρόνο αντί να φθείρονται.",
+                p2: "Το αποτέλεσμα είναι έπιπλα φτιαγμένα για ένα σπίτι, με στόχο να το ξεπεράσουν σε διάρκεια κατά γενιές.",
+                link: "Δείτε πώς προμηθευόμαστε τα υλικά μας"
+            },
             curated_pieces: "Επιλεγμένα Κομμάτια",
             filters: {
                 all: "Όλα",
@@ -352,7 +398,11 @@ export const translations = {
                 tables: "Τραπέζια",
                 decor: "Διακόσμηση"
             },
-            view_full: "Δείτε Όλη τη Συλλογή"
+            view_full: "Δείτε Όλη τη Συλλογή",
+            closing: {
+                quote: "Ο καλός σχεδιασμός δεν είναι αυτό που προσθέτεις. Είναι όλα όσα έχεις την πειθαρχία να αφήσεις έξω.",
+                attribution: "Το Στούντιο Σχεδιασμού AURA"
+            }
         },
         collection: {
             title: "Η Συλλογή",
