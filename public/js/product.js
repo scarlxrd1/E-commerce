@@ -2,6 +2,7 @@ import { app, db } from './firebase-config.js';
 import { doc, getDoc, collection, query, where, getDocs, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { escapeHTML } from './sanitize.js';
+import { trackProductView } from './tracking.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('single-product-container');
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             renderProduct(container, { id: docSnap.id, ...data });
+            trackProductView(productId);
             initReviewsSystem(productId);
         } else {
             renderError(container, "The requested piece could not be found.");
