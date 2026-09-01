@@ -1,6 +1,6 @@
 /**
  * AURA Global Engine
- * Handles UI Component Injection (Navbar/Footer/Cart/Mobile Menu), Global Cart State, Hybrid Cloud/Local Sync, Auth State, and i18n Translation.
+ * Handles UI Component Injection (Navbar/Footer/Cart/Mobile Menu/Cookie Consent), Global Cart State, Hybrid Cloud/Local Sync, Auth State, and i18n Translation.
  */
 
 import { app, db } from './firebase-config.js';
@@ -178,6 +178,27 @@ const cartDrawerHTML = `
     </div>
 `;
 
+const cookieBannerHTML = `
+    <div id="cookie-banner" class="fixed bottom-0 left-0 right-0 z-[200] bg-stone-900 text-white transform translate-y-full transition-transform duration-500 ease-in-out shadow-2xl">
+        <div class="max-w-[1400px] mx-auto px-6 md:px-12 py-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex-1 text-center md:text-left">
+                <p class="font-sans text-sm text-stone-300 leading-relaxed">
+                    <span data-i18n="cookie.message">We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking "Accept All", you consent to our use of cookies.</span>
+                    <a href="details.html#terms" data-i18n="cookie.privacy_link" class="underline underline-offset-4 hover:text-white transition-colors ml-1">Privacy Policy</a>
+                </p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto shrink-0">
+                <button id="cookie-essential-btn" data-i18n="cookie.essential_only" class="font-sans text-xs tracking-widest uppercase border border-stone-500 text-stone-300 px-6 py-3 hover:bg-stone-800 hover:text-white transition-colors rounded-sm whitespace-nowrap">
+                    Essential Only
+                </button>
+                <button id="cookie-accept-btn" data-i18n="cookie.accept_all" class="font-sans text-xs tracking-widest uppercase bg-white text-stone-900 px-6 py-3 hover:bg-stone-200 transition-colors rounded-sm whitespace-nowrap">
+                    Accept All
+                </button>
+            </div>
+        </div>
+    </div>
+`;
+
 // ==========================================
 // 1. STATE MANAGEMENT
 // ==========================================
@@ -236,6 +257,31 @@ window.changeLanguage = function(lang) {
 // ==========================================
 // 3. INJECT UI & INITIALIZE
 // ==========================================
+function initCookieConsent() {
+    if (!localStorage.getItem('cookie_consent')) {
+        document.body.insertAdjacentHTML('beforeend', cookieBannerHTML);
+        const banner = document.getElementById('cookie-banner');
+        const acceptBtn = document.getElementById('cookie-accept-btn');
+        const essentialBtn = document.getElementById('cookie-essential-btn');
+
+        // Small delay to allow CSS transition to play
+        setTimeout(() => {
+            banner.classList.remove('translate-y-full');
+            banner.classList.add('translate-y-0');
+        }, 100);
+
+        const closeBanner = (consentType) => {
+            localStorage.setItem('cookie_consent', consentType);
+            banner.classList.remove('translate-y-0');
+            banner.classList.add('translate-y-full');
+            setTimeout(() => banner.remove(), 500);
+        };
+
+        acceptBtn.addEventListener('click', () => closeBanner('all'));
+        essentialBtn.addEventListener('click', () => closeBanner('essential'));
+    }
+}
+
 function initGlobalUI() {
     const navContainer = document.getElementById('navbar-container');
     if (navContainer) {
@@ -249,6 +295,9 @@ function initGlobalUI() {
     if (!document.getElementById('cart-drawer-container')) {
         document.body.insertAdjacentHTML('beforeend', cartDrawerHTML);
     }
+
+    // Initialize Cookie Consent Banner
+    initCookieConsent();
 
     // Initialize Language (Default to Greek if not set)
     const savedLang = localStorage.getItem('aura_lang') || 'el';
