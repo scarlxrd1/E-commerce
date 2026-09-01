@@ -35,6 +35,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
+    <!-- Chart.js CDN for Data Analytics tab -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+
     <style>
         body { 
             background-color: #FBFBFA; 
@@ -106,6 +109,7 @@
                     <button id="nav-products" class="text-left text-neutral-400 hover:text-neutral-900 border-b-2 md:border-b-0 md:border-l-2 border-transparent pb-2 md:pb-1 md:pl-4 transition-colors">Προϊόντα</button>
                     <button id="nav-customers" class="text-left text-neutral-400 hover:text-neutral-900 border-b-2 md:border-b-0 md:border-l-2 border-transparent pb-2 md:pb-1 md:pl-4 transition-colors">Πελάτες</button>
                     <button id="nav-support" class="text-left text-neutral-400 hover:text-neutral-900 border-b-2 md:border-b-0 md:border-l-2 border-transparent pb-2 md:pb-1 md:pl-4 transition-colors">Υποστήριξη Πελατών</button>
+                    <button id="nav-analytics" class="text-left text-neutral-400 hover:text-neutral-900 border-b-2 md:border-b-0 md:border-l-2 border-transparent pb-2 md:pb-1 md:pl-4 transition-colors">Αναλυτικά Στοιχεία</button>
                 </nav>
             </div>
             
@@ -340,6 +344,101 @@
                 </div>
             </section>
 
+            <section id="analytics-section" class="hidden">
+                <div class="bg-slate-950 text-slate-100 rounded-xl p-6 md:p-10 -mx-6 md:-mx-12 md:mx-0 shadow-2xl">
+
+                    <!-- Header + Filters -->
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10">
+                        <div>
+                            <h1 class="font-serif text-3xl text-white mb-2">Αναλυτικά Στοιχεία</h1>
+                            <p id="analytics-range-summary" class="font-sans text-xs tracking-widest uppercase text-slate-500">Φόρτωση περιόδου...</p>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-4 w-full lg:w-auto">
+                            <div class="flex flex-col gap-2">
+                                <label for="analytics-range-preset" class="font-sans text-[11px] tracking-widest uppercase text-slate-500">Περίοδος</label>
+                                <select id="analytics-range-preset" class="custom-select bg-slate-900 border border-slate-700 text-slate-100 text-sm rounded-md py-2.5 pl-3 pr-8 focus:outline-none focus:border-slate-400 transition-colors appearance-none cursor-pointer min-w-[180px]">
+                                    <option value="7d" selected>Τελευταίες 7 Ημέρες</option>
+                                    <option value="30d">Τελευταίες 30 Ημέρες</option>
+                                    <option value="month">Αυτόν τον Μήνα</option>
+                                    <option value="custom">Προσαρμοσμένο Εύρος</option>
+                                </select>
+                            </div>
+
+                            <div id="analytics-custom-range" class="hidden flex-col sm:flex-row items-stretch sm:items-end gap-4">
+                                <div class="flex flex-col gap-2">
+                                    <label for="analytics-start-date" class="font-sans text-[11px] tracking-widest uppercase text-slate-500">Από</label>
+                                    <input type="date" id="analytics-start-date" class="bg-slate-900 border border-slate-700 text-slate-100 text-sm rounded-md py-2 px-3 focus:outline-none focus:border-slate-400 transition-colors">
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <label for="analytics-end-date" class="font-sans text-[11px] tracking-widest uppercase text-slate-500">Έως</label>
+                                    <input type="date" id="analytics-end-date" class="bg-slate-900 border border-slate-700 text-slate-100 text-sm rounded-md py-2 px-3 focus:outline-none focus:border-slate-400 transition-colors">
+                                </div>
+                                <button id="analytics-apply-range-btn" class="font-sans text-xs tracking-widest uppercase bg-slate-100 text-slate-900 px-5 py-2.5 rounded-md hover:bg-white transition-colors shadow-sm h-[41px]">
+                                    Εφαρμογή
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p id="analytics-loading-indicator" class="hidden font-sans text-xs tracking-widest uppercase text-slate-500 mb-6 animate-pulse">Φόρτωση δεδομένων...</p>
+                    <p id="analytics-error-notice" class="hidden font-sans text-sm text-red-400 bg-red-950/40 border border-red-900 rounded-md px-4 py-3 mb-6">Αποτυχία φόρτωσης αναλυτικών στοιχείων. Δοκιμάστε ξανά.</p>
+                    <p id="analytics-empty-notice" class="hidden font-sans text-sm text-slate-400 bg-slate-900 border border-slate-800 rounded-md px-4 py-3 mb-6">Δεν έχουν καταγραφεί δεδομένα (προβολές, αναζητήσεις ή παραγγελίες) για αυτή την περίοδο ακόμη.</p>
+
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8">
+                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                            <p class="font-sans text-xs tracking-widest uppercase text-slate-500 mb-3">Σύνολο Προβολών</p>
+                            <p id="kpi-total-views" class="font-serif text-4xl text-white">—</p>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                            <p class="font-sans text-xs tracking-widest uppercase text-slate-500 mb-3">Σύνολο Παραγγελιών</p>
+                            <p id="kpi-total-orders" class="font-serif text-4xl text-white">—</p>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                            <p class="font-sans text-xs tracking-widest uppercase text-slate-500 mb-3">Ποσοστό Μετατροπής</p>
+                            <p id="kpi-conversion-rate" class="font-serif text-4xl text-white">—</p>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
+
+                        <!-- Product Views over Time (Line) -->
+                        <div class="xl:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-6">
+                            <h2 class="font-sans text-sm tracking-widest uppercase text-slate-300 mb-6">Προβολές Προϊόντων ανά Ημέρα</h2>
+                            <div class="relative h-72">
+                                <canvas id="views-over-time-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Most Ordered Products (Doughnut) -->
+                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col">
+                            <h2 class="font-sans text-sm tracking-widest uppercase text-slate-300 mb-6">Δημοφιλέστερα Προϊόντα</h2>
+                            <div class="relative h-56 mb-4">
+                                <canvas id="most-ordered-products-chart"></canvas>
+                            </div>
+                            <ul id="most-ordered-products-legend" class="font-sans text-xs text-slate-400 space-y-2 overflow-y-auto max-h-32 no-scrollbar"></ul>
+                        </div>
+
+                        <!-- Top Searched Words (Bar) -->
+                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                            <h2 class="font-sans text-sm tracking-widest uppercase text-slate-300 mb-6">Δημοφιλέστερες Λέξεις Αναζήτησης</h2>
+                            <div class="relative h-72">
+                                <canvas id="top-searched-words-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Recent Searches (Live List) -->
+                        <div class="xl:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col">
+                            <h2 class="font-sans text-sm tracking-widest uppercase text-slate-300 mb-4">Πρόσφατες Αναζητήσεις</h2>
+                            <ul id="recent-searches-list" class="divide-y divide-slate-800 overflow-y-auto max-h-72 no-scrollbar"></ul>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
         </main>
     </div>
 
@@ -436,5 +535,6 @@
     </div>
 
     <script type="module" src="./js/admin.js"></script>
+    <script type="module" src="./js/admin-analytics.js"></script>
 </body>
 </html>
