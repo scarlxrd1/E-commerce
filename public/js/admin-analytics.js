@@ -19,6 +19,10 @@
  *     Sales/order analytics deliberately read from this existing, trustworthy
  *     collection rather than a client-writable "sale event" log — see the
  *     architecture note at the top of tracking.js for why.
+ *   - products       (existing collection, `allow read: if true` already)
+ *                                                          -> title, cross-referenced by ID for the
+ *                                                             "Views per Product" table below. No new
+ *                                                             security rule is required for this read.
  *
  * REQUIRED FIRESTORE SECURITY RULES (not part of this repo's tracked files —
  * add these in the Firebase console / firestore.rules):
@@ -40,7 +44,7 @@
 
 import { app, db } from './firebase-config.js';
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { collection, query, where, orderBy, getDocs, doc, getDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, query, where, orderBy, getDocs, doc, getDoc, Timestamp, documentId } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { escapeHTML } from './sanitize.js';
 
 // Must match the collection names exported by public/js/tracking.js.
@@ -97,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ordersCanvas = document.getElementById('most-ordered-products-chart');
     const ordersLegendEl = document.getElementById('most-ordered-products-legend');
     const recentSearchesEl = document.getElementById('recent-searches-list');
+    const viewsPerProductBody = document.getElementById('views-per-product-body');
 
     // --- State -----------------------------------------------------------
     let isAdminAuthorized = false;
@@ -328,6 +333,42 @@ document.addEventListener('DOMContentLoaded', () => {
         return { totalViews, totalOrders, conversionRate };
     }
 
+    /** Groups product_views by productId, most-viewed first. */
+    function aggregateViewsByProduct(viewDocs, limit = 10) {
+        const counts = new Map(); // productId -> count
+        viewDocs.forEach(v => {
+            if (!v.productId) return;
+            counts.set(v.productId, (counts.get(v.productId) || 0) + 1);
+        });
+        return Array.from(counts.entries())
+            .map(([id, count]) => ({ id, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, limit);
+    }
+
+    /**
+     * Resolves a set of product IDs to their titles via a single 'in' query
+     * against the (publicly-readable) products collection. IDs belonging to
+     * products that have since been deleted simply won't come back in the
+     * snapshot — callers should fall back to "Unknown Product" for those.
+     */
+    async function fetchProductTitles(productIds) {
+        const uniqueIds = Array.from(new Set(productIds)).filter(Boolean);
+        const titleMap = new Map();
+        if (uniqueIds.length === 0) return titleMap;
+
+        try {
+            const q = query(collection(db, 'products'), where(documentId(), 'in', uniqueIds));
+            const snap = await getDocs(q);
+            snap.forEach(docSnap => {
+                titleMap.set(docSnap.id, docSnap.data().title || 'Unknown Product');
+            });
+        } catch (error) {
+            console.error('[admin-analytics] Failed to resolve product titles:', error);
+        }
+        return titleMap;
+    }
+
     // ==========================================
     // 6. RENDERING — KPIs
     // ==========================================
@@ -518,6 +559,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
+    /** Ranks products by view count for the period and renders them into the table body. */
+    async function renderViewsPerProductTable(viewDocs) {
+        if (!viewsPerProductBody) return;
+
+        const ranked = aggregateViewsByProduct(viewDocs, 10);
+
+        if (ranked.length === 0) {
+            viewsPerProductBody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-slate-500 text-sm">Δεν υπάρχουν προβολές για αυτή την περίοδο.</td></tr>`;
+            return;
+        }
+
+        const titleMap = await fetchProductTitles(ranked.map(r => r.id));
+        const maxCount = ranked[0].count || 1;
+
+        viewsPerProductBody.innerHTML = ranked.map((item, index) => {
+            const title = titleMap.get(item.id) || 'Unknown Product';
+            const barWidth = Math.max(4, Math.round((item.count / maxCount) * 100));
+            return `
+                <tr class="border-b border-slate-800/60 last:border-0">
+                    <td class="py-3 pr-4 align-middle font-sans text-xs text-slate-500">${index + 1}</td>
+                    <td class="py-3 pr-4 align-middle">
+                        <div class="font-sans text-sm text-slate-200 truncate max-w-[260px] mb-1.5">${escapeHTML(title)}</div>
+                        <div class="h-1 w-full max-w-[220px] bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-sky-400 rounded-full" style="width: ${barWidth}%;"></div>
+                        </div>
+                    </td>
+                    <td class="py-3 pl-4 align-middle text-right font-sans text-sm text-slate-100 font-medium whitespace-nowrap">${item.count.toLocaleString('el-GR')}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
     // ==========================================
     // 8. UI STATE HELPERS
     // ==========================================
@@ -566,6 +639,8 @@ document.addEventListener('DOMContentLoaded', () => {
             renderOrdersChart(topProducts);
 
             renderKpis(computeKpis(viewDocs, orderDocs));
+
+            await renderViewsPerProductTable(viewDocs);
 
             if (viewDocs.length === 0 && searchDocs.length === 0 && orderDocs.length === 0) {
                 setEmpty(true);
