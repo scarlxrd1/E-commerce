@@ -7,6 +7,7 @@ import { app, db } from './firebase-config.js';
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { translations } from './translations.js';
+import { trackSearch } from './tracking.js';
 
 const navbarHTML = `
     <nav class="sticky top-0 z-50 bg-cream/90 backdrop-blur-md border-b border-stone-200/50 transition-all">
@@ -330,8 +331,13 @@ function initGlobalUI() {
             e.preventDefault();
             const query = searchInput.value.trim();
             if (query) {
+                trackSearch(query);
                 // The search input matches against title and sku via collection.js
-                window.location.href = `collection.html?search=${encodeURIComponent(query)}`;
+                // A short delay gives the fire-and-forget tracking write a chance
+                // to actually leave the browser before this page unloads.
+                setTimeout(() => {
+                    window.location.href = `collection.html?search=${encodeURIComponent(query)}`;
+                }, 120);
             }
         });
         
