@@ -329,6 +329,12 @@ export const translations = {
             title: "Thank you for your order.",
             message: "Your secure payment was successful and your order has been received. We will send you an email confirmation shortly.",
             return_btn: "Continue Shopping"
+        },
+        cookie: {
+            message: "We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking \"Accept All\", you consent to our use of cookies.",
+            accept_all: "Accept All",
+            essential_only: "Essential Only",
+            privacy_link: "Privacy Policy"
         }
     },
     el: {
@@ -661,6 +667,12 @@ export const translations = {
             title: "Ευχαριστούμε για την παραγγελία σας.",
             message: "Η πληρωμή ολοκληρώθηκε με ασφάλεια και η παραγγελία σας έχει ληφθεί. Θα σας στείλουμε σύντομα ένα email επιβεβαίωσης.",
             return_btn: "Συνέχεια Αγορών"
+        },
+        cookie: {
+            message: "Χρησιμοποιούμε cookies για να βελτιώσουμε την εμπειρία περιήγησής σας, να προβάλλουμε εξατομικευμένο περιεχόμενο και να αναλύουμε την επισκεψιμότητά μας. Κάνοντας κλικ στο \"Αποδοχή Όλων\", συναινείτε στη χρήση των cookies.",
+            accept_all: "Αποδοχή Όλων",
+            essential_only: "Μόνο τα Απαραίτητα",
+            privacy_link: "Πολιτική Απορρήτου"
         }
     }
 };
