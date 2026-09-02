@@ -305,10 +305,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // ==========================================================
         // SECURITY FIX: Google reCAPTCHA v3 — Anti Stock-Exhaustion
         // ==========================================================
-        // Generates a fresh, single-use token bound to the 'checkout'
-        // action. The backend independently verifies this token with
-        // Google BEFORE performing any stock decrement or DB write.
-        // ==========================================================
         let recaptchaToken;
         try {
             recaptchaToken = await new Promise((resolve, reject) => {
