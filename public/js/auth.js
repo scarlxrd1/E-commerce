@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const captchaRes = await fetch('/api/verify-captcha', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token })
+                    body: JSON.stringify({ token, action: 'register' })
                 });
                 const captchaData = await captchaRes.json();
                 
