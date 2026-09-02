@@ -49,7 +49,24 @@ export default async function handler(req, res) {
         }
 
         if (!recaptchaData || !recaptchaData.success || (typeof recaptchaData.score === 'number' && recaptchaData.score < 0.5)) {
-            console.warn('reCAPTCHA verification rejected:', recaptchaData);
+            console.warn('reCAPTCHA verification rejected:', {
+                hostname: req.headers.host,
+                ...recaptchaData
+            });
+            return res.status(400).json({ error: 'Security verification failed. Please refresh the page and try again.' });
+        }
+
+        // Defense in depth: reCAPTCHA v3 echoes back the action the token was
+        // generated for. A token minted for 'register' or 'support_ticket'
+        // (see api/verify-captcha.js) is otherwise a perfectly "valid" token
+        // from Google's point of view, so this stops it from being replayed
+        // into checkout.
+        if (recaptchaData.action && recaptchaData.action !== 'checkout') {
+            console.warn('reCAPTCHA action mismatch on checkout:', {
+                hostname: req.headers.host,
+                expected: 'checkout',
+                received: recaptchaData.action
+            });
             return res.status(400).json({ error: 'Security verification failed. Please refresh the page and try again.' });
         }
 
