@@ -234,24 +234,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     createdAt: new Date().toISOString()
                 });
 
-                // 5. Send Welcome Email via EmailJS REST API
+                // 5. Send Welcome Email via Resend Backend API
                 try {
-                    const emailPayload = {
-                        service_id: "service_c24ml8x",
-                        template_id: "template_y5ko9jj",
-                        user_id: "VjioTcL168a56Y0fO",
-                        template_params: {
-                            user_name: firstNameInput.value.trim(),
-                            user_email: email
-                        }
-                    };
-
-                    await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                    await fetch('/api/send-email', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(emailPayload)
+                        body: JSON.stringify({
+                            type: 'welcome',
+                            email: email,
+                            name: firstNameInput.value.trim()
+                        })
                     });
                 } catch (emailError) {
                     console.error("Failed to send welcome email:", emailError);
