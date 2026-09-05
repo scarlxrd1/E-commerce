@@ -1,6 +1,7 @@
 import { app, db } from './firebase-config.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { escapeHTML } from './sanitize.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const auth = getAuth(app);
@@ -26,11 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const navProducts = document.getElementById('nav-products');
     const navCustomers = document.getElementById('nav-customers');
     const navSupport = document.getElementById('nav-support');
+    const navAnalytics = document.getElementById('nav-analytics');
     
     const ordersSection = document.getElementById('orders-section');
     const productsSection = document.getElementById('products-section');
     const customersSection = document.getElementById('customers-section');
     const supportSection = document.getElementById('support-section');
+    const analyticsSection = document.getElementById('analytics-section');
     
     const logoutBtn = document.getElementById('logout-btn');
     const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
@@ -153,13 +156,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. DASHBOARD NAVIGATION
     // ==========================================
     function resetNavStyles() {
-        [navOrders, navProducts, navCustomers, navSupport].forEach(btn => {
+        const allNavButtons = [navOrders, navProducts, navCustomers, navSupport, navAnalytics].filter(Boolean);
+        const allSections = [ordersSection, productsSection, customersSection, supportSection, analyticsSection].filter(Boolean);
+
+        allNavButtons.forEach(btn => {
             btn.classList.replace('text-neutral-900', 'text-neutral-400');
             btn.classList.replace('border-neutral-900', 'border-transparent');
             btn.classList.remove('font-semibold');
         });
         
-        [ordersSection, productsSection, customersSection, supportSection].forEach(sec => {
+        allSections.forEach(sec => {
             sec.classList.add('hidden');
         });
     }
@@ -170,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         navOrders.classList.replace('border-transparent', 'border-neutral-900');
         navOrders.classList.add('font-semibold');
         ordersSection.classList.remove('hidden');
-        syncScrollWidths(); // Re-sync top scrollbar when orders tab becomes visible
+        syncScrollWidths();
     });
 
     navProducts.addEventListener('click', () => {
@@ -213,21 +219,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let isSyncingLeftScroll = false;
     let isSyncingRightScroll = false;
 
-    topScroll.addEventListener('scroll', function(e) {
-        if (!isSyncingLeftScroll) {
-            isSyncingRightScroll = true;
-            tableWrapper.scrollLeft = this.scrollLeft;
-        }
-        isSyncingLeftScroll = false;
-    });
+    if (topScroll && tableWrapper) {
+        topScroll.addEventListener('scroll', function() {
+            if (!isSyncingLeftScroll) {
+                isSyncingRightScroll = true;
+                tableWrapper.scrollLeft = this.scrollLeft;
+            }
+            isSyncingLeftScroll = false;
+        });
 
-    tableWrapper.addEventListener('scroll', function(e) {
-        if (!isSyncingRightScroll) {
-            isSyncingLeftScroll = true;
-            topScroll.scrollLeft = this.scrollLeft;
-        }
-        isSyncingRightScroll = false;
-    });
+        tableWrapper.addEventListener('scroll', function() {
+            if (!isSyncingRightScroll) {
+                isSyncingLeftScroll = true;
+                topScroll.scrollLeft = this.scrollLeft;
+            }
+            isSyncingRightScroll = false;
+        });
+    }
 
     async function fetchOrders() {
         ordersTableBody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-neutral-400">Φόρτωση παραγγελιών...</td></tr>`;
@@ -254,7 +262,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const dateTerm = orderSearchDate.value; // YYYY-MM-DD format
 
         filteredOrders = allOrders.filter(order => {
-            const matchId = order.id.toLowerCase().includes(idTerm);
+            const matchId = order.id.toLowerCase().includes(idTerm) ||
+                            (order.vivaOrderCode && String(order.vivaOrderCode).toLowerCase().includes(idTerm));
             const matchEmail = (order.customer?.email || '').toLowerCase().includes(emailTerm);
             
             let matchDate = true;
@@ -301,76 +310,112 @@ document.addEventListener('DOMContentLoaded', () => {
             const customer = order.customer || {};
             
             // Document Type & Invoice Data
-            let docTypeBadge = order.documentType === 'invoice' || (order.invoice && order.invoice.isRequired) 
-                ? `<span class="inline-block mt-2 px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-[10px] uppercase font-bold tracking-wider">Τιμολόγιο B2B</span>`
-                : `<span class="inline-block mt-2 px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] uppercase font-bold tracking-wider">Απόδειξη Λιανικής</span>`;
+            const docTypeBadge = order.documentType === 'invoice' || (order.invoice && order.invoice.isRequired) 
+                ? `<span class="inline-block mt-2 px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded text-[10px] uppercase font-bold tracking-wider">Τιμολόγιο B2B</span>`
+                : `<span class="inline-block mt-2 px-2 py-0.5 bg-stone-100 text-stone-600 border border-stone-200 rounded text-[10px] uppercase font-bold tracking-wider">Απόδειξη Λιανικής</span>`;
 
             let invoiceBlock = '';
             if (order.invoice && order.invoice.isRequired) {
                 invoiceBlock = `
                     <div class="mt-2 p-3 bg-white border border-gray-200 rounded-sm text-xs text-neutral-600 shadow-sm">
                         <strong class="text-neutral-900 block mb-1">Στοιχεία Τιμολογίου</strong>
-                        Επωνυμία: ${order.invoice.companyName}<br>
-                        ΑΦΜ: ${order.invoice.vat} | ΔΟΥ: ${order.invoice.taxOffice}<br>
-                        Δραστηριότητα: ${order.invoice.activity}
+                        Επωνυμία: ${escapeHTML(order.invoice.companyName || 'N/A')}<br>
+                        ΑΦΜ: ${escapeHTML(order.invoice.vat || 'N/A')} | ΔΟΥ: ${escapeHTML(order.invoice.taxOffice || 'N/A')}<br>
+                        Δραστηριότητα: ${escapeHTML(order.invoice.activity || 'N/A')}
                     </div>
                 `;
             }
 
-            const customerStr = `${customer.firstName || ''} ${customer.lastName || ''}<br><span class="text-xs text-neutral-400">${customer.email || ''}</span><br><span class="text-xs text-neutral-400">${customer.phone || ''}</span><br>${docTypeBadge}${invoiceBlock}`;
+            const customerStr = `
+                <span class="font-medium text-neutral-900">${escapeHTML(customer.firstName || '')} ${escapeHTML(customer.lastName || '')}</span><br>
+                <span class="text-xs text-neutral-400">${escapeHTML(customer.email || '')}</span><br>
+                <span class="text-xs text-neutral-400">${escapeHTML(customer.phone || '')}</span><br>
+                ${docTypeBadge}${invoiceBlock}
+            `;
             
-            let itemsStr = (order.items || []).map(i => `${i.quantity}x [${i.sku || i.title}]`).join('<br>');
+            const itemsStr = (order.items || []).map(i => `${escapeHTML(String(i.quantity))}x [${escapeHTML(i.sku || i.title)}]`).join('<br>');
             
+            // Payment Method Badge & Viva Order Code Display
             let paymentBadge = '';
-            if (order.paymentMethod === 'cod') {
-                paymentBadge = `<span class="block mt-1 text-[10px] text-neutral-500 uppercase tracking-widest">Αντικαταβολή (+2.50€)</span>`;
-            } else if (order.paymentMethod === 'card') {
-                paymentBadge = `<span class="block mt-1 text-[10px] text-neutral-500 uppercase tracking-widest">Πιστωτική / Χρεωστική Κάρτα</span>`;
+            if (order.paymentMethod === 'card') {
+                paymentBadge = `
+                    <div class="mt-1.5 flex items-center gap-1.5">
+                        <span class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded text-[10px] uppercase font-bold tracking-wider">
+                            Κάρτα (Viva)
+                        </span>
+                    </div>
+                `;
+            } else if (order.paymentMethod === 'cod') {
+                paymentBadge = `
+                    <div class="mt-1.5 flex items-center gap-1.5">
+                        <span class="px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded text-[10px] uppercase font-bold tracking-wider">
+                            Αντικαταβολή
+                        </span>
+                        <span class="text-[10px] text-neutral-400 font-normal">(+2.50€)</span>
+                    </div>
+                `;
             } else {
-                paymentBadge = `<span class="block mt-1 text-[10px] text-neutral-500 uppercase tracking-widest">N/A</span>`;
+                paymentBadge = `<span class="block mt-1.5 text-[10px] text-neutral-500 uppercase tracking-widest">${escapeHTML(order.paymentMethod || 'N/A')}</span>`;
             }
 
-            let trackingHtml = `
+            const vivaCodeDisplay = order.vivaOrderCode ? `
+                <div class="mt-1.5 flex items-center gap-1 text-[11px] text-neutral-500">
+                    <span class="text-[9px] font-sans uppercase tracking-widest text-neutral-400 font-semibold">Viva:</span>
+                    <span class="font-mono text-xs text-neutral-800 bg-neutral-100 px-1.5 py-0.5 rounded border border-neutral-200">${escapeHTML(String(order.vivaOrderCode))}</span>
+                </div>
+            ` : '';
+
+            const trackingHtml = `
                 <div class="flex flex-col items-start gap-1">
-                    <input type="text" class="tracking-input border-b border-gray-300 py-1 text-xs w-28 bg-transparent focus:outline-none focus:border-neutral-900" value="${order.trackingNumber || ''}" placeholder="Αριθμός...">
-                    <button class="save-tracking-btn text-[10px] text-blue-500 hover:text-blue-700 transition-colors uppercase tracking-widest mt-1" data-id="${id}">Αποθήκευση</button>
+                    <input type="text" class="tracking-input border-b border-gray-300 py-1 text-xs w-28 bg-transparent focus:outline-none focus:border-neutral-900 font-mono" value="${escapeHTML(order.trackingNumber || '')}" placeholder="Αριθμός...">
+                    <button class="save-tracking-btn text-[10px] text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-widest mt-1" data-id="${escapeHTML(id)}">Αποθήκευση</button>
                 </div>
             `;
 
+            // Status Badge mapping
             let statusBadge = '';
-            if(order.status === 'pending') statusBadge = `<span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-[10px] uppercase font-bold tracking-wider">Εκκρεμεί</span>`;
-            else if(order.status === 'paid') statusBadge = `<span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-[10px] uppercase font-bold tracking-wider">Πληρώθηκε</span>`;
-            else if(order.status === 'shipped') statusBadge = `<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-[10px] uppercase font-bold tracking-wider">Απεστάλη</span>`;
-            else statusBadge = `<span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-[10px] uppercase font-bold tracking-wider">${order.status}</span>`;
+            if (order.status === 'pending') {
+                statusBadge = `<span class="px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded text-[10px] uppercase font-bold tracking-wider inline-block">Εκκρεμεί</span>`;
+            } else if (order.status === 'paid') {
+                statusBadge = `<span class="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded text-[10px] uppercase font-bold tracking-wider inline-block">Πληρώθηκε</span>`;
+            } else if (order.status === 'confirmed') {
+                statusBadge = `<span class="px-2.5 py-1 bg-stone-100 text-stone-700 border border-stone-300 rounded text-[10px] uppercase font-bold tracking-wider inline-block">Επιβεβαιώθηκε</span>`;
+            } else if (order.status === 'shipped') {
+                statusBadge = `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[10px] uppercase font-bold tracking-wider inline-block">Απεστάλη</span>`;
+            } else {
+                statusBadge = `<span class="px-2.5 py-1 bg-gray-100 text-gray-600 border border-gray-200 rounded text-[10px] uppercase font-bold tracking-wider inline-block">${escapeHTML(order.status || 'N/A')}</span>`;
+            }
 
             html += `
                 <tr class="hover:bg-neutral-50 transition-colors align-top border-b border-gray-100">
                     <td class="p-4">
                         <div class="flex items-center gap-2">
-                            <span class="font-mono text-xs text-neutral-900">${id}</span>
-                            <button class="copy-id-btn text-neutral-400 hover:text-neutral-900 transition-colors" data-id="${id}" title="Αντιγραφή ID">
+                            <span class="font-mono text-xs text-neutral-900 font-medium">${escapeHTML(id)}</span>
+                            <button class="copy-id-btn text-neutral-400 hover:text-neutral-900 transition-colors" data-id="${escapeHTML(id)}" title="Αντιγραφή ID">
                                 <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                             </button>
                         </div>
+                        ${vivaCodeDisplay}
                     </td>
-                    <td class="p-4 text-sm">${dateStr}</td>
+                    <td class="p-4 text-sm text-neutral-600">${escapeHTML(dateStr)}</td>
                     <td class="p-4 text-sm">${customerStr}</td>
-                    <td class="p-4 text-xs text-neutral-500">${itemsStr}</td>
-                    <td class="p-4 text-sm font-medium">
-                        €${(order.totalAmount || 0).toLocaleString('el-GR')}
+                    <td class="p-4 text-xs text-neutral-500 font-mono">${itemsStr}</td>
+                    <td class="p-4 text-sm">
+                        <div class="font-semibold text-neutral-900">€${(order.totalAmount || 0).toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                         ${paymentBadge}
                     </td>
                     <td class="p-4">${trackingHtml}</td>
                     <td class="p-4">${statusBadge}</td>
                     <td class="p-4 text-right space-y-2 flex flex-col items-end">
-                        <button class="update-order-btn text-blue-500 hover:text-blue-700 transition-colors underline underline-offset-4 text-[10px] tracking-widest uppercase" data-id="${id}" data-status="paid">Σήμανση ως Πληρωμένη</button>
-                        <button class="update-order-btn text-green-500 hover:text-green-700 transition-colors underline underline-offset-4 text-[10px] tracking-widest uppercase" data-id="${id}" data-status="shipped">Σήμανση ως Απεσταλμένη</button>
+                        <button class="update-order-btn text-blue-600 hover:text-blue-800 transition-colors underline underline-offset-4 text-[10px] tracking-widest uppercase" data-id="${escapeHTML(id)}" data-status="paid">Σήμανση ως Πληρωμένη</button>
+                        <button class="update-order-btn text-stone-600 hover:text-stone-800 transition-colors underline underline-offset-4 text-[10px] tracking-widest uppercase" data-id="${escapeHTML(id)}" data-status="confirmed">Σήμανση ως Επιβεβαιωμένη</button>
+                        <button class="update-order-btn text-emerald-600 hover:text-emerald-800 transition-colors underline underline-offset-4 text-[10px] tracking-widest uppercase" data-id="${escapeHTML(id)}" data-status="shipped">Σήμανση ως Απεσταλμένη</button>
                     </td>
                 </tr>
             `;
         });
         ordersTableBody.innerHTML = html;
-        syncScrollWidths(); // Sync the top scrollbar length to the new table size
+        syncScrollWidths();
     }
 
     // PDF Export Logic
@@ -407,15 +452,27 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.text(`Ημερομηνία: ${new Date().toLocaleString('el-GR')}`, 14, 22);
             doc.text(`Σύνολο Παραγγελιών: ${filteredOrders.length}`, 14, 27);
             const totalSum = filteredOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-            doc.text(`Συνολική Αξία: ${totalSum.toLocaleString('el-GR')} EUR`, 14, 32);
+            doc.text(`Συνολική Αξία: ${totalSum.toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`, 14, 32);
 
             const tableData = filteredOrders.map(o => {
                 const dateStr = o.createdAt ? o.createdAt.toDate().toLocaleDateString('el-GR') : '';
                 const customerStr = `${o.customer?.firstName || ''} ${o.customer?.lastName || ''}\n${o.customer?.email || ''}`;
                 const itemsStr = (o.items || []).map(i => `${i.quantity}x [${i.sku || i.title}]`).join('\n');
-                const payment = o.paymentMethod === 'cod' ? 'Αντικαταβολή' : (o.paymentMethod === 'card' ? 'Κάρτα' : 'N/A');
-                const total = `${(o.totalAmount || 0).toLocaleString('el-GR')} EUR`;
-                const status = o.status === 'pending' ? 'Εκκρεμεί' : (o.status === 'paid' ? 'Πληρώθηκε' : (o.status === 'shipped' ? 'Απεστάλη' : o.status));
+                
+                let payment = 'N/A';
+                if (o.paymentMethod === 'cod') {
+                    payment = 'Αντικαταβολή (+2.50€)';
+                } else if (o.paymentMethod === 'card') {
+                    payment = o.vivaOrderCode ? `Κάρτα (Viva: ${o.vivaOrderCode})` : 'Κάρτα (Viva)';
+                }
+                
+                const total = `${(o.totalAmount || 0).toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`;
+                
+                let status = o.status;
+                if (o.status === 'pending') status = 'Εκκρεμεί';
+                else if (o.status === 'paid') status = 'Πληρώθηκε';
+                else if (o.status === 'confirmed') status = 'Επιβεβαιώθηκε';
+                else if (o.status === 'shipped') status = 'Απεστάλη';
                 
                 return [o.id, dateStr, customerStr, itemsStr, payment, total, status];
             });
@@ -470,15 +527,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 1. Update Firestore
                 await updateDoc(doc(db, "orders", orderId), { trackingNumber: newTracking });
                 
-                // 2. Update local arrays to keep UI in sync without re-fetching everything
+                // 2. Update local state
                 const orderIndex = allOrders.findIndex(o => o.id === orderId);
                 let order = null;
-                if(orderIndex !== -1) {
+                if (orderIndex !== -1) {
                     allOrders[orderIndex].trackingNumber = newTracking;
                     order = allOrders[orderIndex];
                 }
                 const filteredIndex = filteredOrders.findIndex(o => o.id === orderId);
-                if(filteredIndex !== -1) filteredOrders[filteredIndex].trackingNumber = newTracking;
+                if (filteredIndex !== -1) filteredOrders[filteredIndex].trackingNumber = newTracking;
 
                 // 3. Trigger EmailJS Notification
                 if (order && typeof emailjs !== 'undefined') {
@@ -493,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             tracking_number: newTracking,
                             payment_method: paymentMethodStr,
                             items_summary: itemsSummary,
-                            total_amount: `€${(order.totalAmount || 0).toLocaleString('el-GR')}`
+                            total_amount: `€${(order.totalAmount || 0).toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                         };
 
                         await emailjs.send("YOUR_SERVICE_ID", "YOUR_TRACKING_TEMPLATE_ID", templateParams);
@@ -508,10 +565,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // 4. UI Reset
-                btn.classList.replace('text-blue-500', 'text-green-600');
+                btn.classList.replace('text-blue-600', 'text-green-600');
                 setTimeout(() => {
                     btn.textContent = 'Αποθήκευση';
-                    btn.classList.replace('text-green-600', 'text-blue-500');
+                    btn.classList.replace('text-green-600', 'text-blue-600');
                     btn.disabled = false;
                 }, 3000);
 
@@ -529,10 +586,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const orderId = e.target.getAttribute('data-id');
             const newStatus = e.target.getAttribute('data-status');
             
-            if (confirm(`Είστε σίγουροι ότι θέλετε να αλλάξετε την κατάσταση σε '${newStatus === 'paid' ? 'Πληρώθηκε' : 'Απεστάλη'}';`)) {
+            const statusLabels = {
+                paid: 'Πληρώθηκε',
+                confirmed: 'Επιβεβαιώθηκε',
+                shipped: 'Απεστάλη'
+            };
+            const targetLabel = statusLabels[newStatus] || newStatus;
+            
+            if (confirm(`Είστε σίγουροι ότι θέλετε να αλλάξετε την κατάσταση σε '${targetLabel}';`)) {
                 try {
                     await updateDoc(doc(db, "orders", orderId), { status: newStatus });
-                    await fetchOrders(); // Full refresh to ensure consistency
+                    await fetchOrders();
                 } catch (error) {
                     console.error("Error updating order status:", error);
                     alert("Σφάλμα κατά την ενημέρωση της παραγγελίας.");
@@ -549,8 +613,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const querySnapshot = await getDocs(collection(db, "products"));
             productsList = [];
-            querySnapshot.forEach((doc) => {
-                productsList.push({ id: doc.id, ...doc.data() });
+            querySnapshot.forEach((docSnap) => {
+                productsList.push({ id: docSnap.id, ...docSnap.data() });
             });
             renderProductsTable();
         } catch (error) {
@@ -579,21 +643,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td class="p-4">
                         <div class="flex items-center gap-4">
                             <div class="w-12 h-12 bg-gray-100 rounded-sm overflow-hidden flex-shrink-0">
-                                <img src="${product.image || ''}" alt="${product.title}" class="w-full h-full object-cover">
+                                <img src="${escapeHTML(product.image || '')}" alt="${escapeHTML(product.title)}" class="w-full h-full object-cover">
                             </div>
-                            <span class="font-serif font-medium">${product.title}</span>
+                            <span class="font-serif font-medium text-neutral-900">${escapeHTML(product.title)}</span>
                         </div>
                     </td>
-                    <td class="p-4 text-neutral-500 font-mono text-xs">${product.sku || 'N/A'}</td>
-                    <td class="p-4 capitalize text-neutral-500">${product.categories || 'N/A'}</td>
-                    <td class="p-4">€${(product.price || 0).toLocaleString('el-GR')}</td>
+                    <td class="p-4 text-neutral-500 font-mono text-xs">${escapeHTML(product.sku || 'N/A')}</td>
+                    <td class="p-4 capitalize text-neutral-500">${escapeHTML(product.categories || 'N/A')}</td>
+                    <td class="p-4 font-medium">€${(product.price || 0).toLocaleString('el-GR')}</td>
                     <td class="p-4">${stockBadge}</td>
                     <td class="p-4">${statusBadge}</td>
                     <td class="p-4 text-right space-x-3">
-                        <button class="edit-product-btn text-neutral-400 hover:text-neutral-900 transition-colors underline underline-offset-4 text-xs tracking-widest uppercase" data-id="${product.id}">
+                        <button class="edit-product-btn text-neutral-400 hover:text-neutral-900 transition-colors underline underline-offset-4 text-xs tracking-widest uppercase" data-id="${escapeHTML(product.id)}">
                             Επεξεργασία
                         </button>
-                        <button class="delete-product-btn text-red-400 hover:text-red-700 transition-colors underline underline-offset-4 text-xs tracking-widest uppercase" data-id="${product.id}">
+                        <button class="delete-product-btn text-red-400 hover:text-red-700 transition-colors underline underline-offset-4 text-xs tracking-widest uppercase" data-id="${escapeHTML(product.id)}">
                             Διαγραφή
                         </button>
                     </td>
@@ -695,8 +759,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             await addDoc(collection(db, "products"), newProduct);
             
-            cancelAddBtn.click(); // resets form and UI
-            await fetchProducts(); // Refresh list
+            cancelAddBtn.click();
+            await fetchProducts();
         } catch (error) {
             console.error("Error adding product:", error);
             alert("Σφάλμα κατά την προσθήκη του προϊόντος.");
@@ -716,7 +780,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (confirm("Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το προϊόν; Η ενέργεια δεν μπορεί να αναιρεθεί.")) {
                 try {
                     await deleteDoc(doc(db, "products", productId));
-                    await fetchProducts(); // Refresh UI instantly
+                    await fetchProducts();
                 } catch (error) {
                     console.error("Error deleting product:", error);
                     alert("Σφάλμα διαγραφής.");
@@ -729,31 +793,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const product = productsList.find(p => p.id === id);
         if (!product) return;
 
-        // Populate Modal
         document.getElementById('edit-id').value = product.id;
         document.getElementById('edit-title').value = product.title;
         document.getElementById('edit-sku').value = product.sku || '';
         document.getElementById('edit-price').value = product.price || 0;
         document.getElementById('edit-stock').value = product.stock || 0;
         
-        // Handle selects safely
         const categorySelect = document.getElementById('edit-category');
-        if([...categorySelect.options].some(o => o.value === product.categories)) {
+        if ([...categorySelect.options].some(o => o.value === product.categories)) {
             categorySelect.value = product.categories;
         }
         
         const dispatchSelect = document.getElementById('edit-dispatch');
-        if([...dispatchSelect.options].some(o => o.value === product.estimated_dispatch)) {
+        if ([...dispatchSelect.options].some(o => o.value === product.estimated_dispatch)) {
             dispatchSelect.value = product.estimated_dispatch;
         } else {
-            dispatchSelect.value = "2-3 estimated days"; // Fallback
+            dispatchSelect.value = "2-3 estimated days";
         }
 
         const statusSelect = document.getElementById('edit-status');
-        if([...statusSelect.options].some(o => o.value === product.status)) {
+        if ([...statusSelect.options].some(o => o.value === product.status)) {
             statusSelect.value = product.status;
         } else {
-            statusSelect.value = "active"; // Default fallback
+            statusSelect.value = "active";
         }
 
         document.getElementById('edit-description').value = product.description || product.desc || '';
@@ -761,17 +823,16 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('edit-care').value = product.care || product.customCare || '';
         document.getElementById('edit-dimensions').value = product.dimensions || '';
 
-        // Populate images
         editImageInputsContainer.innerHTML = '';
         let images = product.images || [];
         if (images.length === 0) {
             if (product.image) images.push(product.image);
             if (product.hoverImage && product.hoverImage !== product.image) images.push(product.hoverImage);
         }
-        if (images.length === 0) images.push(''); // at least one empty input
+        if (images.length === 0) images.push('');
 
         images.forEach((imgUrl, index) => {
-            let removeBtn = index === 0 ? '' : `<button type="button" class="text-red-400 hover:text-red-700 font-bold text-xl remove-image-btn">&times;</button>`;
+            const removeBtn = index === 0 ? '' : `<button type="button" class="text-red-400 hover:text-red-700 font-bold text-xl remove-image-btn">&times;</button>`;
             const inputHTML = `
                 <div class="flex gap-2 items-center">
                     <input type="url" required class="edit-image-input w-full bg-transparent border-b border-gray-300 py-2 focus:outline-none focus:border-neutral-900" placeholder="${index === 0 ? 'URL Κύριας Εικόνας' : 'Επιπλέον URL Εικόνας'}" value="${imgUrl}">
@@ -781,7 +842,6 @@ document.addEventListener('DOMContentLoaded', () => {
             editImageInputsContainer.insertAdjacentHTML('beforeend', inputHTML);
         });
 
-        // Show Modal
         editModal.classList.remove('hidden');
     }
 
@@ -828,7 +888,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             closeEditModal();
-            await fetchProducts(); // Refresh list
+            await fetchProducts();
         } catch (error) {
             console.error("Error updating product:", error);
             alert("Σφάλμα αποθήκευσης.");
@@ -846,8 +906,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const querySnapshot = await getDocs(collection(db, "users"));
             const users = [];
-            querySnapshot.forEach((doc) => {
-                users.push(doc.data());
+            querySnapshot.forEach((docSnap) => {
+                users.push(docSnap.data());
             });
 
             if (users.length === 0) {
@@ -857,18 +917,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             customersTableBody.innerHTML = users.map(user => {
                 const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Μη διαθέσιμο';
-                
-                // Combine Address and Postal Code/Zip
                 const postalCode = user.postalCode || user.zip || '';
                 const fullAddress = `${user.address || ''}, ${postalCode}`.replace(/^, | , $/g, '').trim();
                 const displayAddress = fullAddress && fullAddress !== ',' ? fullAddress : 'Μη διαθέσιμο';
 
                 return `
                     <tr class="hover:bg-neutral-50 transition-colors border-b border-gray-100">
-                        <td class="p-4 font-medium">${fullName}</td>
-                        <td class="p-4 text-neutral-500">${user.email || 'N/A'}</td>
-                        <td class="p-4 text-neutral-500">${user.phone || 'N/A'}</td>
-                        <td class="p-4 text-neutral-500">${displayAddress}</td>
+                        <td class="p-4 font-medium text-neutral-900">${escapeHTML(fullName)}</td>
+                        <td class="p-4 text-neutral-500">${escapeHTML(user.email || 'N/A')}</td>
+                        <td class="p-4 text-neutral-500">${escapeHTML(user.phone || 'N/A')}</td>
+                        <td class="p-4 text-neutral-500">${escapeHTML(displayAddress)}</td>
                     </tr>
                 `;
             }).join('');
@@ -888,11 +946,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const querySnapshot = await getDocs(collection(db, "support_tickets"));
             let tickets = [];
             
-            querySnapshot.forEach((doc) => {
-                tickets.push({ id: doc.id, ...doc.data() });
+            querySnapshot.forEach((docSnap) => {
+                tickets.push({ id: docSnap.id, ...docSnap.data() });
             });
 
-            // Sort by timestamp descending (newest first)
             tickets.sort((a, b) => {
                 const timeA = a.timestamp ? a.timestamp.toMillis() : Date.now();
                 const timeB = b.timestamp ? b.timestamp.toMillis() : Date.now();
@@ -916,26 +973,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tr class="hover:bg-neutral-50 transition-colors align-top border-b border-gray-100">
                         <td class="p-4">
                             <div class="flex flex-col gap-1">
-                                <span class="font-medium text-neutral-900">${ticket.senderName || 'N/A'}</span>
-                                <span class="text-neutral-500 text-xs">${ticket.senderEmail || 'N/A'}</span>
-                                <span class="text-neutral-500 text-xs">${ticket.senderPhone || 'N/A'}</span>
-                                <span class="text-neutral-400 text-xs mt-1 max-w-[200px] truncate" title="${ticket.senderAddress || ''}">${ticket.senderAddress || 'N/A'}</span>
+                                <span class="font-medium text-neutral-900">${escapeHTML(ticket.senderName || 'N/A')}</span>
+                                <span class="text-neutral-500 text-xs">${escapeHTML(ticket.senderEmail || 'N/A')}</span>
+                                <span class="text-neutral-500 text-xs">${escapeHTML(ticket.senderPhone || 'N/A')}</span>
+                                <span class="text-neutral-400 text-xs mt-1 max-w-[200px] truncate" title="${escapeHTML(ticket.senderAddress || '')}">${escapeHTML(ticket.senderAddress || 'N/A')}</span>
                             </div>
                         </td>
                         <td class="p-4">
                             <div class="flex flex-col gap-1">
-                                <span class="text-neutral-900 font-medium">${ticket.issueType || 'Γενική Ερώτηση'}</span>
-                                <span class="text-neutral-400 text-xs">${dateStr}</span>
+                                <span class="text-neutral-900 font-medium">${escapeHTML(ticket.issueType || 'Γενική Ερώτηση')}</span>
+                                <span class="text-neutral-400 text-xs">${escapeHTML(dateStr)}</span>
                             </div>
                         </td>
                         <td class="p-4">
-                            <div class="text-neutral-600 text-sm max-w-sm whitespace-pre-wrap">${ticket.message || 'Χωρίς μήνυμα.'}</div>
+                            <div class="text-neutral-600 text-sm max-w-sm whitespace-pre-wrap">${escapeHTML(ticket.message || 'Χωρίς μήνυμα.')}</div>
                         </td>
                         <td class="p-4">
                             ${badgeHtml}
                         </td>
                         <td class="p-4 text-right">
-                            <button class="delete-ticket-btn text-red-400 hover:text-red-700 transition-colors underline underline-offset-4 text-xs tracking-widest uppercase" data-id="${ticket.id}">
+                            <button class="delete-ticket-btn text-red-400 hover:text-red-700 transition-colors underline underline-offset-4 text-xs tracking-widest uppercase" data-id="${escapeHTML(ticket.id)}">
                                 Επίλυση (Διαγραφή)
                             </button>
                         </td>
@@ -956,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (confirm("Είστε σίγουροι ότι θέλετε να επισημάνετε αυτό το αίτημα ως επιλυμένο; Αυτό θα διαγράψει μόνιμα την εγγραφή.")) {
                 try {
                     await deleteDoc(doc(db, "support_tickets", ticketId));
-                    await fetchSupportTickets(); // Refresh UI instantly
+                    await fetchSupportTickets();
                 } catch (error) {
                     console.error("Error deleting ticket:", error);
                     alert("Σφάλμα διαγραφής.");
